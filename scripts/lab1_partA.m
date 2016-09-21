@@ -2,7 +2,6 @@
 matrix1_real = zeros(5);
 matrix2_real = zeros(5);
 matrix_out_real = zeros(5);
-matrix_out_real = matrix1_real * matrix2_real;
 matrix1_in = zeros(25,1);
 matrix2_in = zeros(25,1);
 matrix_out = zeros(25,1);
@@ -13,11 +12,18 @@ for i=0:4
         matrix2_in(i*5+j) = j;
     end
 end
-for cols=0:size
-    for rowsOut=0:size
+for i=1:5
+    for j=1:5
+        matrix1_real(i,j) = j;
+        matrix2_real(i,j) = j;
+    end
+end
+matrix_out_real = matrix1_real * matrix2_real;
+for cols=0:size-1
+    for rowsOut=0:size-1
 	    matrix_out(1 + cols + rowsOut*size) = 0.0;
-	    for rowsIn=0:size
-            matrix_out(1 + cols + rowsOut*size) = matrix_out(cols + rowsOut*size) + matrix1_in(rowsIn + rowsOut*size) * matrix2_in(rowsIn*size + cols);
+	    for rowsIn=0:size-1
+            matrix_out(1 + cols + rowsOut*size,1) = matrix_out(1 + cols + rowsOut*size,1) + matrix1_in(1 + rowsIn + rowsOut*size,1) * matrix2_in(1 + rowsIn*size + cols,1);
         end
     end
 end
