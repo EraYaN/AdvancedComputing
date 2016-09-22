@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 		// delimiter (usually space) and the last one is the version number.
 		// The CmdLine object parses the argv array based on the Arg objects
 		// that it contains.
-		TCLAP::CmdLine cmd("OpenMP Matrix x Vector Multiplication", ' ', "0.9");
+		TCLAP::CmdLine cmd("SSE Matrix x Matrix Multiplication", ' ', "0.9");
 
 		// Define a value argument and add it to the command line.
 		// A value arg defines a flag and a type of value that it expects,
