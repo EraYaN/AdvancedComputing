@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
 		printf("SEQ:%.14f\n", time_sq);
 		printf("VAR:%.14f\n", time_sse);
 
-		//check
+		//TODO check
 		/*int i;
 		for(i=0; i<size; i++)
 		  if((int)result_sq[i] != (int)result_pl[i]){

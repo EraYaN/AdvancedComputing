@@ -1,27 +1,4 @@
-/*
- *
- * Copyright (c) 2012, Neurasmus B.V., The Netherlands,
- * web: www.neurasmus.com email: info@neurasmus.com
- *
- * Any use reproduction in whole or in parts is prohibited
- * without the written consent of the copyright owner.
- *
- * All Rights Reserved.
- *
- *
- * Author: Sebastian Isaza
- * Created: 10-04-2012
- * Modified: 06-06-2012
- *
- * Description : Top header file of the Inferior Olive model. It contains the
- * constant model conductances, the data structures that hold the cell state and
- * the function prototypes.
- *
- */
-
-
-#ifndef MAIN_H_
-#define MAIN_H_
+#pragma once
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,6 +6,11 @@
 #include <time.h>
 #include <omp.h>
 #include <direct.h>
+#include <iostream>
+#include <algorithm>
+#include <tclap/CmdLine.h>
+#include <variant.h>
+#include <interactive_tools.h>
 
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
@@ -46,6 +28,3 @@
 /*** TYPEDEFS AND STRUCTS***/
 typedef unsigned long long timestamp_t;
 
-
-
-#endif /* MAIN_H_ */

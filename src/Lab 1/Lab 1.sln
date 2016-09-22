@@ -9,8 +9,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenMP", "OpenMP\OpenMP.vcx
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SSE", "SSE\SSE.vcxproj", "{66D04798-A43D-4DC8-912F-63D17C25D988}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C8FDAECA-2E23-4C2B-A7C6-3AD3B4964D0B} = {C8FDAECA-2E23-4C2B-A7C6-3AD3B4964D0B}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCL", "OpenCL\OpenCL.vcxproj", "{CC186FDF-4ACC-43D7-997D-38F5CE1B1453}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C8FDAECA-2E23-4C2B-A7C6-3AD3B4964D0B} = {C8FDAECA-2E23-4C2B-A7C6-3AD3B4964D0B}
+	EndProjectSection
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Wrapper", "Wrapper\Wrapper.pyproj", "{12E3A9B6-63DF-4FD3-A441-E1DB7B907841}"
 EndProject
@@ -20,8 +26,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenMPMatrix", "OpenMPMatri
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SSEMatrix", "SSEMatrix\SSEMatrix.vcxproj", "{66D04798-A43D-4DC8-912F-63D17C25D989}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C8FDAECA-2E23-4C2B-A7C6-3AD3B4964D0B} = {C8FDAECA-2E23-4C2B-A7C6-3AD3B4964D0B}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCLMatrix", "OpenCLMatrix\OpenCLMatrix.vcxproj", "{CC186FDF-4ACC-43D7-997D-38F5CE1B1454}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C8FDAECA-2E23-4C2B-A7C6-3AD3B4964D0B} = {C8FDAECA-2E23-4C2B-A7C6-3AD3B4964D0B}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ACSLabSharedLibrary", "ACSLabSharedLibrary\ACSLabSharedLibrary.vcxproj", "{C8FDAECA-2E23-4C2B-A7C6-3AD3B4964D0B}"
 EndProject

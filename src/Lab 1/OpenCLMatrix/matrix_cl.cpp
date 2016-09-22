@@ -1,4 +1,4 @@
-#include "vector_cl.h"
+#include "matrix_cl.h"
 
 using namespace std;
 
@@ -105,8 +105,8 @@ void printArray(double arr[], int size) {
 
 /****************************************************
 the following function calculate the below equation
-   vector_out = vector_in x matrix_in
- ***************************************************/
+vector_out = vector_in x matrix_in
+***************************************************/
 void matrix_mult_sq(int size, cl_double *vector_in,
 	cl_double *matrix_in, cl_double *vector_out) {
 	int rows, cols;
@@ -121,7 +121,7 @@ void matrix_mult_sq(int size, cl_double *vector_in,
 /*****************************************************
 the following function generates a "size"-element vector
 and a "size x size" matrix
- ****************************************************/
+****************************************************/
 void matrix_vector_gen(cl_int size, cl_double *matrix, cl_double *vector) {
 	int i;
 	for (i = 0; i < size; i++)

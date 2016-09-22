@@ -130,7 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="matrix_cl.c" />
+    <ClCompile Include="matrix_cl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="matrix_cl.h" />
