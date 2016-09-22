@@ -35,7 +35,7 @@ void matrix_vector_gen(int size, int sizeReal, float *matrix, float *vector) {
 	}
 
 	for (i = 0; i < size*size; i++) {
-		if (i % size < sizeReal) {
+		if (i % size < sizeReal && i < size * sizeReal) {
 			matrix[i] = i*1.3f + 1;//((float)rand())/5307.0f;
 		} else {
 			matrix[i] = 0.0;

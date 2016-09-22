@@ -3,7 +3,7 @@ size = 8;
 sizeReal = 5;
 matrix = zeros(size*size,1);
 for i=0:size*size-1
-    if mod(i,size) < sizeReal
+    if mod(i,size) < sizeReal && i < size * sizeReal
         matrix(i+1) = i*1.3 + 1;
     else
         matrix(i+1) = 0.0;
