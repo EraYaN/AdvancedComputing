@@ -6,20 +6,21 @@
 #include <tclap/CmdLine.h>
 #include <variant.h>
 #include <interactive_tools.h>
+#include <user_float.h>
 
 using namespace std;
 // generate two input matrices
-void matrix_matrix_gen(int size, double *matrix1, double *matrix2) {
+void matrix_matrix_gen(int size, user_float_t *matrix1, user_float_t *matrix2) {
 	int i;
 	for (i = 0; i < size*size; i++)
-		matrix1[i] = ((double)rand()) / 5307.0;
+		matrix1[i] = ((user_float_t)rand()) / 5307.0;
 	for (i = 0; i < size*size; i++)
-		matrix2[i] = ((double)rand()) / 5307.0;
+		matrix2[i] = ((user_float_t)rand()) / 5307.0;
 }
 
 // matrix matrix multiplication
-void matrix_mult_sq(int size, double *matrix1_in,
-	double *matrix2_in, double *matrix_out) {
+void matrix_mult_sq(int size, user_float_t *matrix1_in,
+	user_float_t *matrix2_in, user_float_t *matrix_out) {
 	int rowsOut, rowsIn, cols;
 	int j;
 	for (cols = 0; cols<size; cols++) {
@@ -32,8 +33,8 @@ void matrix_mult_sq(int size, double *matrix1_in,
 	}
 }
 
-void matrix_mult_pl(int size, double *matrix1_in,
-	double *matrix2_in, double *matrix_out) {
+void matrix_mult_pl(int size, user_float_t *matrix1_in,
+	user_float_t *matrix2_in, user_float_t *matrix_out) {
 	int rowsOut, rowsIn, cols;
 	int j;
 # pragma omp parallel				\
@@ -69,6 +70,7 @@ int main(int argc, char *argv[]) {
 		// such as "-n Bishop".
 		TCLAP::ValueArg<unsigned int> threadsArg("t", "threads", "Number of threads.", true, 2, "unsigned int");
 		TCLAP::ValueArg<unsigned int> datasizeArg("s", "data_size", "Data size.", true, 2, "unsigned int");
+		TCLAP::ValueArg<unsigned int> iterationsArg("n", "iterations", "The number of iterations.", false, 1, "unsigned int");
 		TCLAP::ValuesConstraint<int> variantConstraint(variants);
 		TCLAP::ValueArg<int> variantArg("v", "variant", "Variant ID to run.", false, (int)base, &variantConstraint, false);
 		TCLAP::SwitchArg debugArg("d", "debug", "Enable debug mode, verbose output.", false);
@@ -78,6 +80,7 @@ int main(int argc, char *argv[]) {
 		// uses this Arg to parse the command line.
 		cmd.add(threadsArg);
 		cmd.add(datasizeArg);
+		cmd.add(iterationsArg);
 		cmd.add(variantArg);
 		cmd.add(debugArg);
 		cmd.add(interactiveArg);
@@ -88,14 +91,15 @@ int main(int argc, char *argv[]) {
 		// Get the value parsed by each arg.
 		unsigned size = datasizeArg.getValue();
 		unsigned threads = threadsArg.getValue();
+		unsigned iterations = iterationsArg.getValue();
 		Variant variant = (Variant)variantArg.getValue();
 		bool debug = debugArg.getValue();
 		bool interactive = interactiveArg.getValue();
 
-		double *matrix1 = (double *)malloc(sizeof(double)*size*size);
-		double *matrix2 = (double *)malloc(sizeof(double)*size*size);
-		double *result_sq = (double *)malloc(sizeof(double)*size*size);
-		double *result_pl = (double *)malloc(sizeof(double)*size*size);
+		user_float_t *matrix1 = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
+		user_float_t *matrix2 = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
+		user_float_t *result_sq = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
+		user_float_t *result_pl = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
 		matrix_matrix_gen(size, matrix1, matrix2);
 
 		double time_sq = 0;
@@ -103,14 +107,19 @@ int main(int argc, char *argv[]) {
 
 		omp_set_num_threads(threads);
 		time_sq = omp_get_wtime();
-		matrix_mult_sq(size, matrix1, matrix2, result_sq);
+		for (unsigned iteration = 0; iteration < iterations; iteration++) {
+			matrix_mult_sq(size, matrix1, matrix2, result_sq);
+		}
 		time_sq = omp_get_wtime() - time_sq;
 
 		time_pl = omp_get_wtime();
-		matrix_mult_pl(size, matrix1, matrix2, result_pl);
+		for (unsigned iteration = 0; iteration < iterations; iteration++) {
+			matrix_mult_pl(size, matrix1, matrix2, result_pl);
+		}
 		time_pl = omp_get_wtime() - time_pl;
 
 		if (debug) {
+			printf("ITR:%d\n", iterations);
 			printf("DAT:%d\n", size);
 			printf("THD:%d\n", omp_get_max_threads());
 			printf("PRC:%d\n", omp_get_num_procs());

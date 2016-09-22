@@ -98,18 +98,7 @@ const char *getErrorString(cl_int error) {
 	}
 }
 
-void printArray(double arr[], int size) {
-	int i;
-	cout << "index:\t";
-	for (i = 0; i < size; i++) {
-		cout << i;
-	}
-	cout << endl << "arr:\t";
-	for (i = 0; i < size; i++) {
-		cout << arr[i];
-	}
-	cout << endl;
-}
+
 
 void printCLBuildOutput(cl_program program, const cl_device_id* device_id) {
 	size_t len;

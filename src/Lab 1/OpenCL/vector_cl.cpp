@@ -13,6 +13,7 @@
 #include <variant.h>
 #include <interactive_tools.h>
 #include <opencl_helpers.h>
+#include <user_float.h>
 
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
@@ -26,10 +27,10 @@ using namespace std;
 the following function calculate the below equation
    vector_out = vector_in x matrix_in
  ***************************************************/
-void matrix_mult_sq(int size, cl_double *vector_in,
-	cl_double *matrix_in, cl_double *vector_out) {
-	int rows, cols;
-	int j;
+void matrix_mult_sq(unsigned int size, user_float_t *vector_in,
+	user_float_t *matrix_in, user_float_t *vector_out) {
+	unsigned int rows, cols;
+	unsigned int j;
 	for (cols = 0; cols < size; cols++) {
 		vector_out[cols] = 0.0;
 		for (j = 0, rows = 0; rows < size; j++, rows++)
@@ -41,12 +42,12 @@ void matrix_mult_sq(int size, cl_double *vector_in,
 the following function generates a "size"-element vector
 and a "size x size" matrix
  ****************************************************/
-void matrix_vector_gen(cl_int size, cl_double *matrix, cl_double *vector) {
-	int i;
+void matrix_vector_gen(unsigned int size, user_float_t *matrix, user_float_t *vector) {
+	unsigned int i;
 	for (i = 0; i < size; i++)
-		vector[i] = ((double)rand()) / 65535.0;
+		vector[i] = ((user_float_t)rand()) / 65535.0;
 	for (i = 0; i < size*size; i++)
-		matrix[i] = ((double)rand()) / 5307.0;
+		matrix[i] = ((user_float_t)rand()) / 5307.0;
 }
 
 int main(int argc, char *argv[]) {
@@ -60,13 +61,18 @@ int main(int argc, char *argv[]) {
 		// delimiter (usually space) and the last one is the version number.
 		// The CmdLine object parses the argv array based on the Arg objects
 		// that it contains.
-		TCLAP::CmdLine cmd("OpenCL Matrix x Vector Multiplication", ' ', "0.9");
+#ifdef USE_DOUBLES
+		TCLAP::CmdLine cmd("OpenCL Matrix x Vector Multiplication (Double Precision)", ' ', "0.9");
+#else
+		TCLAP::CmdLine cmd("OpenCL Matrix x Vector Multiplication (Single Precision)", ' ', "0.9");
+#endif
 
 		// Define a value argument and add it to the command line.
 		// A value arg defines a flag and a type of value that it expects,
 		// such as "-n Bishop".
 		TCLAP::ValueArg<unsigned int> threadsArg("t", "threads", "Local workgroup size.", true, 2, "unsigned int");
 		TCLAP::ValueArg<unsigned int> datasizeArg("s", "data_size", "Data size.", true, 2, "unsigned int");
+		TCLAP::ValueArg<unsigned int> iterationsArg("n", "iterations", "The number of iterations.", false, 1, "unsigned int");
 		TCLAP::ValuesConstraint<int> variantConstraint(variants);
 		TCLAP::ValueArg<int> variantArg("v", "variant", "Variant ID to run.", false, (int)base, &variantConstraint, false);
 		TCLAP::SwitchArg debugArg("d", "debug", "Enable debug mode, verbose output.", false);
@@ -76,6 +82,7 @@ int main(int argc, char *argv[]) {
 		// uses this Arg to parse the command line.
 		cmd.add(threadsArg);
 		cmd.add(datasizeArg);
+		cmd.add(iterationsArg);
 		cmd.add(variantArg);
 		cmd.add(debugArg);
 		cmd.add(interactiveArg);
@@ -84,8 +91,9 @@ int main(int argc, char *argv[]) {
 		cmd.parse(argc, argv);
 
 		// Get the value parsed by each arg.
-		cl_int size = (cl_int)datasizeArg.getValue();
-		cl_int localSize = (cl_int)threadsArg.getValue();
+		unsigned int size = datasizeArg.getValue();
+		unsigned int localSize = threadsArg.getValue();
+		unsigned iterations = iterationsArg.getValue();
 		Variant variant = (Variant)variantArg.getValue();
 		bool debug = debugArg.getValue();
 		bool interactive = interactiveArg.getValue();
@@ -111,10 +119,10 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-		cl_double *vector = (double *)malloc(sizeof(cl_double)*size);
-		cl_double *matrix = (double *)malloc(sizeof(cl_double)*size*size);
-		cl_double *result_sq = (double *)malloc(sizeof(cl_double)*size);
-		cl_double *result_pl = (double *)malloc(sizeof(cl_double)*size);
+		user_float_t *vector = (user_float_t *)malloc(sizeof(user_float_t)*size);
+		user_float_t *matrix = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
+		user_float_t *result_sq = (user_float_t *)malloc(sizeof(user_float_t)*size);
+		user_float_t *result_pl = (user_float_t *)malloc(sizeof(user_float_t)*size);
 		matrix_vector_gen(size, matrix, vector);
 
 		double time_sq;
@@ -124,12 +132,14 @@ int main(int argc, char *argv[]) {
 		cl_event mulDone;
 
 		time_sq = omp_get_wtime();
-		matrix_mult_sq(size, vector, matrix, result_sq);
+		for (unsigned iteration = 0; iteration < iterations; iteration++) {
+			matrix_mult_sq(size, vector, matrix, result_sq);
+		}
 		time_sq = omp_get_wtime() - time_sq;
+
 
 		cl_int status;
 
-		time_opencl = omp_get_wtime();
 
 
 		//-----------------------------------------------------
@@ -236,7 +246,7 @@ int main(int argc, char *argv[]) {
 		bufferVectorIn = clCreateBuffer(
 			context,
 			CL_MEM_READ_ONLY,
-			size * sizeof(cl_double),
+			size * sizeof(user_float_t),
 			NULL,
 			&status);
 
@@ -249,7 +259,7 @@ int main(int argc, char *argv[]) {
 		bufferMatrixIn = clCreateBuffer(
 			context,
 			CL_MEM_READ_ONLY,
-			size*size * sizeof(cl_double),
+			size*size * sizeof(user_float_t),
 			NULL,
 			&status);
 
@@ -262,7 +272,7 @@ int main(int argc, char *argv[]) {
 		bufferVectorOut = clCreateBuffer(
 			context,
 			CL_MEM_WRITE_ONLY,
-			size*size * sizeof(cl_double),
+			size*size * sizeof(user_float_t),
 			NULL,
 			&status);
 
@@ -272,53 +282,13 @@ int main(int argc, char *argv[]) {
 			exit(-1);
 		}
 
-		status = clEnqueueWriteBuffer(
-			cmdQueue,
-			bufferVectorIn,
-			CL_FALSE,
-			0,
-			size * sizeof(cl_double),
-			vector,
-			0,
-			NULL,
-			NULL);
-
-		status |= clEnqueueWriteBuffer(
-			cmdQueue,
-			bufferMatrixIn,
-			CL_FALSE,
-			0,
-			size*size * sizeof(cl_double),
-			matrix,
-			0,
-			NULL,
-			NULL);
-
-		if (status != CL_SUCCESS) {
-			cerr << "error in step 5, writing data: " << getErrorString(status) << endl;
-			if (interactive) wait_for_input();
-			exit(-1);
-		}
-
 		char *mulFileName;
-		mulFileName = "vectorMatrixMul.cl";
-		/*FILE *mulFile;
-		fopen_s(&mulFile, mulFileName, "r");
-		if (mulFile == NULL) {
-			cerr << "cannot open .cl file" << endl;
-			cerr << "current path: " << mulFileName << endl;
-			if (interactive) wait_for_input();
-			exit(-1);
-		}
-		fseek(mulFile, 0, SEEK_END);
-		size_t mulSize = ftell(mulFile);
-		rewind(mulFile);
 
-		// read kernel source into buffer
-		mulBuffer = (char*)malloc(mulSize + 1);
-		mulBuffer[mulSize] = '\0';
-		fread(mulBuffer, sizeof(char), mulSize, mulFile);
-		fclose(mulFile);*/
+		#ifdef USE_DOUBLES
+				mulFileName = "vectorMatrixMulDouble.cl";
+		#else
+				mulFileName = "vectorMatrixMulFloat.cl";
+		#endif
 
 		std::fstream kernelFile(mulFileName);
 		std::string content(
@@ -373,94 +343,128 @@ int main(int argc, char *argv[]) {
 			exit(-1);
 		}
 
-		//-----------------------------------------------------
-		// STEP 8: Set the kernel arguments
-		//-----------------------------------------------------
-		// Associate the input and output buffers with the
-		// kernel
-		// using clSetKernelArg()
-		status = clSetKernelArg(
-			mulKernel,
-			0,
-			sizeof(cl_mem),
-			&bufferVectorIn);
-		status |= clSetKernelArg(
-			mulKernel,
-			1,
-			sizeof(cl_mem),
-			&bufferMatrixIn);
-		status |= clSetKernelArg(
-			mulKernel,
-			2,
-			sizeof(cl_mem),
-			&bufferVectorOut);
-		status |= clSetKernelArg(
-			mulKernel,
-			3,
-			sizeof(cl_int),
-			&size);
+
+		//TODO figure out if this is fair, all the setup is included now.
+		time_opencl = omp_get_wtime();
+		for (unsigned iteration = 0; iteration < iterations; iteration++) {
+			status = clEnqueueWriteBuffer(
+				cmdQueue,
+				bufferVectorIn,
+				CL_FALSE,
+				0,
+				size * sizeof(user_float_t),
+				vector,
+				0,
+				NULL,
+				NULL);
+
+			status |= clEnqueueWriteBuffer(
+				cmdQueue,
+				bufferMatrixIn,
+				CL_FALSE,
+				0,
+				size*size * sizeof(user_float_t),
+				matrix,
+				0,
+				NULL,
+				NULL);
+
+			if (status != CL_SUCCESS) {
+				cerr << "error in step 5, writing data: " << getErrorString(status) << endl;
+				if (interactive) wait_for_input();
+				exit(-1);
+			}
+
+			//-----------------------------------------------------
+			// STEP 8: Set the kernel arguments
+			//-----------------------------------------------------
+			// Associate the input and output buffers with the
+			// kernel
+			// using clSetKernelArg()
+			status = clSetKernelArg(
+				mulKernel,
+				0,
+				sizeof(cl_mem),
+				&bufferVectorIn);
+			status |= clSetKernelArg(
+				mulKernel,
+				1,
+				sizeof(cl_mem),
+				&bufferMatrixIn);
+			status |= clSetKernelArg(
+				mulKernel,
+				2,
+				sizeof(cl_mem),
+				&bufferVectorOut);
+			status |= clSetKernelArg(
+				mulKernel,
+				3,
+				sizeof(cl_int),
+				&size);
 
 
-		if (status != CL_SUCCESS) {
-			cerr << "error in step 8: " << getErrorString(status) << endl;
-			if (interactive) wait_for_input();
-			exit(-1);
+			if (status != CL_SUCCESS) {
+				cerr << "error in step 8: " << getErrorString(status) << endl;
+				if (interactive) wait_for_input();
+				exit(-1);
+			}
+
+			//-----------------------------------------------------
+			// STEP 9: Configure the work-item structure
+			//-----------------------------------------------------
+			// Define an index space (global work size) of work
+			// items for
+			// execution. A workgroup size (local work size) is not
+			// required,
+			// but can be used.
+
+			size_t globalWorkSize[1];
+			globalWorkSize[0] = size;
+
+			size_t localWorkSize[1];
+			localWorkSize[0] = localSize;
+
+
+			status |= clEnqueueNDRangeKernel(
+				cmdQueue,
+				mulKernel,
+				1,
+				NULL,
+				globalWorkSize,
+				localWorkSize,
+				0,
+				NULL,
+				&mulDone);
+
+			if (status != CL_SUCCESS) {
+				clWaitForEvents(1, &mulDone);
+				cerr << "error in clEnqueueNDRangeKernel" << endl;
+				if (interactive) wait_for_input();
+				exit(-1);
+			}
+
+			clEnqueueReadBuffer(
+				cmdQueue,
+				bufferVectorOut,
+				CL_TRUE,
+				0,
+				size * sizeof(user_float_t),
+				result_pl,
+				1,
+				&mulDone,
+				NULL);
+
+
+			if (status != CL_SUCCESS) {
+				cerr << "error in reading data: " << getErrorString(status) << endl;
+				exit(-1);
+			}
 		}
-
-		//-----------------------------------------------------
-		// STEP 9: Configure the work-item structure
-		//-----------------------------------------------------
-		// Define an index space (global work size) of work
-		// items for
-		// execution. A workgroup size (local work size) is not
-		// required,
-		// but can be used.
-
-		size_t globalWorkSize[1];
-		globalWorkSize[0] = size;
-
-		size_t localWorkSize[1];
-		localWorkSize[0] = localSize;
-
-
-		status |= clEnqueueNDRangeKernel(
-			cmdQueue,
-			mulKernel,
-			1,
-			NULL,
-			globalWorkSize,
-			localWorkSize,
-			0,
-			NULL,
-			&mulDone);
-
-		if (status != CL_SUCCESS) {
-			clWaitForEvents(1, &mulDone);
-			cerr << "error in clEnqueueNDRangeKernel" << endl;
-			if (interactive) wait_for_input();
-			exit(-1);
-		}
-
-		clEnqueueReadBuffer(
-			cmdQueue,
-			bufferVectorOut,
-			CL_TRUE,
-			0,
-			size * sizeof(cl_double),
-			result_pl,
-			1,
-			&mulDone,
-			NULL);
-
-
-		if (status != CL_SUCCESS) {
-			cerr << "error in reading data: " << getErrorString(status) << endl;
-			exit(-1);
-		}
-
 		time_opencl = omp_get_wtime() - time_opencl;
 
+
 		if (debug) {
+			printf("ITR:%d\n", iterations);
 			printf("DAT:%d\n", size);
 			printf("THD:%d\n", localSize);
 			//printf("PRC:%d\n", omp_get_num_procs());
@@ -468,9 +472,20 @@ int main(int argc, char *argv[]) {
 		printf("SEQ:%.14f\n", time_sq);
 		printf("VAR:%.14f\n", time_opencl);
 
+		if (debug) {
+			cout << "vector: " << endl;
+			printArray(vector, size);
+			cout << "matrix: " << endl;
+			printMatrix(matrix, size, size);
+			cout << "result_sq: " << endl;
+			printArray(result_sq, size);
+			cout << "result_pl: " << endl;
+			printArray(result_pl, size);
+
+		}
 
 		//check
-		int i;
+		unsigned i;
 		for (i = 0; i < size; i++) {
 			if ((int)result_sq[i] != (int)result_pl[i]) {
 				if (debug) {

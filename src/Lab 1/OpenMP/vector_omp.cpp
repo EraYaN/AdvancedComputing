@@ -6,26 +6,27 @@
 #include <tclap/CmdLine.h>
 #include <variant.h>
 #include <interactive_tools.h>
+#include <user_float.h>
 
 using namespace std;
 /*****************************************************
 the following function generates a "size"-element vector
 and a "size x size" matrix
  ****************************************************/
-void matrix_vector_gen(int size, double *matrix, double *vector) {
+void matrix_vector_gen(int size, user_float_t *matrix, user_float_t *vector) {
 	int i;
 	for (i = 0; i < size; i++)
-		vector[i] = ((double)rand()) / 65535.0;
+		vector[i] = ((user_float_t)rand()) / 65535.0;
 	for (i = 0; i < size*size; i++)
-		matrix[i] = ((double)rand()) / 5307.0;
+		matrix[i] = ((user_float_t)rand()) / 5307.0;
 }
 
 /****************************************************
 the following function calculate the below equation
    vector_out = vector_in x matrix_in
  ***************************************************/
-void matrix_mult_sq(int size, double *vector_in,
-	double *matrix_in, double *vector_out) {
+void matrix_mult_sq(int size, user_float_t *vector_in,
+	user_float_t *matrix_in, user_float_t *vector_out) {
 	int rows, cols;
 	int j;
 	for (cols = 0; cols < size; cols++) {
@@ -35,8 +36,8 @@ void matrix_mult_sq(int size, double *vector_in,
 	}
 }
 
-void matrix_mult_pl(int size, double *vector_in,
-	double *matrix_in, double *vector_out) {
+void matrix_mult_pl(int size, user_float_t *vector_in,
+	user_float_t *matrix_in, user_float_t *vector_out) {
 	int rows, cols;
 	int j;
 # pragma omp parallel				\
@@ -68,6 +69,7 @@ int main(int argc, char *argv[]) {
 		// such as "-n Bishop".
 		TCLAP::ValueArg<unsigned int> threadsArg("t", "threads", "Number of threads.", true, 2, "unsigned int");
 		TCLAP::ValueArg<unsigned int> datasizeArg("s", "data_size", "Data size.", true, 2, "unsigned int");
+		TCLAP::ValueArg<unsigned int> iterationsArg("n", "iterations", "The number of iterations.", false, 1, "unsigned int");
 		TCLAP::ValuesConstraint<int> variantConstraint(variants);
 		TCLAP::ValueArg<int> variantArg("v", "variant", "Variant ID to run.", false, (int)base, &variantConstraint, false);
 		TCLAP::SwitchArg debugArg("d", "debug", "Enable debug mode, verbose output.", false);
@@ -77,6 +79,7 @@ int main(int argc, char *argv[]) {
 		// uses this Arg to parse the command line.
 		cmd.add(threadsArg);
 		cmd.add(datasizeArg);
+		cmd.add(iterationsArg);
 		cmd.add(variantArg);
 		cmd.add(debugArg);
 		cmd.add(interactiveArg);
@@ -87,14 +90,15 @@ int main(int argc, char *argv[]) {
 		// Get the value parsed by each arg.
 		unsigned size = datasizeArg.getValue();
 		unsigned threads = threadsArg.getValue();
+		unsigned iterations = iterationsArg.getValue();
 		Variant variant = (Variant)variantArg.getValue();
 		bool debug = debugArg.getValue();
 		bool interactive = interactiveArg.getValue();
 
-		double *vector = (double *)malloc(sizeof(double)*size);
-		double *matrix = (double *)malloc(sizeof(double)*size*size);
-		double *result_sq = (double *)malloc(sizeof(double)*size);
-		double *result_pl = (double *)malloc(sizeof(double)*size);
+		user_float_t *vector = (user_float_t *)malloc(sizeof(user_float_t)*size);
+		user_float_t *matrix = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
+		user_float_t *result_sq = (user_float_t *)malloc(sizeof(user_float_t)*size);
+		user_float_t *result_pl = (user_float_t *)malloc(sizeof(user_float_t)*size);
 		matrix_vector_gen(size, matrix, vector);
 
 		double time_sq = 0;
@@ -102,14 +106,19 @@ int main(int argc, char *argv[]) {
 
 		omp_set_num_threads(threads);
 		time_sq = omp_get_wtime();
-		matrix_mult_sq(size, vector, matrix, result_sq);
+		for (unsigned iteration = 0; iteration < iterations; iteration++) {
+			matrix_mult_sq(size, vector, matrix, result_sq);
+		}
 		time_sq = omp_get_wtime() - time_sq;
 
 		time_pl = omp_get_wtime();
-		matrix_mult_pl(size, vector, matrix, result_pl);
+		for (unsigned iteration = 0; iteration < iterations; iteration++) {
+			matrix_mult_pl(size, vector, matrix, result_pl);
+		}
 		time_pl = omp_get_wtime() - time_pl;
 
 		if (debug) {
+			printf("ITR:%d\n", iterations);
 			printf("DAT:%d\n", size);
 			printf("THD:%d\n", omp_get_max_threads());
 			printf("PRC:%d\n", omp_get_num_procs());

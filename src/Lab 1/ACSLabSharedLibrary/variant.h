@@ -1,9 +1,10 @@
 #pragma once
 
 enum Variant {
-	base = 0
+	base = 0,
+	arbitrarysize = 1
 };
 
-std::vector<int> variants({ base });
+std::vector<int> variants({ base,arbitrarysize });
 
 

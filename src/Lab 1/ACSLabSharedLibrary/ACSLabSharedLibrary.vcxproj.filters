@@ -24,6 +24,9 @@
     <ClInclude Include="opencl_helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="user_float.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="interactive_tools.cpp">
