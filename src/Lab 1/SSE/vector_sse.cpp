@@ -114,6 +114,7 @@ int main(int argc, char *argv[]) {
 
 		// Get the value parsed by each arg.
 		unsigned sizeReal = datasizeArg.getValue();
+		unsigned int size;
 		unsigned threads = threadsArg.getValue();
 		Variant variant = (Variant)variantArg.getValue();
 		bool debug = debugArg.getValue();
