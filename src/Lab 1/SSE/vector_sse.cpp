@@ -24,12 +24,23 @@ using namespace std;
 the following function generates a "size"-element vector
 and a "size x size" matrix
  ****************************************************/
-void matrix_vector_gen(int size, float *matrix, float *vector) {
+void matrix_vector_gen(int size, int sizeReal, float *matrix, float *vector) {
 	int i;
-	for (i = 0; i < size; i++)
-		vector[i] = i*1.2f + 1;//((float)rand())/65535.0f;
-	for (i = 0; i < size*size; i++)
-		matrix[i] = i*1.3f + 1;//((float)rand())/5307.0f;
+	for (i = 0; i < size; i++) {
+		if (i < sizeReal) {
+			vector[i] = i*1.2f + 1;//((float)rand())/65535.0f;
+		} else {
+			vector[i] = 0.0;
+		}
+	}
+
+	for (i = 0; i < size*size; i++) {
+		if (i % size < sizeReal) {
+			matrix[i] = i*1.3f + 1;//((float)rand())/5307.0f;
+		} else {
+			matrix[i] = 0.0;
+		}
+	}
 }
 
 /****************************************************
@@ -102,16 +113,21 @@ int main(int argc, char *argv[]) {
 		cmd.parse(argc, argv);
 
 		// Get the value parsed by each arg.
-		unsigned size = datasizeArg.getValue();
+		unsigned sizeReal = datasizeArg.getValue();
 		unsigned threads = threadsArg.getValue();
 		Variant variant = (Variant)variantArg.getValue();
 		bool debug = debugArg.getValue();
 		bool interactive = interactiveArg.getValue();
 
-		if (size % 4 != 0) {
+		if (sizeReal % 4 != 0) {
+			// round to nearest multiple of 4 to enable aligned_malloc
+			size = sizeReal + 4 - (sizeReal % 4);
+		}
+
+		/*if (size % 4 != 0) {
 			printf("This version implements for ""size = 4*n"" only\n");
 			return 2;
-		}
+		}*/
 
 
 		float *vector = (float *)aligned_malloc(sizeof(float) * 4, sizeof(float)*size);//(float *)malloc(sizeof(float)*size);
@@ -144,7 +160,7 @@ int main(int argc, char *argv[]) {
 			return 6;
 		}
 
-		matrix_vector_gen(size, matrix, vector);
+		matrix_vector_gen(size, sizeReal, matrix, vector);
 
 		double time_sq;
 		double time_sse;
