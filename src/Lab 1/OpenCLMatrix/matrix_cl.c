@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	char* buffer;
-	// Get the current working directory: 
+	// Get the current working directory:
 	if ((buffer = _getcwd(NULL, 0)) == NULL)
 		perror("_getcwd error");
 	else {
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
 	cl_uint numPlatforms = 0;
 	cl_platform_id *platforms = NULL;
 
-	// Use clGetPlatformIDs() to retrieve the number of 
+	// Use clGetPlatformIDs() to retrieve the number of
 	// platforms
 	status = clGetPlatformIDs(0, NULL, &numPlatforms);
 	// Allocate enough space for each platform
@@ -202,7 +202,7 @@ int main(int argc, char *argv[]) {
 	cl_uint numDevices = 0;
 	cl_device_id *devices = NULL;
 
-	// Use clGetDeviceIDs() to retrieve the number of 
+	// Use clGetDeviceIDs() to retrieve the number of
 	// devices present
 	status = clGetDeviceIDs(
 		platforms[0],
@@ -233,7 +233,7 @@ int main(int argc, char *argv[]) {
 	//-----------------------------------------------------
 	cl_context context = NULL;
 
-	// Create a context using clCreateContext() and 
+	// Create a context using clCreateContext() and
 	// associate it with the devices
 	context = clCreateContext(
 		NULL,
@@ -254,7 +254,7 @@ int main(int argc, char *argv[]) {
 	cl_command_queue cmdQueue;
 
 	// Create a command queue using clCreateCommandQueue(),
-	// and associate it with the device you want to execute 
+	// and associate it with the device you want to execute
 	// on
 	cmdQueue = clCreateCommandQueue(
 		context,
@@ -360,7 +360,7 @@ int main(int argc, char *argv[]) {
 
 	//-----------------------------------------------------
 	// STEP 6: Create and compile the program
-	//----------------------------------------------------- 
+	//-----------------------------------------------------
 	cl_program program = clCreateProgramWithSource(
 		context,
 		1,
@@ -390,10 +390,10 @@ int main(int argc, char *argv[]) {
 
 	//-----------------------------------------------------
 	// STEP 7: Create the kernel
-	//----------------------------------------------------- 
+	//-----------------------------------------------------
 	cl_kernel mulKernel = NULL;
 
-	// Use clCreateKernel() to create a kernel from the 
+	// Use clCreateKernel() to create a kernel from the
 	mulKernel = clCreateKernel(program, "mul_kernel", &status);
 	if (status != CL_SUCCESS) {
 		printf("error in step 7\n");
@@ -402,9 +402,9 @@ int main(int argc, char *argv[]) {
 
 	//-----------------------------------------------------
 	// STEP 8: Set the kernel arguments
-	//----------------------------------------------------- 
-	// Associate the input and output buffers with the 
-	// kernel 
+	//-----------------------------------------------------
+	// Associate the input and output buffers with the
+	// kernel
 	// using clSetKernelArg()
 	status = clSetKernelArg(
 		mulKernel,
@@ -435,11 +435,11 @@ int main(int argc, char *argv[]) {
 
 	//-----------------------------------------------------
 	// STEP 9: Configure the work-item structure
-	//----------------------------------------------------- 
-	// Define an index space (global work size) of work 
-	// items for 
-	// execution. A workgroup size (local work size) is not 
-	// required, 
+	//-----------------------------------------------------
+	// Define an index space (global work size) of work
+	// items for
+	// execution. A workgroup size (local work size) is not
+	// required,
 	// but can be used.
 
 	size_t globalWorkSize[1];
@@ -489,8 +489,8 @@ int main(int argc, char *argv[]) {
 	printf("DAT:%d\n", size);
 	printf("LGS:%d\n", localSize);
 	printf("SEQ:%.14f\n", time_sq);
-	printf("PAR:%.14f\n", time_opencl);
-	
+	printf("VAR:%.14f\n", time_opencl);
+
 
 	//check
 	int i;
@@ -502,7 +502,7 @@ int main(int argc, char *argv[]) {
 	}
 	//-----------------------------------------------------
 	// STEP 10: Release OpenCL resources
-	//----------------------------------------------------- 
+	//-----------------------------------------------------
 
 	// Free OpenCL resources
 	clReleaseKernel(mulKernel);

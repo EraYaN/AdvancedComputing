@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="vector_sse.cpp">
+    <ClCompile Include="matrix_omp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

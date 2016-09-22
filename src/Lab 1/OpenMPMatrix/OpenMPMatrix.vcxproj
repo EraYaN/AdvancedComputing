@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E7063843-C77E-4675-AD57-2A987CC0AE30}</ProjectGuid>
-    <RootNamespace>OpenMP</RootNamespace>
+    <ProjectGuid>{E7063843-C77E-4675-AD57-2A987CC0AE31}</ProjectGuid>
+    <RootNamespace>OpenMPMatrix</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -116,7 +116,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="vector_omp.cpp" />
+    <ClCompile Include="matrix_omp.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
