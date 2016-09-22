@@ -22,11 +22,9 @@
     <None Include="run_settings.ini">
       <Filter>Resource Files</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="vector_cl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <None Include="vectorMatrixMul.cl">
+      <Filter>Kernel Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vector_cl.cpp">

@@ -1,107 +1,26 @@
-#include "matrix_cl.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+//#include <math.h>
+#include <time.h>
+#include <omp.h>
+#include <direct.h>
+#include <iostream>
+#include <algorithm>
+#include <iterator>
+#include <fstream>
+#include <tclap/CmdLine.h>
+#include <variant.h>
+#include <interactive_tools.h>
+#include <opencl_helpers.h>
+
+#ifdef __APPLE__
+#include <OpenCL/cl.h>
+#else
+#include <CL/cl.h>
+#endif
 
 using namespace std;
-
-static timestamp_t get_timestamp() {
-	clock_t t;
-	t = clock();
-	return (timestamp_t)((float)t / CLOCKS_PER_SEC * 1000000);
-
-	/*struct timeval now;
-	gettimeofday (&now, NULL);
-	return now.tv_usec + (timestamp_t)now.tv_sec * 1000000;*/
-}
-
-const char *getErrorString(cl_int error) {
-	switch (error) {
-		// run-time and JIT compiler errors
-		case 0: return "CL_SUCCESS";
-		case -1: return "CL_DEVICE_NOT_FOUND";
-		case -2: return "CL_DEVICE_NOT_AVAILABLE";
-		case -3: return "CL_COMPILER_NOT_AVAILABLE";
-		case -4: return "CL_MEM_OBJECT_ALLOCATION_FAILURE";
-		case -5: return "CL_OUT_OF_RESOURCES";
-		case -6: return "CL_OUT_OF_HOST_MEMORY";
-		case -7: return "CL_PROFILING_INFO_NOT_AVAILABLE";
-		case -8: return "CL_MEM_COPY_OVERLAP";
-		case -9: return "CL_IMAGE_FORMAT_MISMATCH";
-		case -10: return "CL_IMAGE_FORMAT_NOT_SUPPORTED";
-		case -11: return "CL_BUILD_PROGRAM_FAILURE";
-		case -12: return "CL_MAP_FAILURE";
-		case -13: return "CL_MISALIGNED_SUB_BUFFER_OFFSET";
-		case -14: return "CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST";
-		case -15: return "CL_COMPILE_PROGRAM_FAILURE";
-		case -16: return "CL_LINKER_NOT_AVAILABLE";
-		case -17: return "CL_LINK_PROGRAM_FAILURE";
-		case -18: return "CL_DEVICE_PARTITION_FAILED";
-		case -19: return "CL_KERNEL_ARG_INFO_NOT_AVAILABLE";
-
-			// compile-time errors
-		case -30: return "CL_INVALID_VALUE";
-		case -31: return "CL_INVALID_DEVICE_TYPE";
-		case -32: return "CL_INVALID_PLATFORM";
-		case -33: return "CL_INVALID_DEVICE";
-		case -34: return "CL_INVALID_CONTEXT";
-		case -35: return "CL_INVALID_QUEUE_PROPERTIES";
-		case -36: return "CL_INVALID_COMMAND_QUEUE";
-		case -37: return "CL_INVALID_HOST_PTR";
-		case -38: return "CL_INVALID_MEM_OBJECT";
-		case -39: return "CL_INVALID_IMAGE_FORMAT_DESCRIPTOR";
-		case -40: return "CL_INVALID_IMAGE_SIZE";
-		case -41: return "CL_INVALID_SAMPLER";
-		case -42: return "CL_INVALID_BINARY";
-		case -43: return "CL_INVALID_BUILD_OPTIONS";
-		case -44: return "CL_INVALID_PROGRAM";
-		case -45: return "CL_INVALID_PROGRAM_EXECUTABLE";
-		case -46: return "CL_INVALID_KERNEL_NAME";
-		case -47: return "CL_INVALID_KERNEL_DEFINITION";
-		case -48: return "CL_INVALID_KERNEL";
-		case -49: return "CL_INVALID_ARG_INDEX";
-		case -50: return "CL_INVALID_ARG_VALUE";
-		case -51: return "CL_INVALID_ARG_SIZE";
-		case -52: return "CL_INVALID_KERNEL_ARGS";
-		case -53: return "CL_INVALID_WORK_DIMENSION";
-		case -54: return "CL_INVALID_WORK_GROUP_SIZE";
-		case -55: return "CL_INVALID_WORK_ITEM_SIZE";
-		case -56: return "CL_INVALID_GLOBAL_OFFSET";
-		case -57: return "CL_INVALID_EVENT_WAIT_LIST";
-		case -58: return "CL_INVALID_EVENT";
-		case -59: return "CL_INVALID_OPERATION";
-		case -60: return "CL_INVALID_GL_OBJECT";
-		case -61: return "CL_INVALID_BUFFER_SIZE";
-		case -62: return "CL_INVALID_MIP_LEVEL";
-		case -63: return "CL_INVALID_GLOBAL_WORK_SIZE";
-		case -64: return "CL_INVALID_PROPERTY";
-		case -65: return "CL_INVALID_IMAGE_DESCRIPTOR";
-		case -66: return "CL_INVALID_COMPILER_OPTIONS";
-		case -67: return "CL_INVALID_LINKER_OPTIONS";
-		case -68: return "CL_INVALID_DEVICE_PARTITION_COUNT";
-
-			// extension errors
-		case -1000: return "CL_INVALID_GL_SHAREGROUP_REFERENCE_KHR";
-		case -1001: return "CL_PLATFORM_NOT_FOUND_KHR";
-		case -1002: return "CL_INVALID_D3D10_DEVICE_KHR";
-		case -1003: return "CL_INVALID_D3D10_RESOURCE_KHR";
-		case -1004: return "CL_D3D10_RESOURCE_ALREADY_ACQUIRED_KHR";
-		case -1005: return "CL_D3D10_RESOURCE_NOT_ACQUIRED_KHR";
-		default: return "Unknown OpenCL error";
-	}
-}
-
-void printArray(double arr[], int size) {
-	int i;
-	printf("index:\t");
-	for (i = 0; i < size; i++) {
-		printf("%d ", i);
-	}
-	printf("\n");
-	printf("arr:\t");
-	for (i = 0; i < size; i++) {
-		printf("%f ", arr[i]);
-	}
-	printf("\n");
-}
-
 
 /****************************************************
 the following function calculate the below equation
@@ -141,7 +60,7 @@ int main(int argc, char *argv[]) {
 		// delimiter (usually space) and the last one is the version number.
 		// The CmdLine object parses the argv array based on the Arg objects
 		// that it contains.
-		TCLAP::CmdLine cmd("OpenMP Matrix x Matrix Multiplication", ' ', "0.9");
+		TCLAP::CmdLine cmd("OpenCL Matrix x Matrix Multiplication", ' ', "0.9");
 
 		// Define a value argument and add it to the command line.
 		// A value arg defines a flag and a type of value that it expects,
@@ -171,15 +90,25 @@ int main(int argc, char *argv[]) {
 		bool debug = debugArg.getValue();
 		bool interactive = interactiveArg.getValue();
 
+		if ((size == 0) || (localSize == 0)) {
+			cerr << "Incorrect arguments, make sure both arguments are integers greater than zero." << endl;
+			if (interactive) wait_for_input();
+			exit(-1);
+		} else if ((size % localSize) != 0) {
+			cerr << "size (" << size << ") should be a multiple of localSize (" << localSize << ")" << endl;
+			if (interactive) wait_for_input();
+			exit(-1);
+		}
 
-
-		char* buffer;
-		// Get the current working directory:
-		if ((buffer = _getcwd(NULL, 0)) == NULL)
-			perror("_getcwd error");
-		else {
-			printf("%s \nLength: %zu\n", buffer, strlen(buffer));
-			free(buffer);
+		if (debug) {
+			char* buffer;
+			// Get the current working directory:
+			if ((buffer = _getcwd(NULL, 0)) == NULL)
+				cerr << "_getcwd error" << endl;
+			else {
+				printf("%s \nLength: %zu\n", buffer, strlen(buffer));
+				free(buffer);
+			}
 		}
 
 		cl_double *vector = (double *)malloc(sizeof(cl_double)*size);
@@ -219,7 +148,8 @@ int main(int argc, char *argv[]) {
 		status = clGetPlatformIDs(numPlatforms, platforms, NULL);
 
 		if (status != CL_SUCCESS) {
-			cerr << "error in step 1" << endl;
+			cerr << "error in step 1: " << getErrorString(status) << endl;
+			if (interactive) wait_for_input();
 			exit(-1);
 		}
 
@@ -251,7 +181,8 @@ int main(int argc, char *argv[]) {
 		int device_id = 0;
 
 		if ((status != CL_SUCCESS) || ((unsigned int)device_id >= numDevices)) {
-			cerr << "error in step 2" << endl;
+			cerr << "error in step 2: " << getErrorString(status) << endl;
+			if (interactive) wait_for_input();
 			exit(-1);
 		}
 
@@ -271,7 +202,8 @@ int main(int argc, char *argv[]) {
 			&status);
 
 		if (status != CL_SUCCESS) {
-			cerr << "error in step 3" << endl;
+			cerr << "error in step 3: " << getErrorString(status) << endl;
+			if (interactive) wait_for_input();
 			exit(-1);
 		}
 
@@ -290,7 +222,8 @@ int main(int argc, char *argv[]) {
 			&status);
 
 		if (status != CL_SUCCESS) {
-			cerr << "error in step 4" << endl;
+			cerr << "error in step 4: " << endl;
+			if (interactive) wait_for_input();
 			exit(-1);
 		}
 
@@ -308,7 +241,8 @@ int main(int argc, char *argv[]) {
 			&status);
 
 		if (status != CL_SUCCESS) {
-			cerr << "error in step 5, creating buffer for bufferA" << endl;
+			cerr << "error in step 5, creating buffer for bufferA: " << getErrorString(status) << endl;
+			if (interactive) wait_for_input();
 			exit(-1);
 		}
 
@@ -320,7 +254,8 @@ int main(int argc, char *argv[]) {
 			&status);
 
 		if (status != CL_SUCCESS) {
-			cerr << "error in step 5, creating buffer for bufferB" << endl;
+			cerr << "error in step 5, creating buffer for bufferB: " << getErrorString(status) << endl;
+			if (interactive) wait_for_input();
 			exit(-1);
 		}
 
@@ -332,7 +267,8 @@ int main(int argc, char *argv[]) {
 			&status);
 
 		if (status != CL_SUCCESS) {
-			cerr << "error in step 5, creating buffer for bufferC" << endl;
+			cerr << "error in step 5, creating buffer for bufferC: " << getErrorString(status) << endl;
+			if (interactive) wait_for_input();
 			exit(-1);
 		}
 
@@ -359,21 +295,20 @@ int main(int argc, char *argv[]) {
 			NULL);
 
 		if (status != CL_SUCCESS) {
-			cerr << "error in step 5, writing data" << endl;
+			cerr << "error in step 5, writing data: " << getErrorString(status) << endl;
+			if (interactive) wait_for_input();
 			exit(-1);
 		}
 
-
-
-
-		char *mulFileName, *mulBuffer;
+		char *mulFileName;
 		mulFileName = "vectorMatrixMul.cl";
-		FILE *mulFile;
+		/*FILE *mulFile;
 		fopen_s(&mulFile, mulFileName, "r");
 		if (mulFile == NULL) {
-			cerr << "cannot open .cl file" << endl;
-			cerr << "current path: " << mulFileName << endl;
-			exit(-1);
+		cerr << "cannot open .cl file" << endl;
+		cerr << "current path: " << mulFileName << endl;
+		if (interactive) wait_for_input();
+		exit(-1);
 		}
 		fseek(mulFile, 0, SEEK_END);
 		size_t mulSize = ftell(mulFile);
@@ -383,7 +318,16 @@ int main(int argc, char *argv[]) {
 		mulBuffer = (char*)malloc(mulSize + 1);
 		mulBuffer[mulSize] = '\0';
 		fread(mulBuffer, sizeof(char), mulSize, mulFile);
-		fclose(mulFile);
+		fclose(mulFile);*/
+
+		std::fstream kernelFile(mulFileName);
+		std::string content(
+			(std::istreambuf_iterator<char>(kernelFile)),
+			std::istreambuf_iterator<char>()
+		);
+		size_t mulSize = content.size();
+		const char* mulBuffer = new char[mulSize];
+		mulBuffer = content.c_str();
 
 		//-----------------------------------------------------
 		// STEP 6: Create and compile the program
@@ -394,7 +338,8 @@ int main(int argc, char *argv[]) {
 			(const char**)&mulBuffer,
 			&mulSize,
 			&status);
-		free(mulBuffer);
+
+		//delete mulBuffer;
 
 
 		// Build (compile) the program for the devices with
@@ -409,11 +354,11 @@ int main(int argc, char *argv[]) {
 			NULL);
 
 		if (status != CL_SUCCESS) {
-			cerr << "error in step 6" << endl;
+			cerr << "error in step 6: " << getErrorString(status) << endl;
+			printCLBuildOutput(program, &devices[device_id]);
+			if (interactive) wait_for_input();
 			exit(-1);
 		}
-
-
 
 		//-----------------------------------------------------
 		// STEP 7: Create the kernel
@@ -423,7 +368,8 @@ int main(int argc, char *argv[]) {
 		// Use clCreateKernel() to create a kernel from the
 		mulKernel = clCreateKernel(program, "mul_kernel", &status);
 		if (status != CL_SUCCESS) {
-			cerr << "error in step 7" << endl;
+			cerr << "error in step 7: " << getErrorString(status) << endl;
+			if (interactive) wait_for_input();
 			exit(-1);
 		}
 
@@ -456,7 +402,8 @@ int main(int argc, char *argv[]) {
 
 
 		if (status != CL_SUCCESS) {
-			cerr << "error in step 8" << endl;
+			cerr << "error in step 8: " << getErrorString(status) << endl;
+			if (interactive) wait_for_input();
 			exit(-1);
 		}
 
@@ -489,8 +436,8 @@ int main(int argc, char *argv[]) {
 
 		if (status != CL_SUCCESS) {
 			clWaitForEvents(1, &mulDone);
-
 			cerr << "error in clEnqueueNDRangeKernel" << endl;
+			if (interactive) wait_for_input();
 			exit(-1);
 		}
 
@@ -507,7 +454,7 @@ int main(int argc, char *argv[]) {
 
 
 		if (status != CL_SUCCESS) {
-			cerr << "error in reading data" << endl;
+			cerr << "error in reading data: " << getErrorString(status) << endl;
 			exit(-1);
 		}
 
