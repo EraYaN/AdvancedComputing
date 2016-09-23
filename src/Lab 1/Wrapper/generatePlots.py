@@ -1,10 +1,17 @@
-import pickle
+try:
+   import cPickle as pickle
+except:
+   import pickle
 import matplotlib
 
-from enum import Enum
+from WrapperShared import Variant
 from terminaltables import AsciiTable
 
+results = []
+display_results = []
+
 # load results from Wrapper
+print("Loading results.pickle file.")
 with open('results.pickle', 'rb') as handle:
     results = pickle.load(handle)
 

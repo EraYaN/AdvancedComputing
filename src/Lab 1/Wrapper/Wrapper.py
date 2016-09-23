@@ -1,13 +1,12 @@
 import subprocess
 import sys
-import pickle
-from enum import Enum
-from terminaltables import AsciiTable
+try:
+   import cPickle as pickle
+except:
+   import pickle
 
-# Global Variants Definition
-class Variant(Enum):
-    base = 0
-    arbitrarysize = 1
+from terminaltables import AsciiTable
+from WrapperShared import Variant 
 
 # Program Definitions
 OpenMP = {
@@ -22,12 +21,12 @@ OpenMPMatrix = {
 }
 SSE = {
     'name':'SSE',
-    'variants':[Variant.base],
+    'variants':[Variant.arbitrarysize],
     'configs':['Release','ReleaseDP']
 }
 SSEMatrix = {
     'name':'SSEMatrix',
-    'variants':[Variant.base],
+    'variants':[Variant.arbitrarysize],
     'configs':['Release','ReleaseDP','ReleaseDP']
 }
 OpenCL = {
@@ -53,8 +52,8 @@ types = [OpenMP,
     #OpenCLMatrix
 ]
 thread_range = [8] # range(1,11) # 1 to 10
-iteration_range = [1] # range(1,11) # 1 to 10
-data_sizes = [2048]
+iteration_range = [50] # range(1,11) # 1 to 10
+data_sizes = [512]
 
 error_occured = False
 
