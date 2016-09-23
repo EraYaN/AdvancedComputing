@@ -1,14 +1,29 @@
 %%
-size = 8;
-sizeReal = 5;
+size = 4;
+sizeReal = 3;
 matrix = zeros(size*size,1);
-for i=0:size*size-1
-    if mod(i,size) < sizeReal && i < size * sizeReal
-        matrix(i+1) = i*1.3 + 1;
-    else
-        matrix(i+1) = 0.0;
+for i=0:size-1
+    for j=1:size
+        matrix(i*5+j) = j;
     end
 end
+
+for cols=0:sizeReal-1
+    for rowsOut=0:sizeReal-1
+	    matrix_out(1 + cols + rowsOut*size) = 0.0;
+	    for rowsIn=0:sizeReal-1
+            matrix_out(1 + cols + rowsOut*size,1) = matrix_out(1 + cols + rowsOut*size,1) + matrix1_in(1 + rowsIn + rowsOut*size,1) * matrix2_in(1 + rowsIn*size + cols,1);
+        end
+    end
+end
+
+% for i=0:size*size-1
+%     if mod(i,size) < sizeReal && i < size * sizeReal
+%         matrix(i+1) = i*1.3 + 1;
+%     else
+%         matrix(i+1) = 0.0;
+%     end
+% end
 
 %%
 matrix1_real = zeros(5);
