@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import pickle
 from enum import Enum
 from terminaltables import AsciiTable
 
@@ -171,6 +172,10 @@ for result in results:
 results_table = AsciiTable(display_results)
 results_table.justify_columns=table_justify;
 print(results_table.table)
+
+# store data in file for later use
+with open('results.pickle', 'wb') as handle:
+    pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     #TODO if not error process data and save figures.
 if error_occured:

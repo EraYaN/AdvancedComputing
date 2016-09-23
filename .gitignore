@@ -403,3 +403,4 @@ script/**/*.jpg
 *.lps
 *.lts
 *.pbes
+*.pickle
