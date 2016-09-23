@@ -1,5 +1,5 @@
-# You need https://www.powershellgallery.com/packages/Invoke-MsBuild
-$measured = Measure-Command {$buildSucceeded = Invoke-MsBuild -Path "MSBuild.csproj" -MsBuildParameters '/m /t:Clean;Rebuild' -ShowBuildOutputInCurrentWindow}
+# You need https://www.powershellgallery.com/packages/Invoke-MsBuild install with "Install-Module -Name Invoke-MSBuild" as Admin
+$measured = Measure-Command {$buildSucceeded = Invoke-MsBuild -Path "MSBuild.csproj" -MsBuildParameters '/m /t:Clean;Rebuild' -ShowBuildOutputInNewWindow -AutoLaunchBuildLogOnFailure -AutoLaunchBuildErrorsLogOnFailure}
 
 if ($buildSucceeded)
 { Write-Host "Build completed successfully in $measured" }
