@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import numpy as np
 try:
    import cPickle as pickle
 except:
@@ -20,22 +21,22 @@ EXIT_MEMORYERROR = -4
 OpenMP = {
     'name':'OpenMP',
     'variants':[Variant.base],
-    'configs':['Release','ReleaseDP'],
-    'data_sizes':[512],
-    'thread_range':[8]
+    'configs':['Release'],
+    'data_sizes':[2048],
+    'thread_range':np.arange(1, 65, 1)
 }
 OpenMPMatrix = {
     'name':'OpenMPMatrix',
     'variants':[Variant.base],
-    'configs':['Release','ReleaseDP'],
+    'configs':['Release'],
     'data_sizes':[512],
-    'thread_range':[8]
+    'thread_range':np.arange(1, 65, 1)
 }
 SSE = {
     'name':'SSE',
-    'variants':[Variant.arbitrarysize],
-    'configs':['Release','ReleaseDP'],
-    'data_sizes':[512],
+    'variants':[Variant.base],
+    'configs':['Release'],
+    'data_sizes':np.arange(4, 4096, 4),
     'thread_range':[8]
 }
 SSEMatrix = {
@@ -74,9 +75,9 @@ platform_paths = {'x86':'','x64':'x64/'} # Platform to Directory Dictionary
 types = [
     #OpenMP,
     #OpenMPMatrix,
-    #SSE,
-    SSEMatrix,
-    AVXMatrix,
+    SSE,
+    #SSEMatrix,
+    #AVXMatrix,
     #OpenCL,
     #OpenCLMatrix
 ]
@@ -193,7 +194,7 @@ results_table.justify_columns = table_justify
 print(results_table.table)
 
 # store data in file for later use
-with open('results.pickle', 'wb') as handle:
+with open('partB_task1.pickle', 'wb') as handle:
     pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     #TODO if not error process data and save figures.
