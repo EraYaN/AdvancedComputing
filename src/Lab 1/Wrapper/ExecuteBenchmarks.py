@@ -98,7 +98,7 @@ def ExecuteBenchmark(platforms,types,iteration_range,max_n=1):
                                     "had_error":error_occured
                                     })
                                 current_run+=1
-                                print("{0}: Run {1} out of {2} is done.\n".format(type['name'],current_run,number_of_runs['process_runs']))
+                                print("{0}: Run {1} out of {2} is done.\n".format(type['name'],current_run,number_of_runs['runs']))
 
     return results;
 
