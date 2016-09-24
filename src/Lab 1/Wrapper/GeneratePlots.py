@@ -2,7 +2,8 @@ try:
    import cPickle as pickle
 except:
    import pickle
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
+from matplotlib import style
 import numpy as np
 
 from WrapperShared import Variant
@@ -41,6 +42,12 @@ def GeneratePlot(results, job_title):
         xlabel = "Matrix/Vector Size"
         ylabel = "Speedup"
         title = "SSE vs Sequential Double Precision"
+    elif job_title == "Part C Task 1":
+        xfield = "data_size"
+        yfield= "relative_improvement"
+        xlabel = "Matrix/Vector Size"
+        ylabel = "Speedup"
+        title = "OpenCL vs Sequential (x=8)"
 
     # Generate graph
     graphX = []
@@ -50,10 +57,14 @@ def GeneratePlot(results, job_title):
         graphX.append(result[xfield])
         graphY.append(result[yfield])
 
+    style.use('ggplot')
     plt.bar(graphX,graphY,align='center')
     plt.ylim([np.min(graphY)-(np.max(graphY)-np.min(graphY))*0.01,np.max(graphY)+(np.max(graphY)-np.min(graphY))*0.01])
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
     plt.grid(True)
-    plt.savefig(title + ".png")
+
+    # convert graph to tikz
+    from matplotlib2tikz import save as tikz_save
+    tikz_save(title + '.tex')

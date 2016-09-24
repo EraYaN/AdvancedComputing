@@ -43,9 +43,9 @@ AVXMatrix = {
 OpenCL = {
     'name':'OpenCL',
     'variants':[Variant.base],
-    'configs':['Release','ReleaseDP'],
-    'data_sizes':[1024],
-    'thread_range':[8,16,32,64,128]
+    'configs':['Release'],
+    'data_sizes':np.arange(4, 1024, 4),
+    'thread_range':[8]
 }
 OpenCLMatrix = {
     'name':'OpenCLMatrix',
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         opts = parser.parse_args(sys.argv[1:])
 
         ExecuteJob('Part B Task 1','partB_task1.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot)
-        SSE['variant'] = [Variant.arbitrarysize];
+        SSE['variants'] = [Variant.arbitrarysize];
         SSE['data_sizes'] = np.arange(4, 1024, 1);
         ExecuteJob('Part B Task 2','partB_task2.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot)
         SSE['configs'] = ['ReleaseDP'];
