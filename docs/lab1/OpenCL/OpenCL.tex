@@ -1,0 +1,36 @@
+%!TEX program=xelatex
+%!TEX spellcheck=en_US
+\documentclass[final]{report}
+\input{../../.library/preamble.tex}
+\input{../../.library/style.tex}
+\addbibresource{../../.library/bibliography.bib}
+\begin{document}
+\chapter{OpenCL}
+
+%TODO OpenCL Test Data Size. DP and SP.
+% \begin{figure}[H]
+% \centering
+%     \setlength\figureheight{8cm}
+%     \setlength\figurewidth{\linewidth}
+%     \subimport{resources/}{opencl-data-size-sweep.tikz}
+%     \caption{TODO.}
+%     \label{fig:opencl-data-size-sweep}
+% \end{figure}
+
+%TODO OpenCL Test Threads/localGroupSize. DP and SP.
+% \begin{figure}[H]
+% \centering
+%     \setlength\figureheight{8cm}
+%     \setlength\figurewidth{\linewidth}
+%     \subimport{resources/}{opencl-localsize-sweep.tikz}
+%     \caption{TODO.}
+%     \label{fig:opencl-localsize-sweep}
+% \end{figure}
+
+
+%TODO Show Matrix Code.
+In \cref{lst:sse-matrix-snippet} our matrix OpenCL code is shown for both floats and doubles, a two dimensional globalSize is used to make sure it loops over both rows and columns.
+
+\includecode[cpp]{OpenCL Matrix x Matrix Snippet}{resources/OpenCLMatrixSnippet.cpp}{lst:opencl-matrix-snippet}
+
+\end{document}

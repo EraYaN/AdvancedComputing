@@ -1,0 +1,63 @@
+%!TEX program=xelatex
+%!TEX spellcheck=en_US
+\documentclass[final]{report}
+\input{../../.library/preamble.tex}
+\input{../../.library/style.tex}
+\addbibresource{../../.library/bibliography.bib}
+\begin{document}
+\chapter{SSE/AVX}
+
+%TODO SSE Test Data Size. DP and SP.
+% \begin{figure}[H]
+% \centering
+%     \setlength\figureheight{8cm}
+%     \setlength\figurewidth{\linewidth}
+%     \subimport{resources/}{sse-data-size-sweep.tikz}
+%     \caption{TODO.}
+%     \label{fig:sse-data-size-sweep}
+% \end{figure}
+
+%TODO SSE Test Data Size arbitrary size. DP and SP.
+% \begin{figure}[H]
+% \centering
+%     \setlength\figureheight{8cm}
+%     \setlength\figurewidth{\linewidth}
+%     \subimport{resources/}{sse-data-size-sweep-arbitrary.tikz}
+%     \caption{TODO.}
+%     \label{fig:sse-data-size-sweep-arbitrary}
+% \end{figure}
+
+%TODO SSE Test DP vs SP
+% \begin{figure}[H]
+% \centering
+%     \setlength\figureheight{8cm}
+%     \setlength\figurewidth{\linewidth}
+%     \subimport{resources/}{sse-dp-vs-sp.tikz}
+%     \caption{TODO.}
+%     \label{fig:sse-dp-vs-sp}
+% \end{figure}
+
+%TODO Show Matrix Code.
+In \cref{lst:sse-matrix-snippet} our matrix SSE code is shown for both floats and doubles, the inner loop is added to sum over all rows of the first matrix. We already added in the little OpenMP markers to speedup this implementation even a tiny bit more, although impact is negligible.
+\includecode[cpp]{SSE Matrix x Matrix Snippet}{resources/SSEMatrixSnippet.cpp}{lst:sse-matrix-snippet}
+
+%TODO Show "Faster" Matrix Code.
+In \cref{lst:avx-matrix-snippet} our matrix AVX code is shown for both floats and doubles.
+AVX can use bigger register sizes and supporting CPU's can also do fused multiply–add instructions (FMA3).
+Right now this is limited to Intel Haswell based Core i and up.
+And for AMD this is supported since Piledriver based CPU's, like 2nd Generation Bulldozer. 
+Right now one needs to compile two different versions, because there was no time to implement proper runtime feature detection.
+This version performs better than the SSE version at large data sizes and worse at smaller data sizes. 
+\includecode[cpp]{AVX Matrix x Matrix Snippet}{resources/AVXMatrixSnippet.cpp}{lst:avx-matrix-snippet}
+
+%TODO SSE vs AVX test. DP and SP.
+% \begin{figure}[H]
+% \centering
+%     \setlength\figureheight{8cm}
+%     \setlength\figurewidth{\linewidth}
+%     \subimport{resources/}{sse-vs-avx.tikz}
+%     \caption{TODO.}
+%     \label{fig:sse-vs-avx}
+% \end{figure}
+
+\end{document}
