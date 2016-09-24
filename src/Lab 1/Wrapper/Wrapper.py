@@ -6,55 +6,81 @@ except:
    import pickle
 
 from terminaltables import AsciiTable
-from WrapperShared import Variant 
+from WrapperShared import Variant
+
+# Exit codes.  See ACSLabSharedLibrary/interactive_tools.h
+EXIT_SUCCESS = 0
+EXIT_FAILURE = 1
+EXIT_BADARGUMENT = -1
+EXIT_WRONGVALUE = -2
+EXIT_OPENCLERROR = -3
+EXIT_MEMORYERROR = -4
 
 # Program Definitions
 OpenMP = {
     'name':'OpenMP',
     'variants':[Variant.base],
-    'configs':['Release','ReleaseDP']
+    'configs':['Release','ReleaseDP'],
+    'data_sizes':[512],
+    'thread_range':[8]
 }
 OpenMPMatrix = {
     'name':'OpenMPMatrix',
     'variants':[Variant.base],
-    'configs':['Release','ReleaseDP']
+    'configs':['Release','ReleaseDP'],
+    'data_sizes':[512],
+    'thread_range':[8]
 }
 SSE = {
     'name':'SSE',
     'variants':[Variant.arbitrarysize],
-    'configs':['Release','ReleaseDP']
+    'configs':['Release','ReleaseDP'],
+    'data_sizes':[512],
+    'thread_range':[8]
 }
 SSEMatrix = {
     'name':'SSEMatrix',
     'variants':[Variant.arbitrarysize],
-    'configs':['Release','ReleaseDP','ReleaseDP']
+    'configs':['Release','ReleaseDP'],
+    'data_sizes':[512,1024],
+    'thread_range':[4,8]
+}
+AVXMatrix = {
+    'name':'AVXMatrix',
+    'variants':[Variant.arbitrarysize],
+    'configs':['Release','ReleaseDP'],
+    'data_sizes':[512,1024],
+    'thread_range':[4,8]
 }
 OpenCL = {
     'name':'OpenCL',
     'variants':[Variant.base],
-    'configs':['Release','ReleaseDP']
+    'configs':['Release','ReleaseDP'],
+    'data_sizes':[1024],
+    'thread_range':[8,16,32,64,128]
 }
 OpenCLMatrix = {
     'name':'OpenCLMatrix',
     'variants':[Variant.base],
-    'configs':['Release','ReleaseDP']
+    'configs':['Release','ReleaseDP'],
+    'data_sizes':[256],
+    'thread_range':[2,4,8,16,32,64,128]
 }
 
-max_n = 10 # Times to run program to get average
+max_n = 5 # Times to run program to get average
 platforms = ['x64'] # Platform names
 platform_paths = {'x86':'','x64':'x64/'} # Platform to Directory Dictionary
 # Program definition array
-types = [OpenMP,
+types = [
+    #OpenMP,
     #OpenMPMatrix,
-    SSE,
-    #SSEMatrix,
-    OpenCL,
+    #SSE,
+    SSEMatrix,
+    AVXMatrix,
+    #OpenCL,
     #OpenCLMatrix
 ]
-thread_range = [8] # range(1,11) # 1 to 10
-iteration_range = [50] # range(1,11) # 1 to 10
-data_sizes = [512]
-
+iteration_range = [5] # range(1,11) # 1 to 10
 error_occured = False
 
 results = []
@@ -63,23 +89,25 @@ display_results = []
 for platform in platforms:
     for type in types:
         for config in type['configs']:
-            for threads in thread_range:
-                for data_size in data_sizes:
+            for threads in type['thread_range']:
+                for data_size in type['data_sizes']:
                     for iterations in iteration_range:
                         for variant in type['variants']:
                             sequential_time = 0
                             variant_time = 0
                             new_time = 0
+                            error_occured = False
 
                             for n in range(0,max_n):
                                 #print("../{0}{1}/{2}.exe".format(platform_paths[platform],config,type['name']))
-                                result = subprocess.run(["../{0}{1}/{2}.exe".format(platform_paths[platform],config,type['name']),"-t {0}".format(threads),"-s {0}".format(data_size),"-n {0}".format(iterations),"-v {0}".format(variant.value),'-d'],stdout=subprocess.PIPE,universal_newlines=True,cwd="../{0}{1}/".format(platform_paths[platform],config))
+                                result = subprocess.run(["../{0}{1}/{2}.exe".format(platform_paths[platform],config,type['name']),"-t {0}".format(threads),"-s {0}".format(data_size),"-n {0}".format(iterations),"-v {0}".format(variant.value)],stdout=subprocess.PIPE,universal_newlines=True,cwd="../{0}{1}/".format(platform_paths[platform],config))
                                 #print(result.args)
-                                if result.returncode != 0:
+                                if result.returncode != EXIT_SUCCESS:
                                     print("ERROR {1} returned {0}. Output below.".format(result.returncode, "../{0}{1}/{2}.exe".format(platform_paths[platform],config,type['name'])))
                                     print(result.stdout)
                                     error_occured = True
-                                    break
+                                    if result.returncode != EXIT_WRONGVALUE:
+                                        break
 
                                 for line in result.stdout.splitlines(): #read and store result in log file
                                     line_type = line[0:3]
@@ -91,11 +119,9 @@ for platform in platforms:
                                 if variant_time != 0:
                                     new_time += sequential_time / variant_time
 
-                                sys.stdout.write("{0: >2} out of {1: >2} ({2: >3,.0%})\r".format(n + 1, max_n,(n + 1) / max_n))
+                                sys.stdout.write("{3}: {0: >2} out of {1: >2} ({2: >3,.0%})\r".format(n + 1, max_n,(n + 1) / max_n,type['name']))
                                 sys.stdout.flush()
 
-                            if error_occured:
-                                break
                             sequential_time = sequential_time / max_n
                             variant_time = variant_time / max_n
                             relative_improvement = new_time / max_n
@@ -111,25 +137,18 @@ for platform in platforms:
                                 "threads":threads,
                                 "sequential_time":sequential_time,
                                 "variant_time":variant_time,
-                                "relative_improvement":relative_improvement
+                                "relative_improvement":relative_improvement,
+                                "had_error":error_occured
                                 })
-                            print("Run is done.\n")
-                            #print("Executed {0: <20} {1: <13} size {2: >8} /w {3:
+                            print("{0}: Run is done.\n".format(type['name']))
+                            #print("Executed {0: <20} {1: <13} size {2: >8} /w
+                            #{3:
                             #>2} thr, seq: {4: >12,.3e}, var: {5: >12,.3e}, new
                             #time {6: >12,.3%}".format("{0}
                             #{1}".format(type['name'],variant.name),"{0}
                             #{1}".format(platform,config),data_size,threads,sequential_time,variant_time,new_time))
-                if error_occured:
-                    break
-            if error_occured:
-                break
-        if error_occured:
-            break
-    if error_occured:
-        break
 
-table_heading = [
-    'platform',
+table_heading = ['platform',
     'type',
     'config',
     'threads',
@@ -138,8 +157,8 @@ table_heading = [
     "variant",
     "sequential_time",
     "variant_time",
-    "relative_improvement"
-]
+    "relative_improvement",
+    "had_error"]
 table_justify = {
     0:'left',
     1:'left',
@@ -150,26 +169,27 @@ table_justify = {
     6:"left",
     7:"right",
     8:"right",
-    9:"right"
+    9:"right",
+    10:"left"
 }
 
 display_results.append(table_heading)
 for result in results:
-    display_results.append([
-    result['platform'],
+    error_text = "Yes" if result["had_error"] else "No"
+    display_results.append([result['platform'],
     result['type']['name'],
     result['config'],
     result['threads'],
     result["data_size"],
     result["iterations"],
     result["variant"].name,
-    "{0:.3e}".format(result["sequential_time"]),
-    "{0:.3e}".format(result["variant_time"]),
-    "{0:.3%}".format(result["relative_improvement"])
-])
+    "{0:.5f} us".format(result["sequential_time"] * 1000000 / result["iterations"]),
+    "{0:.5f} us".format(result["variant_time"] * 1000000 / result["iterations"]),
+    "{0:.3%}".format(result["relative_improvement"]),
+    error_text])
 
 results_table = AsciiTable(display_results)
-results_table.justify_columns=table_justify;
+results_table.justify_columns = table_justify
 print(results_table.table)
 
 # store data in file for later use
@@ -178,6 +198,6 @@ with open('results.pickle', 'wb') as handle:
 
     #TODO if not error process data and save figures.
 if error_occured:
-    print("Exited upon error.")
+    print("Some run returned an error at some point.")
 else:
     print("Done.");

@@ -101,11 +101,11 @@ int main(int argc, char *argv[]) {
 		if ((size == 0) || (localSize == 0)) {
 			cerr << "Incorrect arguments, make sure both arguments are integers greater than zero." << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		} else if ((size % localSize) != 0) {
 			cerr << "size (" << size << ") should be a multiple of localSize (" << localSize << ")" << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		if (debug) {
@@ -160,7 +160,7 @@ int main(int argc, char *argv[]) {
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 1: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		//-----------------------------------------------------
@@ -193,7 +193,19 @@ int main(int argc, char *argv[]) {
 		if ((status != CL_SUCCESS) || ((unsigned int)device_id >= numDevices)) {
 			cerr << "error in step 2: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
+		}
+
+
+		if (debug) {
+			// print device name
+			char* value;
+			size_t valueSize;
+			clGetDeviceInfo(devices[device_id], CL_DEVICE_NAME, 0, NULL, &valueSize);
+			value = (char*)malloc(valueSize);
+			clGetDeviceInfo(devices[device_id], CL_DEVICE_NAME, valueSize, value, NULL);
+			printf("Running on device: %s\n", value);
+			free(value);
 		}
 
 		//-----------------------------------------------------
@@ -214,7 +226,7 @@ int main(int argc, char *argv[]) {
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 3: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		//-----------------------------------------------------
@@ -234,7 +246,7 @@ int main(int argc, char *argv[]) {
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 4: " << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		//-----------------------------------------------------
@@ -253,7 +265,7 @@ int main(int argc, char *argv[]) {
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 5, creating buffer for bufferA: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		bufferMatrixIn = clCreateBuffer(
@@ -266,7 +278,7 @@ int main(int argc, char *argv[]) {
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 5, creating buffer for bufferB: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		bufferVectorOut = clCreateBuffer(
@@ -279,7 +291,7 @@ int main(int argc, char *argv[]) {
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 5, creating buffer for bufferC: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		char *mulFileName;
@@ -327,7 +339,7 @@ int main(int argc, char *argv[]) {
 			cerr << "error in step 6: " << getErrorString(status) << endl;
 			printCLBuildOutput(program, &devices[device_id]);
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		//-----------------------------------------------------
@@ -340,7 +352,7 @@ int main(int argc, char *argv[]) {
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 7: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 
@@ -372,7 +384,7 @@ int main(int argc, char *argv[]) {
 			if (status != CL_SUCCESS) {
 				cerr << "error in step 5, writing data: " << getErrorString(status) << endl;
 				if (interactive) wait_for_input();
-				exit(-1);
+				exit(EXIT_OPENCLERROR);
 			}
 
 			//-----------------------------------------------------
@@ -406,7 +418,7 @@ int main(int argc, char *argv[]) {
 			if (status != CL_SUCCESS) {
 				cerr << "error in step 8: " << getErrorString(status) << endl;
 				if (interactive) wait_for_input();
-				exit(-1);
+				exit(EXIT_OPENCLERROR);
 			}
 
 			//-----------------------------------------------------
@@ -440,7 +452,7 @@ int main(int argc, char *argv[]) {
 				clWaitForEvents(1, &mulDone);
 				cerr << "error in clEnqueueNDRangeKernel" << endl;
 				if (interactive) wait_for_input();
-				exit(-1);
+				exit(EXIT_OPENCLERROR);
 			}
 
 			clEnqueueReadBuffer(
@@ -457,7 +469,7 @@ int main(int argc, char *argv[]) {
 
 			if (status != CL_SUCCESS) {
 				cerr << "error in reading data: " << getErrorString(status) << endl;
-				exit(-1);
+				exit(EXIT_OPENCLERROR);
 			}
 		}
 		time_opencl = omp_get_wtime() - time_opencl;
@@ -485,18 +497,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		//check
-		unsigned i;
-		for (i = 0; i < size; i++) {
-			if ((int)result_sq[i] != (int)result_pl[i]) {
-				if (debug) {
-					cout << "Wrong value \"" << result_sq[i] << "\" and \"" << result_pl[i] << "\" at position " << i << "." << endl;
-				}
-				if (interactive) {
-					wait_for_input();
-				}
-				return 2;
-			}
-		}
+		bool checkResult = verifyVectorResult(result_sq, result_pl, size, debug);		
 		//-----------------------------------------------------
 		// STEP 10: Release OpenCL resources
 		//-----------------------------------------------------
@@ -520,11 +521,15 @@ int main(int argc, char *argv[]) {
 			wait_for_input();
 		}
 
-		return EXIT_SUCCESS;
+		if (checkResult)
+			return EXIT_SUCCESS;
+		else
+			return EXIT_WRONGVALUE;
+
 	} catch (TCLAP::ArgException &e)  // catch any exceptions
 	{
 		cerr << "error: " << e.error() << " for arg " << e.argId() << endl;
-		return -1;
+		return EXIT_BADARGUMENT;
 	}
 }
 

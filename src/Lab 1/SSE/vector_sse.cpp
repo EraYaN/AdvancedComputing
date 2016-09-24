@@ -59,8 +59,7 @@ void matrix_mult_sq(int size, user_float_t *vector_in,
 	}
 }
 
-void matrix_mult_sse(int size, float *vector_in,
-	float *matrix_in, float *vector_out) {
+void matrix_mult_sse(int size, float *vector_in, float *matrix_in, float *vector_out) {
 	__m128 a_line, b_line, r_line;
 	int i, j;
 	for (i = 0; i < size; i += 4) {
@@ -78,8 +77,7 @@ void matrix_mult_sse(int size, float *vector_in,
 	}
 }
 
-void matrix_mult_sse(int size, double *vector_in,
-	double *matrix_in, double *vector_out) {
+void matrix_mult_sse(int size, double *vector_in, double *matrix_in, double *vector_out) {
 	__m128d a_line, b_line, r_line;
 	int i, j;
 	for (i = 0; i < size; i += 2) {
@@ -153,7 +151,7 @@ int main(int argc, char *argv[]) {
 			if (size % 4 != 0) {
 				printf("This version implements for ""size = 4*n"" only\n");
 				if (interactive) wait_for_input();
-				return 2;
+				return EXIT_BADARGUMENT;
 			}
 		} else if (variant == arbitrarysize) {
 			if (size % ALIGNMENT_SIZE != 0) {
@@ -175,25 +173,25 @@ int main(int argc, char *argv[]) {
 
 		if (vector == NULL) {
 			printf("can't allocate the required memory for vector\n");
-			return 3;
+			return EXIT_MEMORYERROR;
 		}
 		if (matrix == NULL) {
 			printf("can't allocate the required memory for matrix\n");
 			aligned_free(vector);
-			return 4;
+			return EXIT_MEMORYERROR;
 		}
 		if (result_sq == NULL) {
 			printf("can't allocate the required memory for result_sq\n");
 			aligned_free(vector);
 			aligned_free(matrix);
-			return 5;
+			return EXIT_MEMORYERROR;
 		}
 		if (result_pl == NULL) {
 			printf("can't allocate the required memory for result_pl\n");
 			aligned_free(vector);
 			aligned_free(matrix);
 			aligned_free(result_sq);
-			return 6;
+			return EXIT_MEMORYERROR;
 		}
 		matrix_vector_gen(paddedSize, size, matrix, vector);
 
@@ -238,28 +236,22 @@ int main(int argc, char *argv[]) {
 		}
 
 		//check
-		for (unsigned i = 0; i < size; i++)
-			if ((int)result_sq[i] != (int)result_pl[i]) {
-				if (debug) {
-					cout << "Wrong value \"" << result_sq[i] << "\" and \"" << result_pl[i] << "\" at position " << i << "." << endl;
-				}
-				aligned_free(vector);
-				aligned_free(matrix);
-				aligned_free(result_sq);
-				aligned_free(result_pl);
-				if (interactive) wait_for_input();
-				return 7;
-			}
+		bool checkResult = verifyVectorResult(result_sq, result_pl, size, debug);
 
 		aligned_free(vector);
 		aligned_free(matrix);
 		aligned_free(result_sq);
 		aligned_free(result_pl);
 		if (interactive) wait_for_input();
-		return 0;
+
+		if (checkResult)
+			return EXIT_SUCCESS;
+		else
+			return EXIT_WRONGVALUE;
+
 	} catch (TCLAP::ArgException &e)  // catch any exceptions
 	{
 		cerr << "error: " << e.error() << " for arg " << e.argId() << endl;
-		return -1;
+		return EXIT_BADARGUMENT;
 	}
 }

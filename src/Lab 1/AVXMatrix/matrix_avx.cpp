@@ -68,8 +68,33 @@ void matrix_mult_sq(int size, user_float_t *matrix1_in,	user_float_t *matrix2_in
 	}
 }
 
-void matrix_mult_sse(int size, float *matrix1, float *matrix2, float *matrix_out) {
-	__m128 a_line, b_line, r_line;
+void matrix_mult_avx(int size, float *matrix1, float *matrix2, float *matrix_out) {
+	__m256 a_line, b_line, r_line;
+	int i, j, k;
+# pragma omp parallel				\
+	shared(size, matrix1, matrix2, matrix_out)	\
+	private(i,j,k, a_line, b_line, r_line)
+# pragma omp for
+	for (k = 0; k < size * size; k += size) {
+# pragma omp for
+		for (i = 0; i < size; i += 8) {
+			j = 0;
+			b_line = _mm256_load_ps(&matrix2[i]); //_mm256_load_ps is the non-aligned version that only get a penalty with unaligned memory
+			a_line = _mm256_set1_ps(matrix1[j + k]);
+			r_line = _mm256_mul_ps(a_line, b_line);
+			for (j = 1; j < size; j++) {
+				b_line = _mm256_load_ps(&matrix2[j * size + i]); //_mm256_load_ps is the non-aligned version that only get a penalty with unaligned memory
+				a_line = _mm256_set1_ps(matrix1[j + k]);
+				r_line = _mm256_fmadd_ps(a_line, b_line, r_line); // fancy FMA intrinsic, only Haswell and later, FAST though.
+				//r_line = _mm256_add_ps(_mm256_mul_ps(a_line, b_line), r_line);
+			}
+			_mm256_store_ps(&matrix_out[i + k], r_line);
+		}
+	}
+}
+
+void matrix_mult_avx(int size, double *matrix1, double *matrix2, double *matrix_out) {
+	__m256d a_line, b_line, r_line;
 	int i, j, k;
 # pragma omp parallel				\
 	shared(size, matrix1, matrix2, matrix_out)	\
@@ -79,46 +104,23 @@ void matrix_mult_sse(int size, float *matrix1, float *matrix2, float *matrix_out
 # pragma omp for
 		for (i = 0; i < size; i += 4) {
 			j = 0;
-			b_line = _mm_load_ps(&matrix2[i]); //_mm_loadu_ps is the non-aligned version that only get a penalty with unaligned memory
-			a_line = _mm_set1_ps(matrix1[j + k]);
-			r_line = _mm_mul_ps(a_line, b_line);
+			b_line = _mm256_load_pd(&matrix2[i]); //_mm256_load_ps is the non-aligned version that only get a penalty with unaligned memory
+			a_line = _mm256_set1_pd(matrix1[j + k]);
+			r_line = _mm256_mul_pd(a_line, b_line);
 			for (j = 1; j < size; j++) {
-				b_line = _mm_load_ps(&matrix2[j * size + i]); //_mm_loadu_ps is the non-aligned version that only get a penalty with unaligned memory
-				a_line = _mm_set1_ps(matrix1[j + k]);
-				r_line = _mm_add_ps(_mm_mul_ps(a_line, b_line), r_line);
+				b_line = _mm256_load_pd(&matrix2[j * size + i]); //_mm256_load_ps is the non-aligned version that only get a penalty with unaligned memory
+				a_line = _mm256_set1_pd(matrix1[j + k]);
+				r_line = _mm256_fmadd_pd(a_line, b_line, r_line); // fancy FMA intrinsic, only Haswell and later, FAST though.
+				//r_line = _mm256_add_pd(_mm256_mul_pd(a_line, b_line), r_line);
 			}
-			_mm_store_ps(&matrix_out[i + k], r_line);
-		}
-	}
-}
-
-void matrix_mult_sse(int size, double *matrix1, double *matrix2, double *matrix_out) {
-	__m128d a_line, b_line, r_line;
-	int i, j, k;
-# pragma omp parallel				\
-	shared(size, matrix1, matrix2, matrix_out)	\
-	private(i,j,k, a_line, b_line, r_line)
-# pragma omp for
-	for (k = 0; k < size * size; k += size) {
-# pragma omp for
-		for (i = 0; i < size; i += 2) {
-			j = 0;
-			b_line = _mm_load_pd(&matrix2[i]); //_mm_loadu_ps is the non-aligned version that only get a penalty with unaligned memory
-			a_line = _mm_set1_pd(matrix1[j + k]);
-			r_line = _mm_mul_pd(a_line, b_line);
-			for (j = 1; j < size; j++) {
-				b_line = _mm_load_pd(&matrix2[j * size + i]); //_mm_loadu_ps is the non-aligned version that only get a penalty with unaligned memory
-				a_line = _mm_set1_pd(matrix1[j + k]);
-				r_line = _mm_add_pd(_mm_mul_pd(a_line, b_line), r_line);
-			}
-			_mm_store_pd(&matrix_out[i + k], r_line);
+			_mm256_store_pd(&matrix_out[i + k], r_line);
 		}
 	}
 }
 
 
 int main(int argc, char *argv[]) {
-	const int ALIGNMENT_SIZE = 4;
+	const int ALIGNMENT_SIZE = 8;
 	const int ALIGNMENT_BYTES = sizeof(user_float_t) * ALIGNMENT_SIZE;
 	// Wrap everything in a try block.  Do this every time,
 	// because exceptions will be thrown for problems.
@@ -131,9 +133,9 @@ int main(int argc, char *argv[]) {
 		// that it contains.
 
 #ifdef USE_DOUBLES
-		TCLAP::CmdLine cmd("SSE4.2 Matrix x Vector Multiplication (Double Precision)", ' ', "0.9");
+		TCLAP::CmdLine cmd("AVX Matrix x Vector Multiplication (Double Precision)", ' ', "0.9");
 #else
-		TCLAP::CmdLine cmd("SSE Matrix x Vector Multiplication (Single Precision)", ' ', "0.9");
+		TCLAP::CmdLine cmd("AVX Matrix x Vector Multiplication (Single Precision)", ' ', "0.9");
 #endif
 
 		// Define a value argument and add it to the command line.
@@ -169,7 +171,7 @@ int main(int argc, char *argv[]) {
 		bool interactive = interactiveArg.getValue();
 
 		if (variant == base) {
-			if (size % 4 != 0) {
+			if (size % ALIGNMENT_SIZE != 0) {
 				printf("This version implements for ""size = 4*n"" only\n");
 				if (interactive) wait_for_input();
 				return EXIT_BADARGUMENT;
@@ -216,7 +218,7 @@ int main(int argc, char *argv[]) {
 		matrix_gen(paddedSize, size, matrix2);
 
 		double time_sq;
-		double time_sse;
+		double time_avx;
 
 		omp_set_num_threads(threads);
 
@@ -226,11 +228,11 @@ int main(int argc, char *argv[]) {
 		}
 		time_sq = omp_get_wtime() - time_sq;
 
-		time_sse = omp_get_wtime();
+		time_avx = omp_get_wtime();
 		for (unsigned iteration = 0; iteration < iterations; iteration++) {
-			matrix_mult_sse(paddedSize, matrix1, matrix2, result_pl);
+			matrix_mult_avx(paddedSize, matrix1, matrix2, result_pl);
 		}
-		time_sse = omp_get_wtime() - time_sse;
+		time_avx = omp_get_wtime() - time_avx;
 
 		if (debug) {
 			printf("ITR:%d\n", iterations);
@@ -239,7 +241,7 @@ int main(int argc, char *argv[]) {
 			printf("PRC:%d\n", omp_get_num_procs());
 		}
 		printf("SEQ:%.14f\n", time_sq);
-		printf("VAR:%.14f\n", time_sse);
+		printf("VAR:%.14f\n", time_avx);
 
 
 		if (debug) {
@@ -251,6 +253,7 @@ int main(int argc, char *argv[]) {
 			printMatrix(result_sq, paddedSize, paddedSize);
 			cout << "result_pl: " << endl;
 			printMatrix(result_pl, paddedSize, paddedSize);
+
 		}
 
 		//check

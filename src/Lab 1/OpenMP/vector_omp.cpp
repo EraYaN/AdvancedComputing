@@ -127,16 +127,7 @@ int main(int argc, char *argv[]) {
 		printf("VAR:%.14f\n", time_pl);
 
 		//check
-		for (unsigned int i = 0; i < size; i++)
-			if (result_sq[i] != result_pl[i]) {
-				if (debug) {
-					cout << "Wrong value \"" << result_sq[i] << "\" and \"" << result_pl[i] << "\" at position " << i << "." << endl;
-				}
-				if (interactive) {
-					wait_for_input();
-				}
-				return 3;
-			}
+		bool checkResult = verifyVectorResult(result_sq, result_pl, size, debug);
 
 		free(vector);
 		free(matrix);
@@ -148,11 +139,15 @@ int main(int argc, char *argv[]) {
 		if (interactive) {
 			wait_for_input();
 		}
-		return 0;
+
+		if (checkResult)
+			return EXIT_SUCCESS;
+		else
+			return EXIT_WRONGVALUE;
 
 	} catch (TCLAP::ArgException &e)  // catch any exceptions
 	{
 		cerr << "error: " << e.error() << " for arg " << e.argId() << endl;
-		return -1;
+		return EXIT_BADARGUMENT;
 	}
 }

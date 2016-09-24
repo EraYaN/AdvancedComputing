@@ -10,12 +10,10 @@
 
 using namespace std;
 // generate two input matrices
-void matrix_matrix_gen(int size, user_float_t *matrix1, user_float_t *matrix2) {
-	int i;
+void matrix_gen(unsigned int size, user_float_t *matrix) {
+	unsigned int i;
 	for (i = 0; i < size*size; i++)
-		matrix1[i] = ((user_float_t)rand()) / 5307.0;
-	for (i = 0; i < size*size; i++)
-		matrix2[i] = ((user_float_t)rand()) / 5307.0;
+		matrix[i] = ((user_float_t)rand()) / 5307.0;
 }
 
 // matrix matrix multiplication
@@ -100,7 +98,8 @@ int main(int argc, char *argv[]) {
 		user_float_t *matrix2 = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
 		user_float_t *result_sq = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
 		user_float_t *result_pl = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
-		matrix_matrix_gen(size, matrix1, matrix2);
+		matrix_gen(size, matrix1);
+		matrix_gen(size, matrix2);
 
 		double time_sq = 0;
 		double time_pl = 0;
@@ -127,17 +126,20 @@ int main(int argc, char *argv[]) {
 		printf("SEQ:%.14f\n", time_sq);
 		printf("VAR:%.14f\n", time_pl);
 
+		if (debug) {
+			cout << "matrix1: " << endl;
+			printMatrix(matrix1, size, size);
+			cout << "matrix2: " << endl;
+			printMatrix(matrix2, size, size);
+			cout << "result_sq: " << endl;
+			printMatrix(result_sq, size, size);
+			cout << "result_pl: " << endl;
+			printMatrix(result_pl, size, size);
+
+		}
+
 		//check
-		for (unsigned int i = 0; i < size; i++)
-			if (result_sq[i] != result_pl[i]) {
-				if (debug) {
-					cout << "Wrong value \"" << result_sq[i] << "\" and \"" << result_pl[i] << "\" at position " << i << "." << endl;
-				}
-				if (interactive) {
-					wait_for_input();
-				}
-				return 3;
-			}
+		bool checkResult = verifyMatrixResult(result_sq, result_pl, size, debug);
 
 		free(matrix1);
 		free(matrix2);
@@ -149,12 +151,16 @@ int main(int argc, char *argv[]) {
 		if (interactive) {
 			wait_for_input();
 		}
-		return 0;
+
+		if (checkResult)
+			return EXIT_SUCCESS;
+		else
+			return EXIT_WRONGVALUE;
 
 	} catch (TCLAP::ArgException &e)  // catch any exceptions
 	{
 		cerr << "error: " << e.error() << " for arg " << e.argId() << endl;
-		return -1;
+		return EXIT_BADARGUMENT;
 	}
 }
 
