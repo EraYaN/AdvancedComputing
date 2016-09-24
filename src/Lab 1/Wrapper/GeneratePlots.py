@@ -48,6 +48,8 @@ def GeneratePlot(results, job_title):
         xlabel = "Matrix/Vector Size"
         ylabel = "Speedup"
         title = "OpenCL vs Sequential (x=8)"
+    else:
+        return 'ERROR: job_title unknown'
 
     # Generate graph
     graphX = []
@@ -57,6 +59,7 @@ def GeneratePlot(results, job_title):
         graphX.append(result[xfield])
         graphY.append(result[yfield])
 
+    fig = plt.figure()
     style.use('ggplot')
     plt.bar(graphX,graphY,align='center')
     plt.ylim([np.min(graphY)-(np.max(graphY)-np.min(graphY))*0.01,np.max(graphY)+(np.max(graphY)-np.min(graphY))*0.01])
