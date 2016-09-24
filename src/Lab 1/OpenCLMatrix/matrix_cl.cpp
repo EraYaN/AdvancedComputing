@@ -13,6 +13,7 @@
 #include <variant.h>
 #include <interactive_tools.h>
 #include <opencl_helpers.h>
+#include <user_float.h>
 
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
@@ -26,14 +27,17 @@ using namespace std;
 the following function calculate the below equation
 vector_out = vector_in x matrix_in
 ***************************************************/
-void matrix_mult_sq(int size, cl_double *vector_in,
-	cl_double *matrix_in, cl_double *vector_out) {
-	int rows, cols;
+void matrix_mult_sq(int size, user_float_t *matrix1_in,
+	user_float_t *matrix2_in, user_float_t *matrix_out) {
+	int rowsOut, rowsIn, cols;
 	int j;
-	for (cols = 0; cols < size; cols++) {
-		vector_out[cols] = 0.0;
-		for (j = 0, rows = 0; rows < size; j++, rows++)
-			vector_out[cols] += vector_in[j] * matrix_in[rows*size + cols];
+	for (cols = 0; cols<size; cols++) {
+		for (rowsOut = 0; rowsOut<size; rowsOut++) {
+			matrix_out[cols + rowsOut*size] = 0.0;
+			for (j = 0, rowsIn = 0; rowsIn<size; j++, rowsIn++) {
+				matrix_out[cols + rowsOut*size] += matrix1_in[j + rowsOut*size] * matrix2_in[rowsIn*size + cols];
+			}
+		}
 	}
 }
 
@@ -41,12 +45,10 @@ void matrix_mult_sq(int size, cl_double *vector_in,
 the following function generates a "size"-element vector
 and a "size x size" matrix
 ****************************************************/
-void matrix_vector_gen(cl_int size, cl_double *matrix, cl_double *vector) {
-	int i;
-	for (i = 0; i < size; i++)
-		vector[i] = ((double)rand()) / 65535.0;
+void matrix_gen(unsigned int size, user_float_t *matrix) {
+	unsigned int i;
 	for (i = 0; i < size*size; i++)
-		matrix[i] = ((double)rand()) / 5307.0;
+		matrix[i] = ((user_float_t)rand()) / 5307.0;
 }
 
 int main(int argc, char *argv[]) {
@@ -60,13 +62,18 @@ int main(int argc, char *argv[]) {
 		// delimiter (usually space) and the last one is the version number.
 		// The CmdLine object parses the argv array based on the Arg objects
 		// that it contains.
-		TCLAP::CmdLine cmd("OpenCL Matrix x Matrix Multiplication", ' ', "0.9");
+#ifdef USE_DOUBLES
+		TCLAP::CmdLine cmd("OpenCL Matrix x Matrix Multiplication (Double Precision)", ' ', "0.9");
+#else
+		TCLAP::CmdLine cmd("OpenCL Matrix x Matrix Multiplication (Single Precision)", ' ', "0.9");
+#endif
 
 		// Define a value argument and add it to the command line.
 		// A value arg defines a flag and a type of value that it expects,
 		// such as "-n Bishop".
 		TCLAP::ValueArg<unsigned int> threadsArg("t", "threads", "Local workgroup size.", true, 2, "unsigned int");
 		TCLAP::ValueArg<unsigned int> datasizeArg("s", "data_size", "Data size.", true, 2, "unsigned int");
+		TCLAP::ValueArg<unsigned int> iterationsArg("n", "iterations", "The number of iterations.", false, 1, "unsigned int");
 		TCLAP::ValuesConstraint<int> variantConstraint(variants);
 		TCLAP::ValueArg<int> variantArg("v", "variant", "Variant ID to run.", false, (int)base, &variantConstraint, false);
 		TCLAP::SwitchArg debugArg("d", "debug", "Enable debug mode, verbose output.", false);
@@ -76,6 +83,7 @@ int main(int argc, char *argv[]) {
 		// uses this Arg to parse the command line.
 		cmd.add(threadsArg);
 		cmd.add(datasizeArg);
+		cmd.add(iterationsArg);
 		cmd.add(variantArg);
 		cmd.add(debugArg);
 		cmd.add(interactiveArg);
@@ -84,8 +92,9 @@ int main(int argc, char *argv[]) {
 		cmd.parse(argc, argv);
 
 		// Get the value parsed by each arg.
-		cl_int size = (cl_int)datasizeArg.getValue();
-		cl_int localSize = (cl_int)threadsArg.getValue();
+		unsigned int size = datasizeArg.getValue();
+		unsigned int localSize = threadsArg.getValue();
+		unsigned iterations = iterationsArg.getValue();
 		Variant variant = (Variant)variantArg.getValue();
 		bool debug = debugArg.getValue();
 		bool interactive = interactiveArg.getValue();
@@ -93,11 +102,11 @@ int main(int argc, char *argv[]) {
 		if ((size == 0) || (localSize == 0)) {
 			cerr << "Incorrect arguments, make sure both arguments are integers greater than zero." << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		} else if ((size % localSize) != 0) {
 			cerr << "size (" << size << ") should be a multiple of localSize (" << localSize << ")" << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		if (debug) {
@@ -106,16 +115,18 @@ int main(int argc, char *argv[]) {
 			if ((buffer = _getcwd(NULL, 0)) == NULL)
 				cerr << "_getcwd error" << endl;
 			else {
-				printf("%s \nLength: %zu\n", buffer, strlen(buffer));
+				printf("Current Directory: %s\n", buffer);
 				free(buffer);
 			}
 		}
 
-		cl_double *vector = (double *)malloc(sizeof(cl_double)*size);
-		cl_double *matrix = (double *)malloc(sizeof(cl_double)*size*size);
-		cl_double *result_sq = (double *)malloc(sizeof(cl_double)*size);
-		cl_double *result_pl = (double *)malloc(sizeof(cl_double)*size);
-		matrix_vector_gen(size, matrix, vector);
+		user_float_t *matrix1 = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
+		user_float_t *matrix2 = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
+		user_float_t *result_sq = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
+		user_float_t *result_pl = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
+
+		matrix_gen(size, matrix1);
+		matrix_gen(size, matrix2);
 
 		double time_sq;
 		double time_opencl;
@@ -124,12 +135,14 @@ int main(int argc, char *argv[]) {
 		cl_event mulDone;
 
 		time_sq = omp_get_wtime();
-		matrix_mult_sq(size, vector, matrix, result_sq);
+		for (unsigned iteration = 0; iteration < iterations; iteration++) {
+			matrix_mult_sq(size, matrix1, matrix2, result_sq);
+		}
 		time_sq = omp_get_wtime() - time_sq;
+
 
 		cl_int status;
 
-		time_opencl = omp_get_wtime();
 
 
 		//-----------------------------------------------------
@@ -150,7 +163,7 @@ int main(int argc, char *argv[]) {
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 1: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		//-----------------------------------------------------
@@ -183,7 +196,51 @@ int main(int argc, char *argv[]) {
 		if ((status != CL_SUCCESS) || ((unsigned int)device_id >= numDevices)) {
 			cerr << "error in step 2: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
+		}
+
+		size_t maxWorkGroupSize;
+		// print max work group size
+		status |= clGetDeviceInfo(devices[device_id], CL_DEVICE_MAX_WORK_GROUP_SIZE,
+			sizeof(maxWorkGroupSize), &maxWorkGroupSize, NULL);
+
+		if (status != CL_SUCCESS) {
+			cerr << "Could not get CL_DEVICE_MAX_WORK_GROUP_SIZE from device: " << getErrorString(status) << endl;
+			if (interactive) wait_for_input();
+			exit(EXIT_OPENCLERROR);
+		}
+
+		if (debug) {
+			// print device name
+			char* value;
+			size_t valueSize;
+			clGetDeviceInfo(devices[device_id], CL_DEVICE_NAME, 0, NULL, &valueSize);
+			value = (char*)malloc(valueSize);
+			clGetDeviceInfo(devices[device_id], CL_DEVICE_NAME, valueSize, value, NULL);
+			printf("Running on device: %s\n", value);
+			free(value);
+			//print max work size.
+			printf("Max work group size: %zu\n", maxWorkGroupSize);
+		}
+
+		//If the localSize is too much for this device, abort.
+		if (localSize*localSize > maxWorkGroupSize) {
+			localSize = max(1, (int)floor(sqrt(maxWorkGroupSize)));
+			if(debug)
+				printf("Given localSize is too big, setting it to maximum of %d\n", localSize);
+		}
+
+		cl_ulong globalMemorySize;
+		// print global memory size
+		clGetDeviceInfo(devices[device_id], CL_DEVICE_GLOBAL_MEM_SIZE,
+			sizeof(globalMemorySize), &globalMemorySize, NULL);
+		if(debug)
+			printf("Global memory size: %lu MiB\n", (unsigned long)round((double)globalMemorySize / 1024 / 1024));
+
+		//If the size is too big for the global memory abort. (3 int sizes for safety and one for the size parameter)
+		if (size*size*sizeof(user_float_t)*3 + 4*sizeof(int) > globalMemorySize) {
+			if (debug)
+				printf("Given data size is too big, the device would run out of memory.\n");
 		}
 
 		//-----------------------------------------------------
@@ -204,7 +261,7 @@ int main(int argc, char *argv[]) {
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 3: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		//-----------------------------------------------------
@@ -224,101 +281,61 @@ int main(int argc, char *argv[]) {
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 4: " << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		//-----------------------------------------------------
 		// STEP 5: Create device buffers, images and copy data to buffers
 		//-----------------------------------------------------
-		cl_mem bufferVectorIn, bufferMatrixIn, bufferVectorOut;
+		cl_mem bufferMatrix1In, bufferMatrix2In, bufferMatrixOut;
 
 
-		bufferVectorIn = clCreateBuffer(
+		bufferMatrix1In = clCreateBuffer(
 			context,
 			CL_MEM_READ_ONLY,
-			size * sizeof(cl_double),
+			size * size * sizeof(user_float_t),
 			NULL,
 			&status);
 
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 5, creating buffer for bufferA: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
-		bufferMatrixIn = clCreateBuffer(
+		bufferMatrix2In = clCreateBuffer(
 			context,
 			CL_MEM_READ_ONLY,
-			size*size * sizeof(cl_double),
+			size * size * sizeof(user_float_t),
 			NULL,
 			&status);
 
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 5, creating buffer for bufferB: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
-		bufferVectorOut = clCreateBuffer(
+		bufferMatrixOut = clCreateBuffer(
 			context,
 			CL_MEM_WRITE_ONLY,
-			size*size * sizeof(cl_double),
+			size * size * sizeof(user_float_t),
 			NULL,
 			&status);
 
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 5, creating buffer for bufferC: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
-		}
-
-		status = clEnqueueWriteBuffer(
-			cmdQueue,
-			bufferVectorIn,
-			CL_FALSE,
-			0,
-			size * sizeof(cl_double),
-			vector,
-			0,
-			NULL,
-			NULL);
-
-		status |= clEnqueueWriteBuffer(
-			cmdQueue,
-			bufferMatrixIn,
-			CL_FALSE,
-			0,
-			size*size * sizeof(cl_double),
-			matrix,
-			0,
-			NULL,
-			NULL);
-
-		if (status != CL_SUCCESS) {
-			cerr << "error in step 5, writing data: " << getErrorString(status) << endl;
-			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		char *mulFileName;
-		mulFileName = "vectorMatrixMul.cl";
-		/*FILE *mulFile;
-		fopen_s(&mulFile, mulFileName, "r");
-		if (mulFile == NULL) {
-		cerr << "cannot open .cl file" << endl;
-		cerr << "current path: " << mulFileName << endl;
-		if (interactive) wait_for_input();
-		exit(-1);
-		}
-		fseek(mulFile, 0, SEEK_END);
-		size_t mulSize = ftell(mulFile);
-		rewind(mulFile);
 
-		// read kernel source into buffer
-		mulBuffer = (char*)malloc(mulSize + 1);
-		mulBuffer[mulSize] = '\0';
-		fread(mulBuffer, sizeof(char), mulSize, mulFile);
-		fclose(mulFile);*/
+#ifdef USE_DOUBLES
+		mulFileName = "vectorMatrixMulDouble.cl";
+#else
+		mulFileName = "vectorMatrixMulFloat.cl";
+#endif
 
 		std::fstream kernelFile(mulFileName);
 		std::string content(
@@ -357,7 +374,7 @@ int main(int argc, char *argv[]) {
 			cerr << "error in step 6: " << getErrorString(status) << endl;
 			printCLBuildOutput(program, &devices[device_id]);
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
 		//-----------------------------------------------------
@@ -370,97 +387,132 @@ int main(int argc, char *argv[]) {
 		if (status != CL_SUCCESS) {
 			cerr << "error in step 7: " << getErrorString(status) << endl;
 			if (interactive) wait_for_input();
-			exit(-1);
+			exit(EXIT_OPENCLERROR);
 		}
 
-		//-----------------------------------------------------
-		// STEP 8: Set the kernel arguments
-		//-----------------------------------------------------
-		// Associate the input and output buffers with the
-		// kernel
-		// using clSetKernelArg()
-		status = clSetKernelArg(
-			mulKernel,
-			0,
-			sizeof(cl_mem),
-			&bufferVectorIn);
-		status |= clSetKernelArg(
-			mulKernel,
-			1,
-			sizeof(cl_mem),
-			&bufferMatrixIn);
-		status |= clSetKernelArg(
-			mulKernel,
-			2,
-			sizeof(cl_mem),
-			&bufferVectorOut);
-		status |= clSetKernelArg(
-			mulKernel,
-			3,
-			sizeof(cl_int),
-			&size);
+
+		//TODO figure out if this is fair, all the setup is included now.
+		time_opencl = omp_get_wtime();
+		for (unsigned iteration = 0; iteration < iterations; iteration++) {
+			status = clEnqueueWriteBuffer(
+				cmdQueue,
+				bufferMatrix1In,
+				CL_FALSE,
+				0,
+				size * size * sizeof(user_float_t),
+				matrix1,
+				0,
+				NULL,
+				NULL);
+
+			status |= clEnqueueWriteBuffer(
+				cmdQueue,
+				bufferMatrix2In,
+				CL_FALSE,
+				0,
+				size * size * sizeof(user_float_t),
+				matrix2,
+				0,
+				NULL,
+				NULL);
+
+			if (status != CL_SUCCESS) {
+				cerr << "error in step 5, writing data: " << getErrorString(status) << endl;
+				if (interactive) wait_for_input();
+				exit(EXIT_OPENCLERROR);
+			}
+
+			//-----------------------------------------------------
+			// STEP 8: Set the kernel arguments
+			//-----------------------------------------------------
+			// Associate the input and output buffers with the
+			// kernel
+			// using clSetKernelArg()
+			status = clSetKernelArg(
+				mulKernel,
+				0,
+				sizeof(cl_mem),
+				&bufferMatrix1In);
+			status |= clSetKernelArg(
+				mulKernel,
+				1,
+				sizeof(cl_mem),
+				&bufferMatrix2In);
+			status |= clSetKernelArg(
+				mulKernel,
+				2,
+				sizeof(cl_mem),
+				&bufferMatrixOut);
+			status |= clSetKernelArg(
+				mulKernel,
+				3,
+				sizeof(cl_int),
+				&size);
 
 
-		if (status != CL_SUCCESS) {
-			cerr << "error in step 8: " << getErrorString(status) << endl;
-			if (interactive) wait_for_input();
-			exit(-1);
+			if (status != CL_SUCCESS) {
+				cerr << "error in step 8: " << getErrorString(status) << endl;
+				if (interactive) wait_for_input();
+				exit(EXIT_OPENCLERROR);
+			}
+
+			//-----------------------------------------------------
+			// STEP 9: Configure the work-item structure
+			//-----------------------------------------------------
+			// Define an index space (global work size) of work
+			// items for
+			// execution. A workgroup size (local work size) is not
+			// required,
+			// but can be used.
+
+			size_t globalWorkSize[2];
+			globalWorkSize[0] = size;
+			globalWorkSize[1] = size;
+
+			size_t localWorkSize[2];
+			localWorkSize[0] = localSize;
+			localWorkSize[1] = localSize;
+
+			status |= clEnqueueNDRangeKernel(
+				cmdQueue,
+				mulKernel,
+				2,
+				NULL,
+				globalWorkSize,
+				localWorkSize,
+				0,
+				NULL,
+				&mulDone);
+
+			if (status != CL_SUCCESS) {
+				clWaitForEvents(1, &mulDone);
+				cerr << "error in clEnqueueNDRangeKernel: " << getErrorString(status) << endl;
+				if (interactive) wait_for_input();
+				exit(EXIT_OPENCLERROR);
+			}
+
+			clEnqueueReadBuffer(
+				cmdQueue,
+				bufferMatrixOut,
+				CL_TRUE,
+				0,
+				size * size * sizeof(user_float_t),
+				result_pl,
+				1,
+				&mulDone,
+				NULL);
+
+
+			if (status != CL_SUCCESS) {
+				cerr << "error in reading data: " << getErrorString(status) << endl;
+				exit(EXIT_OPENCLERROR);
+			}
 		}
-
-		//-----------------------------------------------------
-		// STEP 9: Configure the work-item structure
-		//-----------------------------------------------------
-		// Define an index space (global work size) of work
-		// items for
-		// execution. A workgroup size (local work size) is not
-		// required,
-		// but can be used.
-
-		size_t globalWorkSize[1];
-		globalWorkSize[0] = size;
-
-		size_t localWorkSize[1];
-		localWorkSize[0] = localSize;
-
-
-		status |= clEnqueueNDRangeKernel(
-			cmdQueue,
-			mulKernel,
-			1,
-			NULL,
-			globalWorkSize,
-			localWorkSize,
-			0,
-			NULL,
-			&mulDone);
-
-		if (status != CL_SUCCESS) {
-			clWaitForEvents(1, &mulDone);
-			cerr << "error in clEnqueueNDRangeKernel" << endl;
-			if (interactive) wait_for_input();
-			exit(-1);
-		}
-
-		clEnqueueReadBuffer(
-			cmdQueue,
-			bufferVectorOut,
-			CL_TRUE,
-			0,
-			size * sizeof(cl_double),
-			result_pl,
-			1,
-			&mulDone,
-			NULL);
-
-
-		if (status != CL_SUCCESS) {
-			cerr << "error in reading data: " << getErrorString(status) << endl;
-			exit(-1);
-		}
-
 		time_opencl = omp_get_wtime() - time_opencl;
 
+
 		if (debug) {
+			printf("ITR:%d\n", iterations);
 			printf("DAT:%d\n", size);
 			printf("THD:%d\n", localSize);
 			//printf("PRC:%d\n", omp_get_num_procs());
@@ -468,20 +520,21 @@ int main(int argc, char *argv[]) {
 		printf("SEQ:%.14f\n", time_sq);
 		printf("VAR:%.14f\n", time_opencl);
 
+		if (debug) {
+			cout << "matrix1: " << endl;
+			printMatrix(matrix1, size, size);
+			cout << "matrix2: " << endl;
+			printMatrix(matrix2, size, size);
+			cout << "result_sq: " << endl;
+			printMatrix(result_sq, size, size);
+			cout << "result_pl: " << endl;
+			printMatrix(result_pl, size, size);
+
+		}
 
 		//check
-		int i;
-		for (i = 0; i < size; i++) {
-			if ((int)result_sq[i] != (int)result_pl[i]) {
-				if (debug) {
-					cout << "Wrong value \"" << result_sq[i] << "\" and \"" << result_pl[i] << "\" at position " << i << "." << endl;
-				}
-				if (interactive) {
-					wait_for_input();
-				}
-				return 2;
-			}
-		}
+		bool checkResult = verifyMatrixResult(result_sq, result_pl, size, debug);
+
 		//-----------------------------------------------------
 		// STEP 10: Release OpenCL resources
 		//-----------------------------------------------------
@@ -490,14 +543,14 @@ int main(int argc, char *argv[]) {
 		clReleaseKernel(mulKernel);
 		clReleaseProgram(program);
 		clReleaseCommandQueue(cmdQueue);
-		clReleaseMemObject(bufferVectorIn);
-		clReleaseMemObject(bufferMatrixIn);
-		clReleaseMemObject(bufferVectorOut);
+		clReleaseMemObject(bufferMatrix1In);
+		clReleaseMemObject(bufferMatrix2In);
+		clReleaseMemObject(bufferMatrixOut);
 		clReleaseContext(context);
 
 		//Free up memory and close files
-		free(vector);
-		free(matrix);
+		free(matrix1);
+		free(matrix2);
 		free(result_sq);
 		free(result_pl);
 
@@ -505,11 +558,15 @@ int main(int argc, char *argv[]) {
 			wait_for_input();
 		}
 
-		return EXIT_SUCCESS;
+		if (checkResult)
+			return EXIT_SUCCESS;
+		else
+			return EXIT_WRONGVALUE;
+
 	} catch (TCLAP::ArgException &e)  // catch any exceptions
 	{
 		cerr << "error: " << e.error() << " for arg " << e.argId() << endl;
-		return -1;
+		return EXIT_BADARGUMENT;
 	}
 }
 

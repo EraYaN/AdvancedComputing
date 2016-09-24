@@ -37,6 +37,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCLMatrix", "OpenCLMatri
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ACSLabSharedLibrary", "ACSLabSharedLibrary\ACSLabSharedLibrary.vcxproj", "{C8FDAECA-2E23-4C2B-A7C6-3AD3B4964D0B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AVXMatrix", "AVXMatrix\AVXMatrix.vcxproj", "{66D04798-A43D-4DC8-912F-63D17C25D991}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -169,6 +171,22 @@ Global
 		{C8FDAECA-2E23-4C2B-A7C6-3AD3B4964D0B}.ReleaseDP|Win32.Build.0 = ReleaseDP|Win32
 		{C8FDAECA-2E23-4C2B-A7C6-3AD3B4964D0B}.ReleaseDP|x64.ActiveCfg = ReleaseDP|x64
 		{C8FDAECA-2E23-4C2B-A7C6-3AD3B4964D0B}.ReleaseDP|x64.Build.0 = ReleaseDP|x64
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.Debug|Win32.ActiveCfg = Debug|Win32
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.Debug|Win32.Build.0 = Debug|Win32
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.Debug|x64.ActiveCfg = Debug|x64
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.Debug|x64.Build.0 = Debug|x64
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.DebugDP|Win32.ActiveCfg = DebugDP|Win32
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.DebugDP|Win32.Build.0 = DebugDP|Win32
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.DebugDP|x64.ActiveCfg = DebugDP|x64
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.DebugDP|x64.Build.0 = DebugDP|x64
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.Release|Win32.ActiveCfg = Release|Win32
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.Release|Win32.Build.0 = Release|Win32
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.Release|x64.ActiveCfg = Release|x64
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.Release|x64.Build.0 = Release|x64
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.ReleaseDP|Win32.ActiveCfg = ReleaseDP|Win32
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.ReleaseDP|Win32.Build.0 = ReleaseDP|Win32
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.ReleaseDP|x64.ActiveCfg = ReleaseDP|x64
+		{66D04798-A43D-4DC8-912F-63D17C25D991}.ReleaseDP|x64.Build.0 = ReleaseDP|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

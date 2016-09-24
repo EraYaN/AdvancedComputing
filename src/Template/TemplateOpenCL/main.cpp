@@ -21,7 +21,7 @@ int main(void) {
 	cl_ulong localMemorySize;
 	cl_uint maxClockFrequency;
 	cl_uint maxSamplers;
-	cl_uint maxWorkGroupSize;
+	size_t maxWorkGroupSize;
 
 	// get all platforms
 	err = clGetPlatformIDs(0, NULL, &platformCount);
