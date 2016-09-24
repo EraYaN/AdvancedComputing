@@ -8,7 +8,22 @@ from terminaltables import AsciiTable
 with open('results.pickle', 'rb') as handle:
     results = pickle.load(handle)
 
+### Part A
+## Task 1
+# most suitable amount of threads
+    # fixed data size (512?)
+    # sweep threads
+    # find shortest OpenMP time
+    # plot time vs threads at fixed data size
+# PAR SEQ comparison
+    # plot speedup vs threads at fixed data size
+
+## Task 2
+# sweep data size 10 - 10000
+# plot speedup vs data size at Task1 threads
+
 # this test code should print the exact output as Wrapper.py
+
 table_heading = [
     'platform',
     'type',
