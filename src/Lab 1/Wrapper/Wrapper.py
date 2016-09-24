@@ -23,7 +23,7 @@ SSE = {
     'name':'SSE',
     'variants':[Variant.base],
     'configs':['Release'],
-    'data_sizes':np.arange(4, 1024, 128),
+    'data_sizes':np.arange(4, 1024, 4),
     'thread_range':[8]
 }
 SSEMatrix = {
@@ -94,9 +94,12 @@ if __name__ == '__main__':
     try:
         opts = parser.parse_args(sys.argv[1:])
 
-        ExecuteJob('SSE Task 1','partB_task1.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot)
+        ExecuteJob('Part B Task 1','partB_task1.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot)
+        SSE['variant'] = [Variant.arbitrarysize];
+        SSE['data_sizes'] = np.arange(4, 1024, 1);
+        ExecuteJob('Part B Task 2','partB_task2.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot)
         SSE['configs'] = ['ReleaseDP'];
-        ExecuteJob('SSE Task 2','partB_task1.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot)
+        ExecuteJob('Part B Task 3','partB_task3.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot)
 
         print("Done.")
     except SystemExit:
