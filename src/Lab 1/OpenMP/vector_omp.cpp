@@ -25,8 +25,7 @@ void matrix_vector_gen(int size, user_float_t *matrix, user_float_t *vector) {
 the following function calculate the below equation
    vector_out = vector_in x matrix_in
  ***************************************************/
-void matrix_mult_sq(int size, user_float_t *vector_in,
-	user_float_t *matrix_in, user_float_t *vector_out) {
+void matrix_mult_sq(int size, user_float_t *vector_in, user_float_t *matrix_in, user_float_t *vector_out) {
 	int rows, cols;
 	int j;
 	for (cols = 0; cols < size; cols++) {
@@ -36,8 +35,7 @@ void matrix_mult_sq(int size, user_float_t *vector_in,
 	}
 }
 
-void matrix_mult_pl(int size, user_float_t *vector_in,
-	user_float_t *matrix_in, user_float_t *vector_out) {
+void matrix_mult_pl(int size, user_float_t *vector_in, user_float_t *matrix_in, user_float_t *vector_out) {
 	int rows, cols;
 	int j;
 # pragma omp parallel				\

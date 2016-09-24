@@ -17,8 +17,7 @@ void matrix_gen(unsigned int size, user_float_t *matrix) {
 }
 
 // matrix matrix multiplication
-void matrix_mult_sq(int size, user_float_t *matrix1_in,
-	user_float_t *matrix2_in, user_float_t *matrix_out) {
+void matrix_mult_sq(int size, user_float_t *matrix1_in,	user_float_t *matrix2_in, user_float_t *matrix_out) {
 	int rowsOut, rowsIn, cols;
 	int j;
 	for (cols = 0; cols<size; cols++) {
@@ -31,8 +30,7 @@ void matrix_mult_sq(int size, user_float_t *matrix1_in,
 	}
 }
 
-void matrix_mult_pl(int size, user_float_t *matrix1_in,
-	user_float_t *matrix2_in, user_float_t *matrix_out) {
+void matrix_mult_pl(int size, user_float_t *matrix1_in,	user_float_t *matrix2_in, user_float_t *matrix_out) {
 	int rowsOut, rowsIn, cols;
 	int j;
 # pragma omp parallel				\

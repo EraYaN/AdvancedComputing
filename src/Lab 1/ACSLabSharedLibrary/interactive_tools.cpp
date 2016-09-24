@@ -16,7 +16,7 @@ void printArray(user_float_t arr[], int size, bool all) {
 	if (!all&&size > FORMAT_LIMIT)
 		limit = FORMAT_LIMIT;
 
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; i < limit; i++) {
 		cout << left << setprecision(FORMAT_PRECISION) << setw(FORMAT_NUMWIDTH) << setfill(FORMAT_SEPARATOR) << arr[i];
 	}
 	if (!all&&size > FORMAT_LIMIT)
