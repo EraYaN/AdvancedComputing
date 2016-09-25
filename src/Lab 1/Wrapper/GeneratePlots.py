@@ -24,7 +24,7 @@ def GeneratePlot(results, job_title, output_dir = '.'):
         yfield= "relative_improvement"
         xlabel = "Data Size"
         ylabel = "Speedup"
-        title = "OpenMP vs Sequential (threads=40)"
+        title = "OpenMP vs Sequential (threads=" + results[0]['threads'] + ")"
     elif job_title == "Part B Task 1":
         xfield = "data_size"
         yfield= "relative_improvement"
@@ -48,7 +48,13 @@ def GeneratePlot(results, job_title, output_dir = '.'):
         yfield= "relative_improvement"
         xlabel = "Matrix/Vector Size"
         ylabel = "Speedup"
-        title = "OpenCL vs Sequential (x=8)"
+        title = "OpenCL vs Sequential (x=64)"
+    elif job_title == "Part C Task 2":
+        xfield = "data_size"
+        yfield= "relative_improvement"
+        xlabel = "Matrix/Vector Size"
+        ylabel = "Speedup"
+        title = "OpenCL vs Sequential (x=1024)"
     else:
         return 'ERROR: job_title unknown'
 
