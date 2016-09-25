@@ -101,7 +101,7 @@ if __name__ == '__main__':
     parser = ap.ArgumentParser(prog='ACSLabWrapper',description='ACS Benchmark Wrapper Script')
     parser.add_argument('--disable-bench', action="store_true", help='Disable the benchmarks')
     parser.add_argument('--disable-plot', action="store_true", help='Disable the plotting')
-    parser.add_argument('--output-dir', action="store", help='Output directory',default="./out")
+    parser.add_argument('--output-dir', action="store", help='Output directory',default="../../docs/lab1")
     try:
         opts = parser.parse_args(sys.argv[1:])
         output_dir = opts.output_dir;
@@ -116,12 +116,12 @@ if __name__ == '__main__':
         ## Task 1
         OpenMP['data_sizes'] = [2048]
         OpenMP['thread_range'] = np.arange(1, 64, 1)
-        ExecuteJob('Part A Task 1','partA_task1.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir)       
-        
+        ExecuteJob('Part A Task 1','partA_task1.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=os.path.join(output_dir,'OpenMP/resources'))
+
         ## Task 2
         OpenMP['data_sizes'] = np.arange(10, 10010, 100)
         # use threads from previous measurement, see ExecuteJob
-        ExecuteJob('Part A Task 2','partA_task2.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir) 
+        ExecuteJob('Part A Task 2','partA_task2.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=os.path.join(output_dir,'OpenMP/resources'))
 
         ### Part B
         types = [SSE]
@@ -131,16 +131,16 @@ if __name__ == '__main__':
 
         ## Task 1
         SSE['data_sizes'] = np.arange(4, 1024, 4);
-        ExecuteJob('Part B Task 1','partB_task1.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir)
-        
+        ExecuteJob('Part B Task 1','partB_task1.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=os.path.join(output_dir,'SSE-AVX/resources'))
+
         ## Task 2
         SSE['variants'] = [Variant.arbitrarysize];
         SSE['data_sizes'] = np.arange(4, 1024, 1);
-        ExecuteJob('Part B Task 2','partB_task2.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir)
-        
+        ExecuteJob('Part B Task 2','partB_task2.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=os.path.join(output_dir,'SSE-AVX/resources'))
+
         ## Task 3
         SSE['configs'] = ['ReleaseDP'];
-        ExecuteJob('Part B Task 3','partB_task3.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir)
+        ExecuteJob('Part B Task 3','partB_task3.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=os.path.join(output_dir,'SSE-AVX/resources'))
 
         ### Part C
         types = [OpenCL]
@@ -150,12 +150,12 @@ if __name__ == '__main__':
         ## Task 1
         OpenCL['thread_range'] = [64]
         OpenCL['data_sizes'] = np.arange(64, 4096, 64)
-        ExecuteJob('Part C Task 1','partC_task1.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir)
+        ExecuteJob('Part C Task 1','partC_task1.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=os.path.join(output_dir,'OpenCL/resources'))
 
         ## Task 2
         OpenCL['thread_range'] = [1024]
         OpenCL['data_sizes'] = np.arange(1024, 4096, 1024)
-        ExecuteJob('Part C Task 2','partC_task2.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir)
+        ExecuteJob('Part C Task 2','partC_task2.pickle',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=os.path.join(output_dir,'OpenCL/resources'))
 
 
         print("Done.")
