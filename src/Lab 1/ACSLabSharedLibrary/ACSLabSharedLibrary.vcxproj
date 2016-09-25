@@ -220,12 +220,14 @@
   <ItemGroup>
     <ClInclude Include="interactive_tools.h" />
     <ClInclude Include="opencl_helpers.h" />
+    <ClInclude Include="sequential_functions.h" />
     <ClInclude Include="user_float.h" />
     <ClInclude Include="variant.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="interactive_tools.cpp" />
     <ClCompile Include="opencl_helpers.cpp" />
+    <ClCompile Include="sequential_functions.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

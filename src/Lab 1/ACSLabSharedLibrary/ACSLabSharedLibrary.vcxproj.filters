@@ -27,12 +27,18 @@
     <ClInclude Include="user_float.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sequential_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="interactive_tools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="opencl_helpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sequential_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -10,6 +10,7 @@
 #include <variant.h>
 #include <interactive_tools.h>
 #include <user_float.h>
+#include <sequential_functions.h>
 
 using namespace std;
 
@@ -20,44 +21,6 @@ using namespace std;
 #define aligned_malloc(alignment, size)    _aligned_malloc(size,alignment)
 #define aligned_free(ptr)    _aligned_free(ptr)
 #endif
-
-/*****************************************************
-the following function generates a "size"-element vector
-and a "size x size" matrix
- ****************************************************/
-void matrix_vector_gen(int size, int sizeReal, user_float_t *matrix, user_float_t *vector) {
-	int i;
-	for (i = 0; i < size; i++) {
-		if (i < sizeReal) {
-			vector[i] = i*1.2f + 1;//((float)rand())/65535.0f;
-		} else {
-			vector[i] = 0.0;
-		}
-	}
-
-	for (i = 0; i < size*size; i++) {
-		if (i % size < sizeReal && i < size * sizeReal) {
-			matrix[i] = i*1.3f + 1;//((float)rand())/5307.0f;
-		} else {
-			matrix[i] = 0.0;
-		}
-	}
-}
-
-/****************************************************
-the following function calculate the below equation
-   vector_out = vector_in x matrix_in
- ***************************************************/
-void matrix_mult_sq(int size, user_float_t *vector_in,
-	user_float_t *matrix_in, user_float_t *vector_out) {
-	int rows, cols;
-	int j;
-	for (cols = 0; cols < size; cols++) {
-		vector_out[cols] = 0.0;
-		for (j = 0, rows = 0; rows < size; j++, rows++)
-			vector_out[cols] += vector_in[j] * matrix_in[rows*size + cols];
-	}
-}
 
 void matrix_mult_sse(int size, float *vector_in, float *matrix_in, float *vector_out) {
 	__m128 a_line, b_line, r_line;
@@ -193,7 +156,8 @@ int main(int argc, char *argv[]) {
 			aligned_free(result_sq);
 			return EXIT_MEMORYERROR;
 		}
-		matrix_vector_gen(paddedSize, size, matrix, vector);
+		matrix_gen(paddedSize, size, matrix);
+		vector_gen(paddedSize, size, vector);
 
 
 		double time_sq;
@@ -203,7 +167,7 @@ int main(int argc, char *argv[]) {
 
 		time_sq = omp_get_wtime();
 		for (unsigned iteration = 0; iteration < iterations; iteration++) {
-			matrix_mult_sq(paddedSize, vector, matrix, result_sq);
+			mv_mult_sq(paddedSize, vector, matrix, result_sq);
 		}
 		time_sq = omp_get_wtime() - time_sq;
 

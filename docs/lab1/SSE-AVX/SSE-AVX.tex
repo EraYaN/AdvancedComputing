@@ -8,34 +8,34 @@
 \chapter{SSE/AVX}
 
 %TODO SSE Test Data Size. DP and SP.
-% \begin{figure}[H]
-% \centering
-%     \setlength\figureheight{8cm}
-%     \setlength\figurewidth{\linewidth}
-%     \subimport{resources/}{sse-data-size-sweep.tikz}
-%     \caption{TODO.}
-%     \label{fig:sse-data-size-sweep}
-% \end{figure}
+\begin{figure}[H]
+\centering
+    \setlength\figureheight{8cm}
+    \setlength\figurewidth{\linewidth}
+    \subimport{resources/}{sse-data-size-sweep.tikz}
+    \caption{TODO.}
+    \label{fig:sse-data-size-sweep}
+\end{figure}
 
 %TODO SSE Test Data Size arbitrary size. DP and SP.
-% \begin{figure}[H]
-% \centering
-%     \setlength\figureheight{8cm}
-%     \setlength\figurewidth{\linewidth}
-%     \subimport{resources/}{sse-data-size-sweep-arbitrary.tikz}
-%     \caption{TODO.}
-%     \label{fig:sse-data-size-sweep-arbitrary}
-% \end{figure}
+\begin{figure}[H]
+\centering
+    \setlength\figureheight{8cm}
+    \setlength\figurewidth{\linewidth}
+    \subimport{resources/}{sse-data-size-sweep-arbitrary.tikz}
+    \caption{TODO.}
+    \label{fig:sse-data-size-sweep-arbitrary}
+\end{figure}
 
 %TODO SSE Test DP vs SP
-% \begin{figure}[H]
-% \centering
-%     \setlength\figureheight{8cm}
-%     \setlength\figurewidth{\linewidth}
-%     \subimport{resources/}{sse-dp-vs-sp.tikz}
-%     \caption{TODO.}
-%     \label{fig:sse-dp-vs-sp}
-% \end{figure}
+\begin{figure}[H]
+\centering
+    \setlength\figureheight{8cm}
+    \setlength\figurewidth{\linewidth}
+    \subimport{resources/}{sse-dp.tikz}
+    \caption{TODO.}
+    \label{fig:sse-dp}
+\end{figure}
 
 %TODO Show Matrix Code.
 In \cref{lst:sse-matrix-snippet} our matrix SSE code is shown for both floats and doubles, the inner loop is added to sum over all rows of the first matrix. We already added in the little OpenMP markers to speedup this implementation even a tiny bit more, although impact is negligible.

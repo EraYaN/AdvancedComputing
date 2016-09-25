@@ -29,6 +29,7 @@
 #include <variant.h>
 #include <interactive_tools.h>
 #include <user_float.h>
+#include <sequential_functions.h>
 
 using namespace std;
 
@@ -40,45 +41,15 @@ using namespace std;
 #define aligned_free(ptr)    _aligned_free(ptr)
 #endif
 
-/*****************************************************
-the following function generates a "size"-element vector
-and a "size x size" matrix
-****************************************************/
-void matrix_gen(unsigned int paddedSize, unsigned int size, user_float_t *matrix) {
-	unsigned int i;
-	for (i = 0; i < paddedSize*paddedSize; i++)
-		if (i % paddedSize < size && i < paddedSize * size) {
-			matrix[i] = ((user_float_t)rand()) / 5307.0;
-		} else {
-			matrix[i] = 0.0;
-		}
-}
-
-// matrix matrix multiplication
-void matrix_mult_sq(int size, user_float_t *matrix1_in,	user_float_t *matrix2_in, user_float_t *matrix_out) {
-	int rowsOut, rowsIn, cols;
-	int j;
-	for (cols = 0; cols<size; cols++) {
-		for (rowsOut = 0; rowsOut<size; rowsOut++) {
-			matrix_out[cols + rowsOut*size] = 0.0;
-			for (j = 0, rowsIn = 0; rowsIn<size; j++, rowsIn++) {
-				matrix_out[cols + rowsOut*size] += matrix1_in[j + rowsOut*size] * matrix2_in[rowsIn*size + cols];
-			}
-		}
-	}
-}
-
 void matrix_mult_sse(int size, float *matrix1, float *matrix2, float *matrix_out) {
 	__m128 a_line, b_line, r_line;
-	int i, j, k;
 # pragma omp parallel				\
 	shared(size, matrix1, matrix2, matrix_out)	\
-	private(i,j,k, a_line, b_line, r_line)
+	private(a_line, b_line, r_line)
 # pragma omp for
-	for (k = 0; k < size * size; k += size) {
-# pragma omp for
-		for (i = 0; i < size; i += 4) {
-			j = 0;
+	for (int k = 0; k < size * size; k += size) {
+		for (int i = 0; i < size; i += 4) {
+			int j = 0;
 			b_line = _mm_load_ps(&matrix2[i]); //_mm_loadu_ps is the non-aligned version that only get a penalty with unaligned memory
 			a_line = _mm_set1_ps(matrix1[j + k]);
 			r_line = _mm_mul_ps(a_line, b_line);
@@ -94,15 +65,13 @@ void matrix_mult_sse(int size, float *matrix1, float *matrix2, float *matrix_out
 
 void matrix_mult_sse(int size, double *matrix1, double *matrix2, double *matrix_out) {
 	__m128d a_line, b_line, r_line;
-	int i, j, k;
 # pragma omp parallel				\
 	shared(size, matrix1, matrix2, matrix_out)	\
-	private(i,j,k, a_line, b_line, r_line)
+	private(a_line, b_line, r_line)
 # pragma omp for
-	for (k = 0; k < size * size; k += size) {
-# pragma omp for
-		for (i = 0; i < size; i += 2) {
-			j = 0;
+	for (int k = 0; k < size * size; k += size) {
+		for (int i = 0; i < size; i += 2) {
+			int j = 0;
 			b_line = _mm_load_pd(&matrix2[i]); //_mm_loadu_ps is the non-aligned version that only get a penalty with unaligned memory
 			a_line = _mm_set1_pd(matrix1[j + k]);
 			r_line = _mm_mul_pd(a_line, b_line);
@@ -222,7 +191,7 @@ int main(int argc, char *argv[]) {
 
 		time_sq = omp_get_wtime();
 		for (unsigned iteration = 0; iteration < iterations; iteration++) {
-			matrix_mult_sq(paddedSize, matrix1, matrix2, result_sq);
+			mm_mult_sq(paddedSize, matrix1, matrix2, result_sq);
 		}
 		time_sq = omp_get_wtime() - time_sq;
 

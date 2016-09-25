@@ -14,6 +14,7 @@
 #include <interactive_tools.h>
 #include <opencl_helpers.h>
 #include <user_float.h>
+#include <sequential_functions.h>
 
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
@@ -22,34 +23,6 @@
 #endif
 
 using namespace std;
-
-/****************************************************
-the following function calculate the below equation
-vector_out = vector_in x matrix_in
-***************************************************/
-void matrix_mult_sq(int size, user_float_t *matrix1_in,
-	user_float_t *matrix2_in, user_float_t *matrix_out) {
-	int rowsOut, rowsIn, cols;
-	int j;
-	for (cols = 0; cols<size; cols++) {
-		for (rowsOut = 0; rowsOut<size; rowsOut++) {
-			matrix_out[cols + rowsOut*size] = 0.0;
-			for (j = 0, rowsIn = 0; rowsIn<size; j++, rowsIn++) {
-				matrix_out[cols + rowsOut*size] += matrix1_in[j + rowsOut*size] * matrix2_in[rowsIn*size + cols];
-			}
-		}
-	}
-}
-
-/*****************************************************
-the following function generates a "size"-element vector
-and a "size x size" matrix
-****************************************************/
-void matrix_gen(unsigned int size, user_float_t *matrix) {
-	unsigned int i;
-	for (i = 0; i < size*size; i++)
-		matrix[i] = ((user_float_t)rand()) / 5307.0;
-}
 
 int main(int argc, char *argv[]) {
 
@@ -136,7 +109,7 @@ int main(int argc, char *argv[]) {
 
 		time_sq = omp_get_wtime();
 		for (unsigned iteration = 0; iteration < iterations; iteration++) {
-			matrix_mult_sq(size, matrix1, matrix2, result_sq);
+			mm_mult_sq(size, matrix1, matrix2, result_sq);
 		}
 		time_sq = omp_get_wtime() - time_sq;
 

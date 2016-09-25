@@ -12,10 +12,10 @@ from WrapperShared import Variant
 # Exit codes.  See ACSLabSharedLibrary/interactive_tools.h
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
-EXIT_BADARGUMENT = -1
-EXIT_WRONGVALUE = -2
-EXIT_OPENCLERROR = -3
-EXIT_MEMORYERROR = -4
+EXIT_BADARGUMENT = 2
+EXIT_WRONGVALUE = 3
+EXIT_OPENCLERROR = 4
+EXIT_MEMORYERROR = 5
 
 def GetNumberOfRuns(platforms,types,iteration_range,max_n):
     result = {"runs": 0, "process_runs":0}
@@ -35,7 +35,7 @@ def GetNumberOfRuns(platforms,types,iteration_range,max_n):
     return result;
 
 
-def ExecuteBenchmark(platforms,types,iteration_range,max_n=1):
+def ExecuteBenchmark(job_title, platforms,types,iteration_range,max_n=1):
     platform_paths = {'x86':'','x64':'x64/'} # Platform to Directory Dictionary
     error_occured = False
     results = []
@@ -54,6 +54,7 @@ def ExecuteBenchmark(platforms,types,iteration_range,max_n=1):
                                 variant_time = 0
                                 new_time = 0
                                 error_occured = False
+                                current_run+=1
 
                                 for n in range(0,max_n):
                                     #print("../{0}{1}/{2}.exe".format(platform_paths[platform],config,type['name']))
@@ -61,9 +62,9 @@ def ExecuteBenchmark(platforms,types,iteration_range,max_n=1):
                                     #print(result.args)
                                     if result.returncode != EXIT_SUCCESS:
                                         print("ERROR {1} returned {0}. Output below.".format(result.returncode, "../{0}{1}/{2}.exe".format(platform_paths[platform],config,type['name'])))
-                                        print(result.stdout)
                                         error_occured = True
                                         if result.returncode != EXIT_WRONGVALUE:
+                                            print(result.stdout)
                                             break
 
                                     for line in result.stdout.splitlines(): #read and store result in log file
@@ -76,7 +77,7 @@ def ExecuteBenchmark(platforms,types,iteration_range,max_n=1):
                                     if variant_time != 0:
                                         new_time += sequential_time / variant_time
 
-                                    sys.stdout.write("{3}: {0: >2} out of {1: >2} ({2: >3,.0%})\r".format(n + 1, max_n,(n + 1) / max_n,type['name']))
+                                    sys.stdout.write("{3}: Run {4} out of {5}: {0: >2} out of {1: >2} ({2: >3,.0%})\r".format(n + 1, max_n,(n + 1 + current_run*max_n) / (max_n*number_of_runs['runs']),job_title,current_run,number_of_runs['runs']))
                                     sys.stdout.flush()
 
                                 sequential_time = sequential_time / max_n
@@ -97,8 +98,8 @@ def ExecuteBenchmark(platforms,types,iteration_range,max_n=1):
                                     "relative_improvement":relative_improvement,
                                     "had_error":error_occured
                                     })
-                                current_run+=1
-                                print("{0}: Run {1} out of {2} is done.\n".format(type['name'],current_run,number_of_runs['runs']))
+
+                                #print("{0}: Run {1} out of {2} is done.                             \r".format(job_title,current_run,number_of_runs['runs']))
 
     return results;
 

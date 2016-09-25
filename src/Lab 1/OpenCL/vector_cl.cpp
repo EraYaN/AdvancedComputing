@@ -14,6 +14,7 @@
 #include <interactive_tools.h>
 #include <opencl_helpers.h>
 #include <user_float.h>
+#include <sequential_functions.h>
 
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
@@ -22,33 +23,6 @@
 #endif
 
 using namespace std;
-
-/****************************************************
-the following function calculate the below equation
-   vector_out = vector_in x matrix_in
- ***************************************************/
-void matrix_mult_sq(unsigned int size, user_float_t *vector_in,
-	user_float_t *matrix_in, user_float_t *vector_out) {
-	unsigned int rows, cols;
-	unsigned int j;
-	for (cols = 0; cols < size; cols++) {
-		vector_out[cols] = 0.0;
-		for (j = 0, rows = 0; rows < size; j++, rows++)
-			vector_out[cols] += vector_in[j] * matrix_in[rows*size + cols];
-	}
-}
-
-/*****************************************************
-the following function generates a "size"-element vector
-and a "size x size" matrix
- ****************************************************/
-void matrix_vector_gen(unsigned int size, user_float_t *matrix, user_float_t *vector) {
-	unsigned int i;
-	for (i = 0; i < size; i++)
-		vector[i] = ((user_float_t)rand()) / 65535.0;
-	for (i = 0; i < size*size; i++)
-		matrix[i] = ((user_float_t)rand()) / 5307.0;
-}
 
 int main(int argc, char *argv[]) {
 
@@ -123,7 +97,8 @@ int main(int argc, char *argv[]) {
 		user_float_t *matrix = (user_float_t *)malloc(sizeof(user_float_t)*size*size);
 		user_float_t *result_sq = (user_float_t *)malloc(sizeof(user_float_t)*size);
 		user_float_t *result_pl = (user_float_t *)malloc(sizeof(user_float_t)*size);
-		matrix_vector_gen(size, matrix, vector);
+		matrix_gen(size, matrix);
+		vector_gen(size, vector);
 
 		double time_sq;
 		double time_opencl;
@@ -133,7 +108,7 @@ int main(int argc, char *argv[]) {
 
 		time_sq = omp_get_wtime();
 		for (unsigned iteration = 0; iteration < iterations; iteration++) {
-			matrix_mult_sq(size, vector, matrix, result_sq);
+			mv_mult_sq(size, vector, matrix, result_sq);
 		}
 		time_sq = omp_get_wtime() - time_sq;
 

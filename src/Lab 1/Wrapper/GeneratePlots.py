@@ -13,48 +13,48 @@ from scipy.interpolate import interp1d
 
 def GeneratePlot(results, job_title, output_dir = '.'):
     # Task specific graph settings
-    if job_title == "Part A Task 1":
+    if job_title == "openmp-number-of-threads-sweep":
         xfield = "threads"
         yfield= "relative_improvement"
         xlabel = "Threads"
         ylabel = "Speedup"
-        title = "OpenMP vs Sequential (n=2048)"
-    elif job_title == "Part A Task 2":
+        title = "OpenMP vs Sequential (data_size={0})".format(results[0]['data_size'])
+    elif job_title == "openmp-data-size-sweep":
         xfield = "data_size"
         yfield= "relative_improvement"
         xlabel = "Data Size"
         ylabel = "Speedup"
-        title = "OpenMP vs Sequential (threads=" + results[0]['threads'] + ")"
-    elif job_title == "Part B Task 1":
+        title = "OpenMP vs Sequential (threads={0})".format(results[0]['threads'])
+    elif job_title == "sse-data-size-sweep":
         xfield = "data_size"
         yfield= "relative_improvement"
         xlabel = "Matrix/Vector Size"
         ylabel = "Speedup"
         title = "SSE vs Sequential"
-    elif job_title == "Part B Task 2":
+    elif job_title == "sse-data-size-sweep-arbitrary":
         xfield = "data_size"
         yfield= "relative_improvement"
         xlabel = "Matrix/Vector Size"
         ylabel = "Speedup"
         title = "SSE vs Sequential Arbitrary Size"
-    elif job_title == "Part B Task 3":
+    elif job_title == "sse-dp":
         xfield = "data_size"
         yfield= "relative_improvement"
         xlabel = "Matrix/Vector Size"
         ylabel = "Speedup"
         title = "SSE vs Sequential Double Precision"
-    elif job_title == "Part C Task 1":
+    elif job_title == "opencl-data-size-sweep":
         xfield = "data_size"
         yfield= "relative_improvement"
         xlabel = "Matrix/Vector Size"
         ylabel = "Speedup"
-        title = "OpenCL vs Sequential (x=64)"
-    elif job_title == "Part C Task 2":
-        xfield = "data_size"
+        title = "OpenCL vs Sequential (localSize={0})".format(results[0]['threads'])
+    elif job_title == "opencl-localsize-sweep":
+        xfield = "threads"
         yfield= "relative_improvement"
         xlabel = "Matrix/Vector Size"
         ylabel = "Speedup"
-        title = "OpenCL vs Sequential (x=1024)"
+        title = "OpenCL vs Sequential (data_size={0})".format(results[0]['data_size'])
     else:
         return 'ERROR: job_title unknown'
 
@@ -69,7 +69,7 @@ def GeneratePlot(results, job_title, output_dir = '.'):
     x_sm = np.array(graphX)
     y_sm = np.array(graphY)
     graphX_smooth = np.linspace(x_sm.min(), x_sm.max(), len(graphY)*10)
-    f = interp1d(graphX, graphY, kind='cubic')
+    f = interp1d(graphX, graphY, kind='quadratic')
     graphY_smooth = f(graphX_smooth);
 
     figure = plt.figure()
@@ -83,5 +83,5 @@ def GeneratePlot(results, job_title, output_dir = '.'):
     plt.grid(True)
 
     # convert graph to tikz
-    figure.savefig('{0}/{1}.pdf'.format(output_dir,title),format='pdf',transparent=True)
-    tikz.save('{0}/{1}.tikz'.format(output_dir,title),figure=figure,figureheight = '\\figureheight',figurewidth = '\\figurewidth',show_info=False,encoding='utf-8',draw_rectangles=True)
+    figure.savefig('{0}/{1}.pdf'.format(output_dir,job_title),format='pdf',transparent=True)
+    tikz.save('{0}/{1}.tikz'.format(output_dir,job_title),figure=figure,figureheight = '\\figureheight',figurewidth = '\\figurewidth',show_info=True,encoding='utf-8',draw_rectangles=True)
