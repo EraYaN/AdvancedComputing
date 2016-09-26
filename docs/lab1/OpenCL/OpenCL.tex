@@ -22,7 +22,7 @@ The start part will remain almost constant on modern systems, while the calculat
 \section{Task 2}
 For the benchmark in \cref{fig:opencl-localsize-sweep} we used 5040, a highly composite number, as the data size.
 This way we could try many local work group sizes with the same data size.
-It seems that after a certain point, which seems to be around \range{16}{18}.
+It seems that after a certain point, which seems to be around 16 to 18, the increase in local work group size does not improve the performance for this specific implementation.
 %TODO OpenCL Test Threads/localGroupSize. DP and SP.
 \begin{figure}[H]
 \centering
