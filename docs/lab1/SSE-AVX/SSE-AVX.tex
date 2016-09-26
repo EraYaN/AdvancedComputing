@@ -10,38 +10,30 @@
 %TODO SSE Test Data Size. DP and SP.
 \begin{figure}[H]
 \centering
-    \setlength\figureheight{8cm}
-    \setlength\figurewidth{\linewidth}
-    \subimport{resources/}{sse-data-size-sweep.tikz}
-    \caption{TODO.}
+    \includegraphics[width=\linewidth]{resources/sse-data-size-sweep.pdf}
+    \caption{The speedup of the SSE version with the data\_size varied in steps of 4. It uses the same thread count as the last OpenMP benchmark.}
     \label{fig:sse-data-size-sweep}
 \end{figure}
 
 %TODO SSE Test Data Size arbitrary size. DP and SP.
 \begin{figure}[H]
 \centering
-    \setlength\figureheight{8cm}
-    \setlength\figurewidth{\linewidth}
-    \subimport{resources/}{sse-data-size-sweep-arbitrary.tikz}
-    \caption{TODO.}
+    \includegraphics[width=\linewidth]{resources/sse-data-size-sweep-arbitrary.pdf}
+    \caption{The speedup of the SSE version with the data\_size varied in steps of 1. It uses the same thread count as the last OpenMP benchmark.}
     \label{fig:sse-data-size-sweep-arbitrary}
 \end{figure}
 
 %TODO SSE Test DP vs SP
 \begin{figure}[H]
 \centering
-    \setlength\figureheight{8cm}
-    \setlength\figurewidth{\linewidth}
-    \subimport{resources/}{sse-dp.tikz}
-    \caption{TODO.}
+    \includegraphics[width=\linewidth]{resources/sse-dp.pdf}
+    \caption{The speedup of the double precision version. It uses the same thread count as the last OpenMP benchmark.}
     \label{fig:sse-dp}
 \end{figure}
 
-%TODO Show Matrix Code.
 In \cref{lst:sse-matrix-snippet} our matrix SSE code is shown for both floats and doubles, the inner loop is added to sum over all rows of the first matrix. We already added in the little OpenMP markers to speedup this implementation even a tiny bit more, although impact is negligible.
 \includecode[cpp]{SSE Matrix x Matrix Snippet}{resources/SSEMatrixSnippet.cpp}{lst:sse-matrix-snippet}
 
-%TODO Show "Faster" Matrix Code.
 In \cref{lst:avx-matrix-snippet} our matrix AVX code is shown for both floats and doubles.
 AVX can use bigger register sizes and supporting CPU's can also do fused multiply–add instructions (FMA3).
 Right now this is limited to Intel Haswell based Core i and up.
@@ -55,7 +47,7 @@ This version performs better than the SSE version at large data sizes and worse 
 % \centering
 %     \setlength\figureheight{8cm}
 %     \setlength\figurewidth{\linewidth}
-%     \subimport{resources/}{sse-vs-avx.tikz}
+%     \subimport{resources/}{sse-vs-avx.pdf}
 %     \caption{TODO.}
 %     \label{fig:sse-vs-avx}
 % \end{figure}

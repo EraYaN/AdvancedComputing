@@ -102,7 +102,7 @@ def GeneratePlot(results, job_title, output_dir = '.'):
     style.use('ggplot')
     plt.scatter(graphX,graphY)
     #plt.plot(graphX_smooth,graphY_smooth)
-    plt.xlim([x_sm.min(),x_sm.max()])
+    plt.xlim([x_sm.min()-(x_sm.max()-x_sm.min())*0.05,x_sm.max()+(x_sm.max()-x_sm.min())*0.05])
     plt.ylim([y_sm.min()-(y_sm.max()-y_sm.min())*0.05,y_sm.max()+(y_sm.max()-y_sm.min())*0.05])
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)

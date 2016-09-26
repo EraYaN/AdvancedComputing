@@ -9,24 +9,19 @@
 %TODO OpenMP Test Number of threads. DP and SP.
 \begin{figure}[H]
 \centering
-    \setlength\figureheight{8cm}
-    \setlength\figurewidth{\linewidth}
-    \subimport{resources/}{openmp-number-of-threads-sweep.tikz}
-    \caption{OpenMP vs Sequential (n=2048)}
+    \includegraphics[width=\linewidth]{resources/openmp-number-of-threads-sweep.pdf}
+    \caption{The speedup of the OpenMP version with varying threads, uses a data\_size of 2048.}
     \label{fig:openmp-number-of-threads-sweep}
 \end{figure}
 
 %TODO OpenMP Test Data Size. DP and SP.
 \begin{figure}[H]
 \centering
-    \setlength\figureheight{8cm}
-    \setlength\figurewidth{\linewidth}
-    \subimport{resources/}{openmp-data-size-sweep.tikz}
-    \caption{TODO.}
+    \includegraphics[width=\linewidth]{resources/openmp-data-size-sweep.pdf}
+    \caption{The speedup of the OpenMP version with varying data\_size, uses 50 threads.}
     \label{fig:openmp-data-size-sweep}
 \end{figure}
 
-%TODO Show Matrix Code.
 In \cref{lst:openmp-matrix-snippet} our matrix OpenMP code is shown, the inner loop is added to sum over all rows of the first matrix.
 \includecode[cpp]{OpenMP Matrix x Matrix Snippet}{resources/OpenMPMatrixSnippet.cpp}{lst:openmp-matrix-snippet}
 

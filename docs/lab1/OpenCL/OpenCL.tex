@@ -9,26 +9,20 @@
 
 %TODO OpenCL Test Data Size. DP and SP.
 \begin{figure}[H]
-\centering
-    \setlength\figureheight{8cm}
-    \setlength\figurewidth{\linewidth}
-    \subimport{resources/}{opencl-data-size-sweep.tikz}
-    \caption{TODO.}
+\centering    
+    \includegraphics[width=\linewidth]{resources/opencl-data-size-sweep.pdf}
+    \caption{The speedup of the OpenMP version with a varying data\_size, uses a local work group size of 64.}
     \label{fig:opencl-data-size-sweep}
 \end{figure}
 
 %TODO OpenCL Test Threads/localGroupSize. DP and SP.
 \begin{figure}[H]
 \centering
-    \setlength\figureheight{8cm}
-    \setlength\figurewidth{\linewidth}
-    \subimport{resources/}{opencl-localsize-sweep.tikz}
-    \caption{TODO.}
+    \includegraphics[width=\linewidth]{resources/opencl-localsize-sweep.pdf}
+    \caption{The speedup of the OpenMP version with a varying local work group size, uses a data\_size of 4096.}
     \label{fig:opencl-localsize-sweep}
 \end{figure}
 
-
-%TODO Show Matrix Code.
 In \cref{lst:sse-matrix-snippet} our matrix OpenCL code is shown for both floats and doubles, a two dimensional globalSize is used to make sure it loops over both rows and columns.
 
 \includecode[cpp]{OpenCL Matrix x Matrix Snippet}{resources/OpenCLMatrixSnippet.cpp}{lst:opencl-matrix-snippet}
