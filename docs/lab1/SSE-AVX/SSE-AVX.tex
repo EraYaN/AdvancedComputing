@@ -23,6 +23,10 @@ After a data size of 256 the speedup gets a setback and around 800-900 it is ful
 
 
 \section{Task 2}
+In order to make the code suitable for arbitrary data sizes, padding has been used.
+First off the data\_size input is scaled to the nearest multiple of 4, this allows all the \texttt{aligned\_malloc} functions to still execute and allocate aligned blocks of memory.
+Secondly, the unused memory values are filled with zeros, in order to not make them contribute to the final answer.
+
 \cref{fig:sse-data-size-sweep-arbitrary}, shows similar behavior as the data from Task1.
 In the shallow part of the graph there is an even bigger dip, this is very likely extra noise and the computer starting other processes at this moment.
 The speedup seems similar to the one from Task 1.
@@ -36,11 +40,11 @@ The only thing that really differs is that the measurements from the arbitrary s
     \label{fig:sse-data-size-sweep-arbitrary}
 \end{figure}
 
-
 \section{Task 3}
-With the double precision and arbitrary size code things seem to have changed.
-The speedup has been halved from 4 to 2 and the characteristics of the graph are very similar to that of the previous graphs after the 200-300 (256) data points mark.
-The inclination in speedup is not present in this graph and it immediately has the behavior the other tasks have after 200-300 data points.
+With the double precision and arbitrary size code, things seem to have changed.
+The speedup has been halved from 4 to 2, which is reasonable given that the values went from 4 (single-precision) to 8 (double-precision) bytes.
+The characteristics of the graph are very similar to that of the previous graphs.
+It seems like the graph has been shifted by 200-300 data sizes, because it matches the last part of the previous graphs.
 
 %TODO SSE Test DP vs SP
 \begin{figure}[H]
@@ -53,7 +57,7 @@ The inclination in speedup is not present in this graph and it immediately has t
 
 \section{Task 4}
 
-In \cref{lst:sse-matrix-snippet} our matrix SSE code is shown for both floats and doubles, the inner loop is added to sum over all rows of the first matrix. We already added in the little OpenMP markers to speedup this implementation even a tiny bit more, although impact is negligible.
+In \cref{lst:sse-matrix-snippet} our matrix SSE code is shown for both floats and doubles, the inner loop is added to sum over all rows of the first matrix. We also added in the little OpenMP markers to speedup this implementation even a tiny bit more, although the impact is negligible.
 \includecode[cpp]{SSE Matrix x Matrix Snippet}{resources/SSEMatrixSnippet.cpp}{lst:sse-matrix-snippet}
 
 
@@ -61,9 +65,9 @@ In \cref{lst:sse-matrix-snippet} our matrix SSE code is shown for both floats an
 
 In \cref{lst:avx-matrix-snippet} our matrix AVX code is shown for both floats and doubles.
 AVX can use bigger register sizes and supporting CPU's can also do fused multiply–add instructions (FMA3).
-Right now this is limited to Intel Haswell based Core i and up.
-And for AMD this is supported since Piledriver based CPU's, like 2nd Generation Bulldozer. 
-Right now one needs to compile two different versions, because there was no time to implement proper runtime feature detection.
+Right now this is limited to Intel's Haswell based Core i and up.
+For AMD this is supported since Piledriver based CPU's, like the 2nd Generation Bulldozer. 
+Right now, one needs to compile two different versions, because there was no time to implement proper runtime feature detection.
 This version performs better than the SSE version at large data sizes and worse at smaller data sizes. 
 \includecode[cpp]{AVX Matrix x Matrix Snippet}{resources/AVXMatrixSnippet.cpp}{lst:avx-matrix-snippet}
 

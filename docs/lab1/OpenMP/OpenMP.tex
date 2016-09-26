@@ -38,14 +38,14 @@ Since, 8 threads gave the biggest speedup improvement, this amount of threads wi
 
 For small data sizes one can see that the speedup is below one.
 This is caused due to the overhead caused by starting and managing multiple threads, while they are not very beneficial yet for the application.
-The computation time is relatively short compared to the startup time for these smaller data sizes. For bigger data sizes one can see a sharp inclination in speedup till the 1000 data size mark is reached, after this the speedup seems to stall around 3.3.
+The computation time is relatively short compared to the startup time for these smaller data sizes. For bigger data sizes one can see a sharp inclination in speedup till the 1000 data size mark is reached at about a speedup of 3.8.
+Thereafter the speedup starts to decline a bit for higher data sizes.
+This does not make a lot of sense and it can be argued that the computer started several other processes while running this test.
 
-The speedup also gradually decreases with growing data size.
-(TODO: why)
+Another thing to note is that the data becomes less noisy towards the end of the graph, for bigger data sizes that is.
+This is likely caused by the computational part of the program getting bigger, causing other system parameters to have less influence on the overall running time.
 
-Another thing that can be noticed is that the data becomes less noisy towards the end of the graph, for bigger data sizes that is.
-This is likely caused by the computational part of the program getting bigger, causing other system parameters to have influence on the overall running time.
-
+\section{Task 3}
 In \cref{lst:openmp-matrix-snippet} our matrix OpenMP code is shown, the inner loop is added to sum over all rows of the first matrix.
 \includecode[cpp]{OpenMP Matrix x Matrix Snippet}{resources/OpenMPMatrixSnippet.cpp}{lst:openmp-matrix-snippet}
 
