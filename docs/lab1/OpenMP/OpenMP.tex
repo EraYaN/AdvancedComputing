@@ -21,7 +21,7 @@ The initial increase in speedup is obvious, the program is able to perform paral
 
 The reason that the speedup growth is slowing down is because of two things.
 Firstly, the execution time of the sequential part of the program is getting bigger compared to that of the parallel part.
-Secondly, the machine that this code is running on has 8 virtual cores with hyperthreading enabled.
+Secondly, the machine that this code is running on has 8 virtual cores with hyper-threading enabled.
 This is likely the cause why after 8 threads the extra amount of threads are just polluting the cores and not really using extra compute power.
 
 Another note can be made about the 3th-4th, 5th-6th and the 7th-8th number of threads.

@@ -81,12 +81,12 @@ def ExecuteJob(job_title,filename,platforms,types,iteration_range,max_n,generate
         results = ExecuteBenchmark(job_title, platforms,types,iteration_range,max_n);
 
         # Part A Task 2 needs to use the #threads with the highest speedup
-        if job_title == 'openmp-number-of-threads-sweep':
-            highestOpenMPSpeedup = 0
-            for result in results:
-                if highestOpenMPSpeedup < result['relative_improvement']:
-                    OpenMP['thread_range'] = [result['threads']]
-                    highestOpenMPSpeedup = result['relative_improvement']
+        #if job_title == 'openmp-number-of-threads-sweep':
+        #    highestOpenMPSpeedup = 0
+        #    for result in results:
+        #        if highestOpenMPSpeedup < result['relative_improvement']:
+        #            OpenMP['thread_range'] = [result['threads']]
+        #            highestOpenMPSpeedup = result['relative_improvement']
 
         PrintResults(results);
         SaveResults("{0}.pickle".format(filename),results)
@@ -121,7 +121,8 @@ if __name__ == '__main__':
         ExecuteJob('openmp-number-of-threads-sweep','openmp-number-of-threads-sweep',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir)
 
         ## Task 2
-        OpenMP['data_sizes'] = np.arange(10, 10010, 100)
+        OpenMP['data_sizes'] = np.arange(10, 10010, 200)
+        OpenMP['thread_range'] = [16]
         # use threads from previous measurement, see ExecuteJob
         ExecuteJob('openmp-data-size-sweep','openmp-data-size-sweep',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir)
 
@@ -133,7 +134,7 @@ if __name__ == '__main__':
 
         SSE['variants'] = [Variant.base]
         SSE['configs'] = ['Release']
-        SSE['thread_range'] = [8]
+        SSE['thread_range'] = [16]
 
         ## Task 1
         SSE['data_sizes'] = np.arange(4, 1024, 4);
@@ -141,7 +142,7 @@ if __name__ == '__main__':
 
         ## Task 2
         SSE['variants'] = [Variant.arbitrarysize];
-        SSE['data_sizes'] = np.arange(4, 1024, 1);
+        SSE['data_sizes'] = np.arange(3, 1024, 3);
         ExecuteJob('sse-data-size-sweep-arbitrary','sse-data-size-sweep-arbitrary',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir)
 
         ## Task 3
@@ -163,8 +164,8 @@ if __name__ == '__main__':
         ExecuteJob('opencl-data-size-sweep','opencl-data-size-sweep',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir)
 
         ## Task 2
-        OpenCL['thread_range'] = [2,4,8,16,32,64,128,256,512,1024]
-        OpenCL['data_sizes'] = [4096]
+        OpenCL['thread_range'] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 24, 28, 30, 35, 36, 40, 42, 45, 48, 56, 60, 63, 70, 72, 80, 84, 90, 105, 112, 120, 126, 140, 144, 168, 180, 210, 240, 252, 280, 315, 336, 360, 420, 504, 560, 630, 720, 840, 1008]
+        OpenCL['data_sizes'] = [5040] # Highly composite number
         ExecuteJob('opencl-localsize-sweep','opencl-localsize-sweep',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir)
 
 

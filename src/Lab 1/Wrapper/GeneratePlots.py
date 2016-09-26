@@ -35,7 +35,7 @@ def GeneratePlot(results, job_title, output_dir = '.'):
     elif job_title == "openmp-data-size-sweep":
         xfield = "data_size"
         yfield= "relative_improvement"
-        xlabel = "Data Size"
+        xlabel = "Matrix/Vector Size"
         ylabel = "Speedup"
         title = "OpenMP vs Sequential (threads={0})".format(results[0]['threads'])
         order = func_poly5
@@ -44,21 +44,21 @@ def GeneratePlot(results, job_title, output_dir = '.'):
         yfield= "relative_improvement"
         xlabel = "Matrix/Vector Size"
         ylabel = "Speedup"
-        title = "SSE vs Sequential"
+        title = "SSE vs Sequential (threads={0})".format(results[0]['threads'])
         order = func_poly5
     elif job_title == "sse-data-size-sweep-arbitrary":
         xfield = "data_size"
         yfield= "relative_improvement"
         xlabel = "Matrix/Vector Size"
         ylabel = "Speedup"
-        title = "SSE vs Sequential Arbitrary Size"
+        title = "SSE vs Sequential Arbitrary Size (threads={0})".format(results[0]['threads'])
         order = func_poly5
     elif job_title == "sse-dp":
         xfield = "data_size"
         yfield= "relative_improvement"
         xlabel = "Matrix/Vector Size"
         ylabel = "Speedup"
-        title = "SSE vs Sequential Double Precision"
+        title = "SSE vs Sequential Double Precision (threads={0})"
         order = func_poly5
     elif job_title == "opencl-data-size-sweep":
         xfield = "data_size"
