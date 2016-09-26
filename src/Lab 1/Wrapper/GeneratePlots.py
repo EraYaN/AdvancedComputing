@@ -99,7 +99,7 @@ def GeneratePlot(results, job_title, output_dir = '.'):
 
     print("Generating Plot...")
     figure = plt.figure()
-    style.use('ggplot')
+    style.use('bmh')
     plt.scatter(graphX,graphY)
     #plt.plot(graphX_smooth,graphY_smooth)
     plt.xlim([x_sm.min()-(x_sm.max()-x_sm.min())*0.05,x_sm.max()+(x_sm.max()-x_sm.min())*0.05])
