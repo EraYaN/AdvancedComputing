@@ -15,7 +15,7 @@ In order to find the most suitable number of threads a fixed data size of 2048 b
     \caption{The speedup of the OpenMP version with varying threads, uses a data\_size of 2048.}
     \label{fig:openmp-number-of-threads-sweep}
 \end{figure}
-Looking at \autoref{fig:openmp-number-of-threads-sweep}, the first thing that comes to mind is the sharp inclination in speedup till 8 threads after which the speedup basically stalls.
+Looking at \cref{fig:openmp-number-of-threads-sweep}, the first thing that comes to mind is the sharp inclination in speedup till 8 threads after which the speedup basically stalls.
 
 The initial increase in speedup is obvious, the program is able to perform parallel computations and every thread addition, up to a certain point, contributes to the speedup.
 
@@ -24,25 +24,24 @@ Firstly, the execution time of the sequential part of the program is getting big
 Secondly, the machine that this code is running on has 8 virtual cores with hyper-threading enabled.
 This is likely the cause why after 8 threads the extra amount of threads are just polluting the cores and not really using extra compute power.
 
-Another note can be made about the 3th-4th, 5th-6th and the 7th-8th number of threads.
-Here the 4th, 6th and 8th number of threads seem not to be contributing to the speedup, on the contrary they even cause a slight bump in speedup.
-The reason for this stays unclear and is beyond the scope of this report.
-
 \section{Task 2}
 Taken from the previous task, the most suitable number of threads seems to lay between 8-64 threads.
-Since, 50 threads gave the biggest speedup improvement, this amount of threads will be used for this task; it is however highly influenced by a lot of factors and this number changes everytime you run the application.
+Since, 8 threads gave the biggest speedup improvement, this amount of threads will be used for this task; it is however highly influenced by a lot of factors and this number changes everytime you run the application.
 
 %TODO OpenMP Test Data Size. DP and SP.
 \begin{figure}[H]
 \centering
     \includegraphics[width=\linewidth]{resources/openmp-data-size-sweep.pdf}
-    \caption{The speedup of the OpenMP version with varying data\_size, uses 50 threads.}
+    \caption{The speedup of the OpenMP version with varying data\_size, uses 8 threads.}
     \label{fig:openmp-data-size-sweep}
 \end{figure}
 
 For small data sizes one can see that the speedup is below one.
 This is caused due to the overhead caused by starting and managing multiple threads, while they are not very beneficial yet for the application.
 The computation time is relatively short compared to the startup time for these smaller data sizes. For bigger data sizes one can see a sharp inclination in speedup till the 1000 data size mark is reached, after this the speedup seems to stall around 3.3.
+
+The speedup also gradually decreases with growing data size.
+(TODO: why)
 
 Another thing that can be noticed is that the data becomes less noisy towards the end of the graph, for bigger data sizes that is.
 This is likely caused by the computational part of the program getting bigger, causing other system parameters to have influence on the overall running time.
