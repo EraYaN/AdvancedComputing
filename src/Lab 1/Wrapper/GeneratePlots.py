@@ -58,7 +58,7 @@ def GeneratePlot(results, job_title, output_dir = '.'):
         yfield= "relative_improvement"
         xlabel = "Matrix/Vector Size"
         ylabel = "Speedup"
-        title = "SSE vs Sequential Double Precision (threads={0})"
+        title = "SSE vs Sequential Double Precision (threads={0})".format(results[0]['threads'])
         order = func_poly5
     elif job_title == "opencl-data-size-sweep":
         xfield = "data_size"
