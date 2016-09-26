@@ -7,22 +7,30 @@
 \begin{document}
 \chapter{OpenCL}
 
+\section{Task 1}
 %TODO OpenCL Test Data Size. DP and SP.
+As shown in \cref{fig:opencl-data-size-sweep}, for small data sizes the OpenCL overhead of starting up and getting all the data to the GPU, makes it a futile exercise.
+It really starts to show promise at size around 800 and higher.
+The speedup will continue rising towards an asymptote.
+The start part will remain almost constant on modern systems, while the calculation part will only slowly become slower, thus out performing sequential CPU implementation by a large factor.
 \begin{figure}[H]
-\centering    
+\centering
     \includegraphics[width=\linewidth]{resources/opencl-data-size-sweep.pdf}
     \caption{The speedup of the OpenMP version with a varying data\_size, uses a local work group size of 64.}
     \label{fig:opencl-data-size-sweep}
 \end{figure}
-
+\section{Task 2}
+For the benchmark in \cref{fig:opencl-localsize-sweep} we used 5040, a highly composite number, as the data size.
+This way we could try many local work group sizes with the same data size.
+It seems that after a certain point, which seems to be around \range{16}{18}.
 %TODO OpenCL Test Threads/localGroupSize. DP and SP.
 \begin{figure}[H]
 \centering
     \includegraphics[width=\linewidth]{resources/opencl-localsize-sweep.pdf}
-    \caption{The speedup of the OpenMP version with a varying local work group size, uses a data\_size of 4096.}
+    \caption{The speedup of the OpenMP version with a varying local work group size, uses a data\_size of 5040.}
     \label{fig:opencl-localsize-sweep}
 \end{figure}
-
+\section{Task 3}
 In \cref{lst:sse-matrix-snippet} our matrix OpenCL code is shown for both floats and doubles, a two dimensional globalSize is used to make sure it loops over both rows and columns.
 
 \includecode[cpp]{OpenCL Matrix x Matrix Snippet}{resources/OpenCLMatrixSnippet.cpp}{lst:opencl-matrix-snippet}

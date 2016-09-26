@@ -7,9 +7,30 @@
 \begin{document}
 \chapter{Introduction}
 %TODO Intro
-The benchmarking of all the tasks has been done with Python (TODO: ref to github).
+The benchmarking of all the tasks has been done with Python.
 For each task a total number of 50 runs (5 process starts with each taking 10 runs) have been done in order to filter out any noisy or spiky outputs.
+All benchmarks are run with the default VC++ 2015 Release configuration and in x64 mode.
 
- 
+\section{Hardware/Software}
+For repeatability purposes a list of the use hardware and software is included in \cref{tab:hardware-software}.
+
+\begin{table}[H]
+\centering
+\caption{Command layout}
+\label{tab:hardware-software}
+\begin{tabular}{lp{9cm}}
+\toprule
+\textbf{Item} & \textbf{Description} \\
+\midrule
+\textit{CPU} & Intel i7-3770K (306A9 Family: 6, Model: 58, Stepping: 9) @ 4.0Ghz\\
+\textit{RAM} & 4x8GB Crucial DDR3-1600 1600Mhz XMP1.3\\
+\textit{GPU} & NVIDIA GeForce GTX 260 (GM206 A1)\\
+\textit{GPU Driver} & GeForce Game Ready Driver 372.90\\
+\textit{OS} & Windows 10 64-bit Version 10.0.14393 Build 14393\\
+\textit{Compiler} & Visual C++ 2015; Microsoft Visual Studio Enterprise 2015 Version 14.0.25431.01 Update 3\\
+\textit{OpenCL/CUDA SDK} & CUDA Toolkit 8.0 RC\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \end{document}
