@@ -16,11 +16,21 @@ In order to find the most suitable number of threads a fixed data size of 2048 b
     \label{fig:openmp-number-of-threads-sweep}
 \end{figure}
 Looking at \autoref{fig:openmp-number-of-threads-sweep}, the first thing that comes to mind is the sharp inclination in speedup till 8 threads after which the speedup basically stalls.
-The initial increase in speedup is obvious, as the vector matrix multiplication is processed in parallel.
-Only 1 thread gives a speedup of 1, whereas 2 threads give a speedup of 1.75.
-It gets interesting near the 3th-4th, 5th-6th and the 7th-8th number of threads.
+
+The initial increase in speedup is obvious, the program is able to perform parallel computations and every thread addition, up to a certain point, contributes to the speedup.
+
+The reason that the speedup growth is slowing down is because of two things.
+Firstly, the execution time of the sequential part of the program is getting bigger compared to that of the parallel part.
+Secondly, the machine that this code is running on has 8 virtual cores with hyperthreading enabled.
+This is likely the cause why after 8 threads the extra amount of threads are just polluting the cores and not really using extra compute power.
+
+Another note can be made about the 3th-4th, 5th-6th and the 7th-8th number of threads.
 Here the 4th, 6th and 8th number of threads seem not to be contributing to the speedup, on the contrary they even cause a slight bump in speedup.
-The bump is likely caused due to the extra overhead of talking to an extra thread.
+The reason for this stays unclear and is beyond the scope of this report.
+
+\section{Task 2}
+Taken from the previous task, the most suitable number of threads seems to lay between 8-64 threads.
+Since, 50 threads gave the biggest speedup improvement, this amount of threads will be used for this task; it is however highly influenced by a lot of factors and this number changes everytime you run the application.
 
 %TODO OpenMP Test Data Size. DP and SP.
 \begin{figure}[H]
@@ -29,6 +39,13 @@ The bump is likely caused due to the extra overhead of talking to an extra threa
     \caption{The speedup of the OpenMP version with varying data\_size, uses 50 threads.}
     \label{fig:openmp-data-size-sweep}
 \end{figure}
+
+For small data sizes one can see that the speedup is below one.
+This is caused due to the overhead caused by starting and managing multiple threads, while they are not very beneficial yet for the application.
+The computation time is relatively short compared to the startup time for these smaller data sizes. For bigger data sizes one can see a sharp inclination in speedup till the 1000 data size mark is reached, after this the speedup seems to stall around 3.3.
+
+Another thing that can be noticed is that the data becomes less noisy towards the end of the graph, for bigger data sizes that is.
+This is likely caused by the computational part of the program getting bigger, causing other system parameters to have influence on the overall running time.
 
 In \cref{lst:openmp-matrix-snippet} our matrix OpenMP code is shown, the inner loop is added to sum over all rows of the first matrix.
 \includecode[cpp]{OpenMP Matrix x Matrix Snippet}{resources/OpenMPMatrixSnippet.cpp}{lst:openmp-matrix-snippet}
