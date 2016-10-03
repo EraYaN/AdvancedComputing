@@ -1,6 +1,7 @@
 #include <Timer.hpp>
 #include <iostream>
 #include <iomanip>
+#include <cuda.h>
 
 using LOFAR::NSTimer;
 using std::cout;
@@ -29,7 +30,7 @@ __global__ void rgb2grayCudaKernel(unsigned char *inputImage, unsigned char *gra
 	int x = blockIdx.x * blockDim.x + threadIdx.x; // width
 	int y = blockIdx.y * blockDim.y + threadIdx.y; // height
 	
-	if (i < width && j < height) {
+	if (x < width && y < height) {
 		float grayPix = 0.0f;
 		float r = static_cast< float >(inputImage[(y * width) + x]);
 		float g = static_cast< float >(inputImage[(width * height) + (y * width) + x]);
@@ -55,6 +56,7 @@ void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int
 	
 	// allocate GPU memory
 	unsigned char *dev_a, *dev_b;
+	int size = width * height;
 
 	cudaMalloc((void**)&dev_a, size * (sizeof(unsigned char)));
 	cudaMalloc((void**)&dev_b, size * (sizeof(unsigned char)));
@@ -63,7 +65,7 @@ void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int
 	cudaMemcpy(dev_a, inputImage, size * (sizeof(unsigned char)), cudaMemcpyHostToDevice);
 
 	// execute actual function
-	rgb2grayCudaKernel << <numBlocks, threadsPerBlock >> >(dev_a, dev_b, height, width)
+	rgb2grayCudaKernel << <numBlocks, threadsPerBlock >> > (dev_a, dev_b, height, width);
 
 	// copy result from GPU memory to grayImage
 	cudaMemcpy(grayImage, dev_b, size * (sizeof(unsigned char)), cudaMemcpyDeviceToHost);

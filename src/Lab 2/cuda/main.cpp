@@ -1,4 +1,5 @@
 #include <CImg.h>
+#include <cuda.h>
 #include <Timer.hpp>
 #include <iostream>
 #include <iomanip>
@@ -25,7 +26,7 @@ const float filter[] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
 						1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
 
 extern void rgb2gray(unsigned char *inputImage, unsigned char *grayImage, const int width, const int height);
-//extern void rgb2grayCuda
+extern void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int width, const int height);
 
 extern void histogram1D(unsigned char *grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int HISTOGRAM_SIZE, const unsigned int BAR_WIDTH);
 //extern void histogram1DCuda
