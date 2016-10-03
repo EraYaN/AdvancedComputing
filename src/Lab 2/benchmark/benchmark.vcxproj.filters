@@ -19,9 +19,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cpu\cpu-contrast.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -34,6 +31,7 @@
     <ClCompile Include="cpu\cpu-smooth.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="checkCudaCall.h">
