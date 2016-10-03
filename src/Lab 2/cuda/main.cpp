@@ -56,8 +56,8 @@ int main(int argc, char *argv[]) {
 	// Convert the input image to grayscale
 	CImg< unsigned char > grayImage = CImg< unsigned char >(inputImage.width(), inputImage.height(), 1, 1);
 
-	rgb2gray(inputImage.data(), grayImage.data(), inputImage.width(), inputImage.height());
-	//rgb2grayCuda
+	//rgb2gray(inputImage.data(), grayImage.data(), inputImage.width(), inputImage.height());
+	rgb2grayCuda(inputImage.data(), grayImage.data(), inputImage.width(), inputImage.height());
 
 	if (displayImages) {
 		grayImage.display("Grayscale Image");
