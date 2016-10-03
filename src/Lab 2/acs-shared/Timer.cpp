@@ -23,75 +23,75 @@
 
 namespace LOFAR {
 
-double NSTimer::CPU_speed_in_MHz = NSTimer::get_CPU_speed_in_MHz();
+	double NSTimer::CPU_speed_in_MHz = NSTimer::get_CPU_speed_in_MHz();
 
 
-double NSTimer::get_CPU_speed_in_MHz() {
-	// first a few sanity checks
-	assert(sizeof(int) == 4);
-	assert(sizeof(long long) == 8);
+	double NSTimer::get_CPU_speed_in_MHz() {
+		// first a few sanity checks
+		assert(sizeof(int) == 4);
+		assert(sizeof(long long) == 8);
 
 #if (defined __linux__ || defined __blrts__) && \
 	(defined __i386__ || defined __x86_64__ || defined __ia64__ || defined __PPC__) && \
 	(defined __GNUC__ || defined __INTEL_COMPILER || defined __PATHSCALE__ || defined __xlC__)
-	ifstream infile("/proc/cpuinfo");
-	char     buffer[256], *colon;
+		ifstream infile("/proc/cpuinfo");
+		char     buffer[256], *colon;
 
-	while (infile.good()) {
-		infile.getline(buffer, 256);
+		while (infile.good()) {
+			infile.getline(buffer, 256);
 
 #if defined __PPC__
-		if (strcmp("cpu\t\t: 450 Blue Gene/P DD2", buffer) == 0)
-			return 850.0;
+			if (strcmp("cpu\t\t: 450 Blue Gene/P DD2", buffer) == 0)
+				return 850.0;
 
-		if (strcmp("machine\t\t: Blue Gene", buffer) == 0)
-			return 700.0;
+			if (strcmp("machine\t\t: Blue Gene", buffer) == 0)
+				return 700.0;
 
-		if (strncmp("timebase", buffer, 8) == 0 && (colon = strchr(buffer, ':')) != 0)
-			return atof(colon + 2) / 1e6;
+			if (strncmp("timebase", buffer, 8) == 0 && (colon = strchr(buffer, ':')) != 0)
+				return atof(colon + 2) / 1e6;
 #else
-		if (strncmp("cpu MHz", buffer, 7) == 0 && (colon = strchr(buffer, ':')) != 0)
-			return atof(colon + 2);
+			if (strncmp("cpu MHz", buffer, 7) == 0 && (colon = strchr(buffer, ':')) != 0)
+				return atof(colon + 2);
 #endif
-	}
-
-	return 0.0;
-#else
-//#error unsupported architecture
-	return 3500;
-#endif
-}
-
-
-double NSTimer::getElapsed() const {
-	double time = total_time / 1e6;
-	if (CPU_speed_in_MHz > 0) {
-		time /= CPU_speed_in_MHz;
-	}
-	return time;
-}
-
-ostream &NSTimer::print(ostream &str) const {
-	if (itsName.empty()) {
-		str << "timer: ";
-	} else {
-		str << left << setw(25) << itsName << ": " << right;
-	}
-	if (count == 0) {
-		str << "not used"; 
-	} else {
-		double total = static_cast<double>(total_time);
-		if (CPU_speed_in_MHz == 0) {
-			str << "avg = " << total / static_cast<double>(count);
-			str << ", total = " << total_time << " cycles";
-		} else {
-			total /= 1e6 * CPU_speed_in_MHz;
-			str << "avg = " << total / static_cast<double>(count) << ", total = " << total;
 		}
-		str << ", count = " << setw(9) << count;
+
+		return 0.0;
+#else
+		//#error unsupported architecture
+		return 3500;
+#endif
 	}
-	return str;
-}
+
+
+	double NSTimer::getElapsed() const {
+		double time = total_time / 1e6;
+		if (CPU_speed_in_MHz > 0) {
+			time /= CPU_speed_in_MHz;
+		}
+		return time;
+	}
+
+	ostream &NSTimer::print(ostream &str) const {
+		if (itsName.empty()) {
+			str << "timer: ";
+		} else {
+			str << left << setw(25) << itsName << ": " << right;
+		}
+		if (count == 0) {
+			str << "not used";
+		} else {
+			double total = static_cast<double>(total_time);
+			if (CPU_speed_in_MHz == 0) {
+				str << "avg = " << total / static_cast<double>(count);
+				str << ", total = " << total_time << " cycles";
+			} else {
+				total /= 1e6 * CPU_speed_in_MHz;
+				str << "avg = " << total / static_cast<double>(count) << ", total = " << total;
+			}
+			str << ", count = " << setw(9) << count;
+		}
+		return str;
+	}
 
 } // LOFAR
 

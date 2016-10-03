@@ -18,17 +18,17 @@ const bool saveAllImages = false;
 const unsigned int HISTOGRAM_SIZE = 256;
 const unsigned int BAR_WIDTH = 4;
 const unsigned int CONTRAST_THRESHOLD = 80;
-const float filter[] = {	1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 
-						1.0f, 2.0f, 2.0f, 2.0f, 1.0f, 
-						1.0f, 2.0f, 3.0f, 2.0f, 1.0f, 
-						1.0f, 2.0f, 2.0f, 2.0f, 1.0f, 
-						1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+const float filter[] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+						1.0f, 2.0f, 2.0f, 2.0f, 1.0f,
+						1.0f, 2.0f, 3.0f, 2.0f, 1.0f,
+						1.0f, 2.0f, 2.0f, 2.0f, 1.0f,
+						1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
 
 extern void rgb2gray(unsigned char *inputImage, unsigned char *grayImage, const int width, const int height);
 //extern void rgb2grayCuda
 
 extern void histogram1D(unsigned char *grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int HISTOGRAM_SIZE, const unsigned int BAR_WIDTH);
-//extern void histogram1DCuda 
+//extern void histogram1DCuda
 
 extern void contrast1D(unsigned char *grayImage, const int width, const int height, unsigned int *histogram, const unsigned int HISTOGRAM_SIZE, const unsigned int CONTRAST_THRESHOLD);
 //extern void contrast1DCuda
@@ -37,47 +37,46 @@ extern void triangularSmooth(unsigned char *grayImage, unsigned char *smoothImag
 //extern void triangularSmoothCuda
 
 
-int main(int argc, char *argv[]) 
-{
-	if ( argc != 2 ) {
+int main(int argc, char *argv[]) {
+	if (argc != 2) {
 		cerr << "Usage: " << argv[0] << " <filename>" << endl;
 		return 1;
 	}
 
 	// Load the input image
 	CImg< unsigned char > inputImage = CImg< unsigned char >(argv[1]);
-	if ( displayImages ) {
+	if (displayImages) {
 		inputImage.display("Input Image");
 	}
-	if ( inputImage.spectrum() != 3 ) {
+	if (inputImage.spectrum() != 3) {
 		cerr << "The input must be a color image." << endl;
 		return 1;
 	}
 
-	// Convert the input image to grayscale 
+	// Convert the input image to grayscale
 	CImg< unsigned char > grayImage = CImg< unsigned char >(inputImage.width(), inputImage.height(), 1, 1);
 
 	rgb2gray(inputImage.data(), grayImage.data(), inputImage.width(), inputImage.height());
 	//rgb2grayCuda
 
-	if ( displayImages ) {
+	if (displayImages) {
 		grayImage.display("Grayscale Image");
 	}
-	if ( saveAllImages ) {
+	if (saveAllImages) {
 		grayImage.save("./grayscale.bmp");
 	}
-	
+
 	// Compute 1D histogram
 	CImg< unsigned char > histogramImage = CImg< unsigned char >(BAR_WIDTH * HISTOGRAM_SIZE, HISTOGRAM_SIZE, 1, 1);
-	unsigned int *histogram = new unsigned int [HISTOGRAM_SIZE];
+	unsigned int *histogram = new unsigned int[HISTOGRAM_SIZE];
 
 	histogram1D(grayImage.data(), histogramImage.data(), grayImage.width(), grayImage.height(), histogram, HISTOGRAM_SIZE, BAR_WIDTH);
 	//histogram1DCuda
 
-	if ( displayImages ) {
+	if (displayImages) {
 		histogramImage.display("Histogram");
 	}
-	if ( saveAllImages ) {
+	if (saveAllImages) {
 		histogramImage.save("./histogram.bmp");
 	}
 
@@ -85,26 +84,26 @@ int main(int argc, char *argv[])
 	contrast1D(grayImage.data(), grayImage.width(), grayImage.height(), histogram, HISTOGRAM_SIZE, CONTRAST_THRESHOLD);
 	//contrast1DCuda
 
-	if ( displayImages ) {
+	if (displayImages) {
 		grayImage.display("Contrast Enhanced Image");
 	}
-	if ( saveAllImages ) {
+	if (saveAllImages) {
 		grayImage.save("./contrast.bmp");
 	}
 
-	delete [] histogram;
+	delete[] histogram;
 
 	// Triangular smooth (convolution)
 	CImg< unsigned char > smoothImage = CImg< unsigned char >(grayImage.width(), grayImage.height(), 1, 1);
 
 	triangularSmooth(grayImage.data(), smoothImage.data(), grayImage.width(), grayImage.height(), filter);
 	//triangularSmoothCuda
-	
-	if ( displayImages ) {
+
+	if (displayImages) {
 		smoothImage.display("Smooth Image");
 	}
-	
-	if ( saveAllImages ) {
+
+	if (saveAllImages) {
 		smoothImage.save("./smooth.bmp");
 	}
 
