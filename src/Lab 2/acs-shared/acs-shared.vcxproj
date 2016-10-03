@@ -47,8 +47,8 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
-    </ClCompile>
+      <SDLCheck>true</SDLCheck>      
+    </ClCompile>    
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -64,10 +64,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="interactive_tools.cpp" />
+    <ClCompile Include="string_format.cpp" />
     <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="exit_codes.h" />
+    <ClInclude Include="interactive_tools.h" />
+    <ClInclude Include="string_format.h" />
     <ClInclude Include="Timer.hpp" />
+    <ClInclude Include="user_types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

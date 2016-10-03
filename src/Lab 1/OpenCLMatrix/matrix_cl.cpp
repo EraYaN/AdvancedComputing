@@ -44,9 +44,9 @@ int main(int argc, char *argv[]) {
 		// Define a value argument and add it to the command line.
 		// A value arg defines a flag and a type of value that it expects,
 		// such as "-n Bishop".
-		TCLAP::ValueArg<unsigned int> threadsArg("t", "threads", "Local workgroup size.", true, 2, "unsigned int");
-		TCLAP::ValueArg<unsigned int> datasizeArg("s", "data_size", "Data size.", true, 2, "unsigned int");
-		TCLAP::ValueArg<unsigned int> iterationsArg("n", "iterations", "The number of iterations.", false, 1, "unsigned int");
+		TCLAP::ValueArg<unsigned int> threadsArg("t", "threads", "Local workgroup size.", true, 2, "workgroup size");
+		TCLAP::ValueArg<unsigned int> datasizeArg("s", "data_size", "Data size.", true, 2, "data size");
+		TCLAP::ValueArg<unsigned int> iterationsArg("n", "iterations", "The number of iterations.", false, 1, "iterations");
 		TCLAP::ValuesConstraint<int> variantConstraint(variants);
 		TCLAP::ValueArg<int> variantArg("v", "variant", "Variant ID to run.", false, (int)base, &variantConstraint, false);
 		TCLAP::SwitchArg debugArg("d", "debug", "Enable debug mode, verbose output.", false);
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
 		//If the localSize is too much for this device, abort.
 		if (localSize*localSize > maxWorkGroupSize) {
 			localSize = max(1, (int)floor(sqrt(maxWorkGroupSize)));
-			if(debug)
+			if (debug)
 				printf("Given localSize is too big, setting it to maximum of %d\n", localSize);
 		}
 
@@ -207,11 +207,11 @@ int main(int argc, char *argv[]) {
 		// print global memory size
 		clGetDeviceInfo(devices[device_id], CL_DEVICE_GLOBAL_MEM_SIZE,
 			sizeof(globalMemorySize), &globalMemorySize, NULL);
-		if(debug)
+		if (debug)
 			printf("Global memory size: %lu MiB\n", (unsigned long)round((double)globalMemorySize / 1024 / 1024));
 
 		//If the size is too big for the global memory abort. (3 int sizes for safety and one for the size parameter)
-		if (size*size*sizeof(user_float_t)*3 + 4*sizeof(int) > globalMemorySize) {
+		if (size*size * sizeof(user_float_t) * 3 + 4 * sizeof(int) > globalMemorySize) {
 			if (debug)
 				printf("Given data size is too big, the device would run out of memory.\n");
 		}

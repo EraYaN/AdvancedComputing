@@ -72,18 +72,18 @@ int main(int argc, char *argv[]) {
 		// The CmdLine object parses the argv array based on the Arg objects
 		// that it contains.
 
-		#ifdef USE_DOUBLES
-				TCLAP::CmdLine cmd("SSE Matrix x Vector Multiplication (Double Precision)", ' ', "0.9");
-		#else
-				TCLAP::CmdLine cmd("SSE Matrix x Vector Multiplication (Single Precision)", ' ', "0.9");
-		#endif
+#ifdef USE_DOUBLES
+		TCLAP::CmdLine cmd("SSE Matrix x Vector Multiplication (Double Precision)", ' ', "0.9");
+#else
+		TCLAP::CmdLine cmd("SSE Matrix x Vector Multiplication (Single Precision)", ' ', "0.9");
+#endif
 
 		// Define a value argument and add it to the command line.
 		// A value arg defines a flag and a type of value that it expects,
 		// such as "-n Bishop".
-		TCLAP::ValueArg<unsigned int> threadsArg("t", "threads", "Number of threads.", true, 2, "unsigned int");
-		TCLAP::ValueArg<unsigned int> datasizeArg("s", "data_size", "Data size.", true, 2, "unsigned int");
-		TCLAP::ValueArg<unsigned int> iterationsArg("n", "iterations", "The number of iterations.", false, 1, "unsigned int");
+		TCLAP::ValueArg<unsigned int> threadsArg("t", "threads", "Number of threads.", true, 2, "threads");
+		TCLAP::ValueArg<unsigned int> datasizeArg("s", "data_size", "Data size.", true, 2, "data size");
+		TCLAP::ValueArg<unsigned int> iterationsArg("n", "iterations", "The number of iterations.", false, 1, "iterations");
 		TCLAP::ValuesConstraint<int> variantConstraint(variants);
 		TCLAP::ValueArg<int> variantArg("v", "variant", "Variant ID to run.", false, (int)base, &variantConstraint, false);
 		TCLAP::SwitchArg debugArg("d", "debug", "Enable debug mode, verbose output.", false);

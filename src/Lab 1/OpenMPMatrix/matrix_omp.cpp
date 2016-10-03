@@ -11,14 +11,14 @@
 
 using namespace std;
 
-void matrix_mult_pl(int size, user_float_t *matrix1_in,	user_float_t *matrix2_in, user_float_t *matrix_out) {	
+void matrix_mult_pl(int size, user_float_t *matrix1_in, user_float_t *matrix2_in, user_float_t *matrix_out) {
 # pragma omp parallel				\
 	shared(size, matrix1_in, matrix2_in, matrix_out)
 # pragma omp for
-	for (int cols = 0; cols<size; cols++) {
-		for (int rowsOut = 0; rowsOut<size; rowsOut++) {
+	for (int cols = 0; cols < size; cols++) {
+		for (int rowsOut = 0; rowsOut < size; rowsOut++) {
 			matrix_out[cols + rowsOut*size] = 0.0;
-			for (int j = 0, rowsIn = 0; rowsIn<size; j++, rowsIn++) {
+			for (int j = 0, rowsIn = 0; rowsIn < size; j++, rowsIn++) {
 				matrix_out[cols + rowsOut*size] += matrix1_in[j + rowsOut*size] * matrix2_in[rowsIn*size + cols];
 			}
 		}
@@ -41,9 +41,9 @@ int main(int argc, char *argv[]) {
 		// Define a value argument and add it to the command line.
 		// A value arg defines a flag and a type of value that it expects,
 		// such as "-n Bishop".
-		TCLAP::ValueArg<unsigned int> threadsArg("t", "threads", "Number of threads.", true, 2, "unsigned int");
-		TCLAP::ValueArg<unsigned int> datasizeArg("s", "data_size", "Data size.", true, 2, "unsigned int");
-		TCLAP::ValueArg<unsigned int> iterationsArg("n", "iterations", "The number of iterations.", false, 1, "unsigned int");
+		TCLAP::ValueArg<unsigned int> threadsArg("t", "threads", "Number of threads.", true, 2, "threads");
+		TCLAP::ValueArg<unsigned int> datasizeArg("s", "data_size", "Data size.", true, 2, "data size");
+		TCLAP::ValueArg<unsigned int> iterationsArg("n", "iterations", "The number of iterations.", false, 1, "iterations");
 		TCLAP::ValuesConstraint<int> variantConstraint(variants);
 		TCLAP::ValueArg<int> variantArg("v", "variant", "Variant ID to run.", false, (int)base, &variantConstraint, false);
 		TCLAP::SwitchArg debugArg("d", "debug", "Enable debug mode, verbose output.", false);

@@ -24,7 +24,7 @@ void printArray(user_float_t arr[], int size, bool all) {
 	cout << endl;
 }
 
-void printMatrix(user_float_t arr[], int rows, int cols, bool all) {
+void printMatrix(user_float_t arr[], int rows, int cols, bool all){
 	int limit_cols = cols;
 	if (!all&&cols > FORMAT_LIMIT)
 		limit_cols = FORMAT_LIMIT;

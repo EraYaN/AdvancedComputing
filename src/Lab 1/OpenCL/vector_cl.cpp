@@ -44,9 +44,9 @@ int main(int argc, char *argv[]) {
 		// Define a value argument and add it to the command line.
 		// A value arg defines a flag and a type of value that it expects,
 		// such as "-n Bishop".
-		TCLAP::ValueArg<unsigned int> threadsArg("t", "threads", "Local workgroup size.", true, 2, "unsigned int");
-		TCLAP::ValueArg<unsigned int> datasizeArg("s", "data_size", "Data size.", true, 2, "unsigned int");
-		TCLAP::ValueArg<unsigned int> iterationsArg("n", "iterations", "The number of iterations.", false, 1, "unsigned int");
+		TCLAP::ValueArg<unsigned int> threadsArg("t", "threads", "Local workgroup size.", true, 2, "workgroup size");
+		TCLAP::ValueArg<unsigned int> datasizeArg("s", "data_size", "Data size.", true, 2, "data size");
+		TCLAP::ValueArg<unsigned int> iterationsArg("n", "iterations", "The number of iterations.", false, 1, "iterations");
 		TCLAP::ValuesConstraint<int> variantConstraint(variants);
 		TCLAP::ValueArg<int> variantArg("v", "variant", "Variant ID to run.", false, (int)base, &variantConstraint, false);
 		TCLAP::SwitchArg debugArg("d", "debug", "Enable debug mode, verbose output.", false);
@@ -271,11 +271,11 @@ int main(int argc, char *argv[]) {
 
 		char *mulFileName;
 
-		#ifdef USE_DOUBLES
-				mulFileName = "vectorMatrixMulDouble.cl";
-		#else
-				mulFileName = "vectorMatrixMulFloat.cl";
-		#endif
+#ifdef USE_DOUBLES
+		mulFileName = "vectorMatrixMulDouble.cl";
+#else
+		mulFileName = "vectorMatrixMulFloat.cl";
+#endif
 
 		std::fstream kernelFile(mulFileName);
 		std::string content(
@@ -472,7 +472,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		//check
-		bool checkResult = verifyVectorResult(result_sq, result_pl, size, debug);		
+		bool checkResult = verifyVectorResult(result_sq, result_pl, size, debug);
 		//-----------------------------------------------------
 		// STEP 10: Release OpenCL resources
 		//-----------------------------------------------------
