@@ -1,20 +1,21 @@
 #define cimg_use_jpeg
 #include <CImg.h>
 #include <cuda.h>
-#include <Timer.hpp>
 #include <iostream>
 #include <iomanip>
-//#include <cstring>
 #include <string>
 #include <algorithm>
+#include <chrono>
+#include <chrono_io.h>
+#include <ratio>
 #include <tclap/CmdLine.h>
 #include <tclap/UnlabeledValueArg.h>
 #include "exit_codes.h"
 #include "interactive_tools.h"
 #include "string_format.h"
 
+typedef std::chrono::high_resolution_clock Clock;
 using cimg_library::CImg;
-using LOFAR::NSTimer;
 using namespace std;
 
 // Constants
