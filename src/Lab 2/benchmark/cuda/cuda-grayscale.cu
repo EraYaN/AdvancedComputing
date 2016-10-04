@@ -49,7 +49,7 @@ void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int
 	cudaMemcpy(dev_a, inputImage, size * (sizeof(unsigned char)), cudaMemcpyHostToDevice);
 
 	// execute actual function
-	rgb2grayCudaKernel << <numBlocks, threadsPerBlock >> > (dev_a, dev_b, height, width);
+	rgb2grayCudaKernel << <numBlocks, threadsPerBlock >> > (dev_a, dev_b, width, height);
 
 	// copy result from GPU memory to grayImage
 	cudaMemcpy(grayImage, dev_b, size * (sizeof(unsigned char)), cudaMemcpyDeviceToHost);
