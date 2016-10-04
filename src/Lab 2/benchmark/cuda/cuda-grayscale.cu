@@ -49,7 +49,7 @@ void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int
 	cudaMemcpy(dev_a, inputImage, size * (sizeof(unsigned char)), cudaMemcpyHostToDevice);
 
 	// execute actual function
-	rgb2grayCudaKernel<<<numBlocks, threadsPerBlock>>>(dev_a, dev_b, height, width);
+	rgb2grayCudaKernel << <numBlocks, threadsPerBlock >> > (dev_a, dev_b, height, width);
 
 	// copy result from GPU memory to grayImage
 	cudaMemcpy(grayImage, dev_b, size * (sizeof(unsigned char)), cudaMemcpyDeviceToHost);
@@ -65,32 +65,6 @@ void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int
 	cout << "rgb2gray (cpu): \t\t" << kernelTime.getElapsed() << " seconds." << endl;
 }
 
-/////////////////////////////////////
-/*
-__global__ void histogram1DCudaKernel
-{
-}
-*/
-
-/*
-void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, const int width, const int height,unsigned int *histogram, const unsigned int HISTOGRAM_SIZE,const unsigned int BAR_WIDTH)
-{
-}
-*/
-
-
-/////////////////////////////////////
-/*
-__global__ void contrast1DKernel
-{
-}
-*/
-
-/*
-void contrast1DCuda(unsigned char *grayImage, const int width, const int height,unsigned int *histogram, const unsigned int HISTOGRAM_SIZE,const unsigned int CONTRAST_THRESHOLD)
-{
-}
-*/
 
 /////////////////////////////////////
 /*
