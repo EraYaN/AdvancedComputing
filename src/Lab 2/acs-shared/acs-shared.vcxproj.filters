@@ -21,6 +21,9 @@
     <ClCompile Include="string_format.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="timing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="exit_codes.h">
@@ -33,6 +36,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="string_format.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="timing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

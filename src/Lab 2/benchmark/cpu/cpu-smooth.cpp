@@ -1,19 +1,10 @@
-#include <Timer.hpp>
-#include <iostream>
-#include <iomanip>
+#include "cpu-kernels.h"
 
-using LOFAR::NSTimer;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::fixed;
-using std::setprecision;
+using namespace std;
 
-void triangularSmooth(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height,
-	const float *filter) {
-	NSTimer kernelTime = NSTimer("kernelTime", false, false);
+void triangularSmooth(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height, const float *filter, double cpu_frequency) {
 
-	kernelTime.start();
+	auto t1 = now();
 	// Kernel
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
@@ -39,8 +30,9 @@ void triangularSmooth(unsigned char *grayImage, unsigned char *smoothImage, cons
 		}
 	}
 	// /Kernel
-	kernelTime.stop();
+	auto t2 = now();
 
 	cout << fixed << setprecision(6);
-	cout << "triangularSmooth (cpu): \t" << kernelTime.getElapsed() << " seconds." << endl;
+	double time_elapsed = diffToNanoseconds(t1, t2, cpu_frequency);
+	cout << "triangularSmooth (cpu): \t" << time_elapsed << " nanoseconds." << endl;
 }

@@ -1,15 +1,6 @@
-#include <Timer.hpp>
-#include <iostream>
-#include <iomanip>
-#include <cuda.h>
-#include "../checkCudaCall.h"
+#include "cuda-kernels.h"
 
-using LOFAR::NSTimer;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::fixed;
-using std::setprecision;
+using namespace std;
 
 /////////////////////////////////////
 __global__ void triangularSmoothCudaKernel(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height,	const float *filter)
@@ -40,10 +31,8 @@ __global__ void triangularSmoothCudaKernel(unsigned char *grayImage, unsigned ch
 	}
 }
 
-void triangularSmoothCuda(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height,	const float *filter) {
-	NSTimer kernelTime = NSTimer("kernelTime", false, false);
-
-	kernelTime.start();
+void triangularSmoothCuda(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height, const float *filter, double cpu_frequency) {
+	auto t1 = now();
 	// Kernel
 
 	// specify thread and block dimensions
@@ -71,8 +60,9 @@ void triangularSmoothCuda(unsigned char *grayImage, unsigned char *smoothImage, 
 	cudaFree(dev_b);
 
 	// /Kernel
-	kernelTime.stop();
+	auto t2 = now();
 
 	cout << fixed << setprecision(6);
-	cout << "triangularSmooth (cpu): \t" << kernelTime.getElapsed() << " seconds." << endl;
+	double time_elapsed = diffToNanoseconds(t1, t2, cpu_frequency);
+	cout << "triangularSmooth (cpu): \t" << time_elapsed << " nanoseconds." << endl;
 }

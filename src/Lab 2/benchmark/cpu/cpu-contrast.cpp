@@ -1,19 +1,9 @@
-#include <Timer.hpp>
-#include <iostream>
-#include <iomanip>
+#include "cpu-kernels.h"
 
-using LOFAR::NSTimer;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::fixed;
-using std::setprecision;
+using namespace std;
 
-void contrast1D(unsigned char *grayImage, const int width, const int height,
-	unsigned int *histogram, const unsigned int HISTOGRAM_SIZE,
-	const unsigned int CONTRAST_THRESHOLD) {
+void contrast1D(unsigned char *grayImage, const int width, const int height, unsigned int *histogram, const unsigned int HISTOGRAM_SIZE, const unsigned int CONTRAST_THRESHOLD, double cpu_frequency) {
 	unsigned int i = 0;
-	NSTimer kernelTime = NSTimer("kernelTime", false, false);
 
 	while ((i < HISTOGRAM_SIZE) && (histogram[i] < CONTRAST_THRESHOLD)) {
 		i++;
@@ -27,7 +17,7 @@ void contrast1D(unsigned char *grayImage, const int width, const int height,
 	unsigned int max = i;
 	float diff = max - min;
 
-	kernelTime.start();
+	auto t1 = now();
 	// Kernel
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
@@ -45,8 +35,9 @@ void contrast1D(unsigned char *grayImage, const int width, const int height,
 		}
 	}
 	// /Kernel
-	kernelTime.stop();
+	auto t2 = now();
 
 	cout << fixed << setprecision(6);
-	cout << "contrast1D (cpu): \t\t" << kernelTime.getElapsed() << " seconds." << endl;
+	double time_elapsed = diffToNanoseconds(t1, t2, cpu_frequency);
+	cout << "contrast1D (cpu): \t\t" << time_elapsed << " nanoseconds." << endl;
 }

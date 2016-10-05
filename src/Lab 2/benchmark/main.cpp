@@ -13,33 +13,23 @@
 #include "exit_codes.h"
 #include "interactive_tools.h"
 #include "string_format.h"
+#include "timing.h"
+#include "cpu/cpu-kernels.h"
+#include "cuda/cuda-kernels.h"
 
-typedef std::chrono::high_resolution_clock Clock;
+
 using cimg_library::CImg;
 using namespace std;
 
+static double cpu_frequency = 1;
+
 // Constants
 
-const unsigned int HISTOGRAM_SIZE = 256;
-const unsigned int BAR_WIDTH = 4;
-const unsigned int CONTRAST_THRESHOLD = 80;
 const float filter[] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
 						1.0f, 2.0f, 2.0f, 2.0f, 1.0f,
 						1.0f, 2.0f, 3.0f, 2.0f, 1.0f,
 						1.0f, 2.0f, 2.0f, 2.0f, 1.0f,
 						1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
-
-extern void rgb2gray(unsigned char *inputImage, unsigned char *grayImage, const int width, const int height);
-extern void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int width, const int height);
-
-extern void histogram1D(unsigned char *grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int HISTOGRAM_SIZE, const unsigned int BAR_WIDTH);
-//extern void histogram1DCuda
-
-extern void contrast1D(unsigned char *grayImage, const int width, const int height, unsigned int *histogram, const unsigned int HISTOGRAM_SIZE, const unsigned int CONTRAST_THRESHOLD);
-//extern void contrast1DCuda
-
-extern void triangularSmooth(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height, const float *filter);
-//extern void triangularSmoothCuda
 
 
 int main(int argc, char *argv[]) {
@@ -50,13 +40,13 @@ int main(int argc, char *argv[]) {
 		// delimiter (usually space) and the last one is the version number.
 		// The CmdLine object parses the argv array based on the Arg objects
 		// that it contains.
-		TCLAP::CmdLine cmd("Image Comparison Tool", ' ', "1.0");
+		TCLAP::CmdLine cmd("CUDA Image Processing Benchmarking Tool", ' ', "1.0");
 
 		// Define a value argument and add it to the command line.
 		// A value arg defines a flag and a type of value that it expects,
 		// such as "-n Bishop".
 		TCLAP::UnlabeledValueArg<string> imageArg("input", "The image to be processed.", true, "", "infile");
-		TCLAP::UnlabeledValueArg<string> outputArg("output", "The output images prefix.", false, "./out-cuda", "outfile");
+		TCLAP::UnlabeledValueArg<string> outputArg("output", "The output images prefix.", false, "./out-benchmark", "outfile");
 		TCLAP::ValueArg<unsigned int> histogramSizeArg("hs", "histogram-size", "The histogram size.", false, 256, "size");
 		TCLAP::ValueArg<unsigned int> histogramBarWidthArg("hb", "histogram-bar-width", "The histogram bar width.", false, 4, "pixels");
 		TCLAP::ValueArg<unsigned int> thresholdArg("t", "contrast-threshold", "The contrast threshold.", false, 80, "pixels");
@@ -91,6 +81,10 @@ int main(int argc, char *argv[]) {
 		bool debug = debugArg.getValue();
 		bool interactive = interactiveArg.getValue();
 
+#ifdef USE_RDTSC
+		cpu_frequency = get_frequency();
+#endif
+
 		// Load the input image
 		if (displayImages) {
 			inputImage.display("Input Image");
@@ -117,7 +111,7 @@ int main(int argc, char *argv[]) {
 		CImg< unsigned char > histogramImage = CImg< unsigned char >(barWidth * histogramSize, histogramSize, 1, 1);
 		unsigned int *histogram = new unsigned int[histogramSize];
 
-		histogram1D(grayImage.data(), histogramImage.data(), grayImage.width(), grayImage.height(), histogram, histogramSize, barWidth);
+		histogram1D(grayImage.data(), histogramImage.data(), grayImage.width(), grayImage.height(), histogram, histogramSize, barWidth,cpu_frequency);
 		//histogram1DCuda
 
 		if (displayImages) {

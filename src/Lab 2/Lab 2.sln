@@ -31,6 +31,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TimerTest", "TimerTest\Time
 		{20C0B8CD-2A4B-46C3-ACE5-D212651352F6} = {20C0B8CD-2A4B-46C3-ACE5-D212651352F6}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F93851A8-AA3A-4985-9A0C-E10E486C7C91}"
+	ProjectSection(SolutionItems) = preProject
+		makefile = makefile
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

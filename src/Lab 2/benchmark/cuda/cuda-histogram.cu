@@ -1,15 +1,6 @@
-#include <Timer.hpp>
-#include <iostream>
-#include <iomanip>
-#include <cuda.h>
-#include "../checkCudaCall.h"
+#include "cuda-kernels.h"
 
-using LOFAR::NSTimer;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::fixed;
-using std::setprecision;
+using namespace std;
 
 /////////////////////////////////////
 __global__ void histogram1DCudaKernel(unsigned char *grayImage, unsigned int *histogram, const int width, const int height) {
@@ -21,15 +12,12 @@ __global__ void histogram1DCudaKernel(unsigned char *grayImage, unsigned int *hi
 	}
 }
 
-void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, const int width, const int height,
-	unsigned int *histogram, const unsigned int HISTOGRAM_SIZE,
-	const unsigned int BAR_WIDTH) {
+void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int HISTOGRAM_SIZE, const unsigned int BAR_WIDTH, double cpu_frequency) {
 	unsigned int max = 0;
-	NSTimer kernelTime = NSTimer("kernelTime", false, false);
 
 	memset(reinterpret_cast<void *>(histogram), 0, HISTOGRAM_SIZE * sizeof(unsigned int));
 
-	kernelTime.start();
+	auto t1 = now();
 	// Kernel
 
 	// specify thread and block dimensions
@@ -58,7 +46,7 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, co
 	cudaFree(dev_b);
 
 	// /Kernel
-	kernelTime.stop();
+	auto t2 = now();
 
 	for (unsigned int i = 0; i < HISTOGRAM_SIZE; i++) {
 		if (histogram[i] > max) {
@@ -82,5 +70,6 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, co
 	}
 
 	cout << fixed << setprecision(6);
-	cout << "histogram1D (cpu): \t\t" << kernelTime.getElapsed() << " seconds." << endl;
+	double time_elapsed = diffToNanoseconds(t1, t2, cpu_frequency);
+	cout << "histogram1D (cpu): \t\t" << time_elapsed << " nanoseconds." << endl;
 }

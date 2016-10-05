@@ -1,23 +1,13 @@
-#include <Timer.hpp>
-#include <iostream>
-#include <iomanip>
+#include "cpu-kernels.h"
 
-using LOFAR::NSTimer;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::fixed;
-using std::setprecision;
+using namespace std;
 
-void histogram1D(unsigned char *grayImage, unsigned char *histogramImage, const int width, const int height,
-	unsigned int *histogram, const unsigned int HISTOGRAM_SIZE,
-	const unsigned int BAR_WIDTH) {
+void histogram1D(unsigned char *grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int HISTOGRAM_SIZE, const unsigned int BAR_WIDTH, double cpu_frequency) {
 	unsigned int max = 0;
-	NSTimer kernelTime = NSTimer("kernelTime", false, false);
 
 	memset(reinterpret_cast<void *>(histogram), 0, HISTOGRAM_SIZE * sizeof(unsigned int));
 
-	kernelTime.start();
+	auto t1 = now();
 	// Kernel
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
@@ -25,7 +15,7 @@ void histogram1D(unsigned char *grayImage, unsigned char *histogramImage, const 
 		}
 	}
 	// /Kernel
-	kernelTime.stop();
+	auto t2 = now();
 
 	for (unsigned int i = 0; i < HISTOGRAM_SIZE; i++) {
 		if (histogram[i] > max) {
@@ -49,5 +39,6 @@ void histogram1D(unsigned char *grayImage, unsigned char *histogramImage, const 
 	}
 
 	cout << fixed << setprecision(6);
-	cout << "histogram1D (cpu): \t\t" << kernelTime.getElapsed() << " seconds." << endl;
+	double time_elapsed = diffToNanoseconds(t1, t2, cpu_frequency);
+	cout << "histogram1D (cpu): \t\t" << time_elapsed << " nanoseconds." << endl;
 }

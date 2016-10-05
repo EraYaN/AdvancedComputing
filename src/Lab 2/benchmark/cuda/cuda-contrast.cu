@@ -1,15 +1,6 @@
-#include <Timer.hpp>
-#include <iostream>
-#include <iomanip>
-#include <cuda.h>
-#include "../checkCudaCall.h"
+#include "cuda-kernels.h"
 
-using LOFAR::NSTimer;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::fixed;
-using std::setprecision;
+using namespace std;
 
 
 /////////////////////////////////////
@@ -32,12 +23,8 @@ __global__ void contrast1DCudaKernel(unsigned char *grayImage, const int width, 
 	}
 }
 
-
-void contrast1DCuda(unsigned char *grayImage, const int width, const int height,
-	unsigned int *histogram, const unsigned int HISTOGRAM_SIZE,
-	const unsigned int CONTRAST_THRESHOLD) {
+void contrast1DCuda(unsigned char *grayImage, const int width, const int height, unsigned int *histogram, const unsigned int HISTOGRAM_SIZE, const unsigned int CONTRAST_THRESHOLD, double cpu_frequency) {
 	unsigned int i = 0;
-	NSTimer kernelTime = NSTimer("kernelTime", false, false);
 
 	while ((i < HISTOGRAM_SIZE) && (histogram[i] < CONTRAST_THRESHOLD)) {
 		i++;
@@ -51,7 +38,7 @@ void contrast1DCuda(unsigned char *grayImage, const int width, const int height,
 	unsigned int max = i;
 	float diff = max - min;
 
-	kernelTime.start();
+	auto t1 = now();
 	// Kernel
 
 	// specify thread and block dimensions
@@ -68,7 +55,7 @@ void contrast1DCuda(unsigned char *grayImage, const int width, const int height,
 	cudaMemcpy(dev_a, grayImage, size * (sizeof(unsigned char)), cudaMemcpyHostToDevice);
 
 	// execute actual function
-	contrast1DCudaKernel << <numBlocks, threadsPerBlock >> > (dev_a, width, height, min, max, diff);
+	contrast1DCudaKernel << <numBlocks, threadsPerBlock >> >(dev_a, width, height, min, max, diff);
 
 	// copy result from GPU memory to grayImage
 	cudaMemcpy(grayImage, dev_a, size * (sizeof(unsigned char)), cudaMemcpyDeviceToHost);
@@ -77,8 +64,9 @@ void contrast1DCuda(unsigned char *grayImage, const int width, const int height,
 	cudaFree(dev_a);
 
 	// /Kernel
-	kernelTime.stop();
+	auto t2 = now();
 
 	cout << fixed << setprecision(6);
-	cout << "contrast1D (cpu): \t\t" << kernelTime.getElapsed() << " seconds." << endl;
+	double time_elapsed = diffToNanoseconds(t1, t2, cpu_frequency);
+	cout << "contrast1D (cpu): \t\t" << time_elapsed << " nanoseconds." << endl;
 }

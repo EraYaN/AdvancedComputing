@@ -2,23 +2,24 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A302}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Kernel Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A301}</UniqueIdentifier>
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A303}</UniqueIdentifier>
       <Extensions>cu;cl</Extensions>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFC}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD02}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="cpu\cpu-contrast.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -31,31 +32,22 @@
     <ClCompile Include="cpu\cpu-smooth.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="checkCudaCall.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda\cuda-kernels.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cpu\cpu-kernels.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <None Include="cuda\cuda-contrast.cu">
+      <Filter>Kernel Files</Filter>
+    </None>
+    <None Include="cuda\cuda-grayscale.cu">
+      <Filter>Kernel Files</Filter>
+    </None>
+    <None Include="cuda\cuda-histogram.cu">
+      <Filter>Kernel Files</Filter>
+    </None>
+    <None Include="cuda\cuda-smooth.cu">
+      <Filter>Kernel Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="cuda\cuda-contrast.cu">
-      <Filter>Kernel Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda\cuda-grayscale.cu">
-      <Filter>Kernel Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda\cuda-histogram.cu">
-      <Filter>Kernel Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda\cuda-smooth.cu">
-      <Filter>Kernel Files</Filter>
-    </CudaCompile>
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
 </Project>
