@@ -36,10 +36,10 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, co
 	cudaMemcpy(dev_a, grayImage, size * (sizeof(unsigned char)), cudaMemcpyHostToDevice);
 
 	// execute actual function
-	histogram1DCudaKernel << <numBlocks, threadsPerBlock >> > (dev_a, dev_b, width, height);
+	histogram1DCudaKernel <<<numBlocks, threadsPerBlock>>>(dev_a, dev_b, width, height);
 
 	// copy result from GPU memory to histogramImage
-	cudaMemcpy(histogram, dev_b, size * (sizeof(unsigned int)), cudaMemcpyDeviceToHost);
+	cudaMemcpy(histogram, dev_b, HISTOGRAM_SIZE * (sizeof(unsigned int)), cudaMemcpyDeviceToHost);
 
 	// free memory
 	cudaFree(dev_a);
@@ -55,7 +55,9 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, co
 	}
 
 	for (int x = 0; x < HISTOGRAM_SIZE * BAR_WIDTH; x += BAR_WIDTH) {
-		unsigned int value = HISTOGRAM_SIZE - ((histogram[x / BAR_WIDTH] * HISTOGRAM_SIZE) / max);
+		unsigned int value = 0;
+		if(max>0)
+			value = HISTOGRAM_SIZE - ((histogram[x / BAR_WIDTH] * HISTOGRAM_SIZE) / max);
 
 		for (unsigned int y = 0; y < value; y++) {
 			for (unsigned int i = 0; i < BAR_WIDTH; i++) {

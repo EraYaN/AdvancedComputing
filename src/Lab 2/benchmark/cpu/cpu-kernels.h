@@ -2,6 +2,7 @@
 #include "timing.h"
 #include <iostream>
 #include <iomanip>
+#include <cstring>
 
 using std::cout;
 using std::cerr;

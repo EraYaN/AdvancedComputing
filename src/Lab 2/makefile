@@ -6,13 +6,16 @@ BIN_DIR		:= $(PROJ_BASE)/bin
 EXEC_MAIN		:= $(BIN_DIR)/benchmark
 EXEC_COMPARE		:= $(BIN_DIR)/compare
 IMAGE		:=$(PROJ_BASE)/images/image15.jpg
+CPPSTD		:= c++11
 
 MODULES   := acs-shared benchmark benchmark/cuda benchmark/cpu
 SRC_DIR   := $(addprefix ./,$(MODULES))
 BUILD_DIR := $(addprefix out/,$(MODULES))
 
-SRC       := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cpp)) $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cu))
-OBJ       := $(patsubst ./%.cpp,out/%.o,$(SRC))
+SRC_CPP       := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cpp))
+SRC_CU       := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cu))
+SRC			 := $(SRC_CPP) $(SRC_CU)
+OBJ       := $(patsubst ./%.cpp,out/%.o,$(SRC_CPP)) $(patsubst ./%.cu,out/%.o,$(SRC_CU))
 
 MODULES_COMPARE   := compare
 SRC_DIR_COMPARE   := $(addprefix ./,$(MODULES_COMPARE))
@@ -29,7 +32,7 @@ INCLUDES	:=  -I"$(CUDA_INSTALL_PATH)/include" -I"$(PROJ_BASE)/../tclap-1.2.1/inc
 LDFLAGS         := -lm -lX11 -lpthread -lcimg -ljpeg
 CUDA_LDFLAGS	:= $(LDFLAGS) -lrt -lcudart -Xlinker -rpath=$(LD_LIBRARY_PATH)
 
-LIBS		:= 
+LIBS		:=
 CUDA_LIBS	:= $(LIBS) -L"$(CUDA_INSTALL_PATH)/lib64"
 
 VPATH = $(PROJ_BASE)
@@ -58,13 +61,19 @@ GENCODE_FLAGS   ?= $(GENCODE_SM10) $(GENCODE_SM20) $(GENCODE_SM30) \
 
 NVCCFLAGS	:= $(GENCODE_FLAGS)
 
+ifeq ($(USE_RDTSC),1)
+	COPTS := -DUSE_RDTSC
+else
+    COPTS := -std=$(CPPSTD)
+endif
+
 debug		:= 0
 ifneq ($(debug), 1)
-	CFLAGS		:= -O3 -g0 -std=c++11
-	NVCCFLAGS	+= -O3
+	CFLAGS		:= -O3 -g0 $(COPTS)
+	NVCCFLAGS	+= -O3 -Xcompiler "$(COPTS)"
 else
-	CFLAGS		:= -O0 -g3 -Wall -std=c++11
-	NVCCFLAGS	+= -O0
+	CFLAGS		:= -O0 -g3 -Wall $(COPTS)
+	NVCCFLAGS	+= -O0 -Xcompiler "$(COPTS)"
 endif
 
 .PHONY: all checkdirs clean
@@ -82,7 +91,7 @@ $(EXEC_COMPARE): $(OBJ_COMPARE)
 	$(LD) $^ -o $@ $(INCLUDES) $(CFLAGS)
 
 $(BUILDDIR)/%.o: %.cu
-	$(NVCC) -c $< $(NVCCFLAGS) $(INCLUDES)
+	$(NVCC) $(NVCCFLAGS) $(INCLUDES) -c $<
 
 $(BUILDDIR)/%.o: %.cpp
 	$(CC) $(INCLUDES) $(CFLAGS) -c $< -o $@

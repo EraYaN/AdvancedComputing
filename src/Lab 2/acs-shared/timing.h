@@ -1,36 +1,25 @@
 #pragma once
 #include <iostream>
+#ifdef USE_RDTSC
+#include <sstream>
+#include <fstream>
+#include <cstring>
+#else
 #include <chrono>
 #include <ratio>
-#include <thread>
-#include <vector>
-#include <numeric>
+#endif
 #ifdef _WIN32
 #include "Windows.h"
+#include <intrin.h>
 #endif
 
 #include <stdint.h>
 
-//  Windows
-#ifdef _WIN32
+//  Windows#ifdef _WIN32
 
-#include <intrin.h>
-uint64_t rdtsc() {
-	return __rdtsc();
-}
-
-//  Linux/GCC
-#else
-uint64_t rdtsc() {
-	unsigned int lo, hi;
-	__asm__ __volatile__("rdtsc" : "=a" (lo), "=d" (hi));
-	return ((uint64_t)hi << 32) | lo;
-}
-
-#endif
 
 #ifdef USE_RDTSC
-double get_frequency();
+double get_frequency(bool debug);
 uint64_t now();
 double diffToNanoseconds(uint64_t t1, uint64_t t2, double freq = 1);
 #else

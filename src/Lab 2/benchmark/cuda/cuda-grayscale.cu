@@ -30,11 +30,12 @@ void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int
 	unsigned char *dev_a, *dev_b;
 	int size = width * height;
 
-	cudaMalloc((void**)&dev_a, size * (sizeof(unsigned char)));
+	// I added the times three, becuase Nsight reported many access violations in the cuda kernel, it's because the input is RGB
+	cudaMalloc((void**)&dev_a, 3 * size * (sizeof(unsigned char)));
 	cudaMalloc((void**)&dev_b, size * (sizeof(unsigned char)));
 
 	// copy inputImage to GPU memory
-	cudaMemcpy(dev_a, inputImage, size * (sizeof(unsigned char)), cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_a, inputImage, 3 * size * (sizeof(unsigned char)), cudaMemcpyHostToDevice);
 
 	// execute actual function
 	rgb2grayCudaKernel << <numBlocks, threadsPerBlock >> > (dev_a, dev_b, width, height);
