@@ -5,30 +5,9 @@ from WrapperShared import Variant
 from ExecuteBenchmarks import *
 from GeneratePlots import GeneratePlot
 
-# Program Definitions
-CUDA = {
-    'name':'cuda',
-    'variants':[Variant.base],
-    'configs':['Release'],
-    'images':['image00.jpg']
-}
-Sequential = {
-    'name':'sequential',
-    'variants':[Variant.base],
-    'configs':['Release'],
-    'images':['image00.jpg']
-}
-
 max_n = 5 # Times to run program to get average
-platforms = ['x64'] # Platform names
 
-# Program definition array
-types = [
-    Sequential,
-    CUDA
-]
-#TODO implement
-iteration_range = [1] # range(1,11) # 1 to 10
+image_path = "./images/"
 
 results = []
 

@@ -3,11 +3,9 @@
 using namespace std;
 
 /////////////////////////////////////
-__global__ void triangularSmoothCudaKernel(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height,	const float *filter)
-{
+__global__ void triangularSmoothCudaKernel(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height, float *filter) {
 	int x = blockIdx.x * blockDim.x + threadIdx.x; // width
 	int y = blockIdx.y * blockDim.y + threadIdx.y; // height
-
 	if (x < width && y < height) {
 		unsigned int filterItem = 0;
 		float filterSum = 0.0f;
@@ -19,7 +17,6 @@ __global__ void triangularSmoothCudaKernel(unsigned char *grayImage, unsigned ch
 					filterItem++;
 					continue;
 				}
-
 				smoothPix += grayImage[(fy * width) + fx] * filter[filterItem];
 				filterSum += filter[filterItem];
 				filterItem++;
@@ -31,8 +28,10 @@ __global__ void triangularSmoothCudaKernel(unsigned char *grayImage, unsigned ch
 	}
 }
 
-void triangularSmoothCuda(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height, const float *filter, double cpu_frequency) {
-	auto t1 = now();
+//TODO Implement NPP: http://docs.nvidia.com/cuda/pdf/NPP_Library_Image_Filters.pdf  nppiFilterBox_8u_C1R on page 247
+void triangularSmoothCuda(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height, float *filter, ResultContainer *result, double cpu_frequency) {
+	auto t_preprocessing = now();
+	auto t_init = t_preprocessing;
 	// Kernel
 
 	// specify thread and block dimensions
@@ -41,28 +40,36 @@ void triangularSmoothCuda(unsigned char *grayImage, unsigned char *smoothImage, 
 
 	// allocate GPU memory
 	unsigned char *dev_a, *dev_b;
-	int size = width * height;
+	float *dev_filter;
 
-	cudaMalloc((void**)&dev_a, size * (sizeof(unsigned char)));
-	cudaMalloc((void**)&dev_b, size * (sizeof(unsigned char)));
+	//checkCudaCall(cudaHostGetDevicePointer(&dev_a, grayImage, 0));
+	//checkCudaCall(cudaHostGetDevicePointer(&dev_b, smoothImage, 0));
+	//checkCudaCall(cudaHostGetDevicePointer(&dev_filter, filter, 0));
 
-	// copy grayImage to GPU memory
-	cudaMemcpy(dev_a, grayImage, size * (sizeof(unsigned char)), cudaMemcpyHostToDevice);
+	//regular memcpy is much faster than the mapped host memory
+	cudaMalloc(&dev_a, width*height * sizeof(unsigned char));
+	cudaMemcpy(dev_a, grayImage, width*height * sizeof(unsigned char), cudaMemcpyHostToDevice);
 
+	cudaMalloc(&dev_b, width*height * sizeof(unsigned char));
+
+	cudaMalloc(&dev_filter, width*height * sizeof(unsigned char));
+	cudaMemcpy(dev_filter, filter, 25 * sizeof(float), cudaMemcpyHostToDevice);
+
+	auto t_kernel = now();
 	// execute actual function
-	triangularSmoothCudaKernel << <numBlocks, threadsPerBlock >> > (dev_a, dev_b, width, height, filter);
+	triangularSmoothCudaKernel<<<numBlocks, threadsPerBlock>>>(dev_a, dev_b, width, height, dev_filter);
+	//checkCudaCall(cudaThreadSynchronize());
+	auto t_cleanup = now();
 
-	// copy result from GPU memory to grayImage
-	cudaMemcpy(smoothImage, dev_b, size * (sizeof(unsigned char)), cudaMemcpyDeviceToHost);
+	cudaMemcpy(smoothImage, dev_b, width * height * sizeof(unsigned char), cudaMemcpyDeviceToHost);
 
-	// free memory
 	cudaFree(dev_a);
 	cudaFree(dev_b);
+	cudaFree(dev_filter);
 
 	// /Kernel
-	auto t2 = now();
+	auto t_postprocessing = now();
+	auto t_end = t_postprocessing;
 
-	cout << fixed << setprecision(6);
-	double time_elapsed = diffToNanoseconds(t1, t2, cpu_frequency);
-	cout << "triangularSmooth (cpu): \t" << time_elapsed << " nanoseconds." << endl;
+	*result = ResultContainer(t_preprocessing, t_init, t_kernel, t_cleanup, t_postprocessing, t_end, cpu_frequency);
 }

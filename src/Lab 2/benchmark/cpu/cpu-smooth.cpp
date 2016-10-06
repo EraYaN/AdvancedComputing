@@ -2,9 +2,10 @@
 
 using namespace std;
 
-void triangularSmooth(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height, const float *filter, double cpu_frequency) {
-
-	auto t1 = now();
+void triangularSmooth(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height, const float *filter, ResultContainer *result, double cpu_frequency) {
+	auto t_preprocessing = now();
+	auto t_init = t_preprocessing;
+	auto t_kernel = t_preprocessing;
 	// Kernel
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
@@ -30,9 +31,9 @@ void triangularSmooth(unsigned char *grayImage, unsigned char *smoothImage, cons
 		}
 	}
 	// /Kernel
-	auto t2 = now();
+	auto t_cleanup = now();
+	auto t_postprocessing = t_cleanup;
+	auto t_end = t_cleanup;
 
-	cout << fixed << setprecision(6);
-	double time_elapsed = diffToNanoseconds(t1, t2, cpu_frequency);
-	cout << "triangularSmooth (cpu): \t" << time_elapsed << " nanoseconds." << endl;
+	*result = ResultContainer(t_preprocessing, t_init, t_kernel, t_cleanup, t_postprocessing, t_end, cpu_frequency);
 }

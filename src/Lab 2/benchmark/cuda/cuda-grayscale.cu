@@ -7,19 +7,19 @@ __global__ void rgb2grayCudaKernel(unsigned char *inputImage, unsigned char *gra
 	int y = blockIdx.y * blockDim.y + threadIdx.y; // height
 
 	if (x < width && y < height) {
-		float grayPix = 0.0f;
 		float r = static_cast<float>(inputImage[(y * width) + x]);
 		float g = static_cast<float>(inputImage[(width * height) + (y * width) + x]);
 		float b = static_cast<float>(inputImage[(2 * width * height) + (y * width) + x]);
 
-		grayPix = (0.3f * r) + (0.59f * g) + (0.11f * b);
+		float grayPix = (0.3f * r) + (0.59f * g) + (0.11f * b);
 
-		grayImage[(y * width) + x] = static_cast<unsigned char>(grayPix);
+		grayImage[((y * width) + x)] = static_cast<unsigned char>(grayPix);
 	}
 }
 
-void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int width, const int height, double cpu_frequency) {
-	auto t1 = now();
+void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int width, const int height, ResultContainer *result, double cpu_frequency) {
+	auto t_preprocessing = now();
+	auto t_init = t_preprocessing;
 	// Kernel
 
 	// specify thread and block dimensions
@@ -28,30 +28,20 @@ void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int
 
 	// allocate GPU memory
 	unsigned char *dev_a, *dev_b;
-	int size = width * height;
 
-	// I added the times three, becuase Nsight reported many access violations in the cuda kernel, it's because the input is RGB
-	cudaMalloc((void**)&dev_a, 3 * size * (sizeof(unsigned char)));
-	cudaMalloc((void**)&dev_b, size * (sizeof(unsigned char)));
+	checkCudaCall(cudaHostGetDevicePointer(&dev_a, inputImage, 0));
+	checkCudaCall(cudaHostGetDevicePointer(&dev_b, grayImage, 0));
 
-	// copy inputImage to GPU memory
-	cudaMemcpy(dev_a, inputImage, 3 * size * (sizeof(unsigned char)), cudaMemcpyHostToDevice);
-
+	auto t_kernel = now();
 	// execute actual function
-	rgb2grayCudaKernel << <numBlocks, threadsPerBlock >> > (dev_a, dev_b, width, height);
-
-	// copy result from GPU memory to grayImage
-	cudaMemcpy(grayImage, dev_b, size * (sizeof(unsigned char)), cudaMemcpyDeviceToHost);
-
-	// free memory
-	cudaFree(dev_a);
-	cudaFree(dev_b);
+	rgb2grayCudaKernel<<<numBlocks, threadsPerBlock>>>(dev_a, dev_b, width, height);
+	checkCudaCall(cudaThreadSynchronize());
+	auto t_cleanup = now();
 
 	// /Kernel
-	auto t2 = now();
+	auto t_postprocessing = now();
+	auto t_end = t_postprocessing;
 
-	cout << fixed << setprecision(6);
-	double time_elapsed = diffToNanoseconds(t1, t2, cpu_frequency);
-	cout << "rgb2gray (cpu): \t\t" << time_elapsed << " nanoseconds." << endl;
+	*result = ResultContainer(t_preprocessing, t_init, t_kernel, t_cleanup, t_postprocessing, t_end, cpu_frequency);
 }
 

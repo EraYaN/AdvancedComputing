@@ -2,22 +2,24 @@
 
 using namespace std;
 
-void contrast1D(unsigned char *grayImage, const int width, const int height, unsigned int *histogram, const unsigned int HISTOGRAM_SIZE, const unsigned int CONTRAST_THRESHOLD, double cpu_frequency) {
+void contrast1D(unsigned char *grayImage, const int width, const int height, unsigned int *histogram, const unsigned int histogramSize, const unsigned int contrastThreshold, ResultContainer *result, double cpu_frequency) {
+	auto t_preprocessing = now();
 	unsigned int i = 0;
 
-	while ((i < HISTOGRAM_SIZE) && (histogram[i] < CONTRAST_THRESHOLD)) {
+	while ((i < histogramSize) && (histogram[i] < contrastThreshold)) {
 		i++;
 	}
 	unsigned int min = i;
 
-	i = HISTOGRAM_SIZE - 1;
-	while ((i > min) && (histogram[i] < CONTRAST_THRESHOLD)) {
+	i = histogramSize - 1;
+	while ((i > min) && (histogram[i] < contrastThreshold)) {
 		i--;
 	}
 	unsigned int max = i;
 	float diff = max - min;
 
-	auto t1 = now();
+	auto t_init = now();
+	auto t_kernel = t_init;
 	// Kernel
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
@@ -35,9 +37,9 @@ void contrast1D(unsigned char *grayImage, const int width, const int height, uns
 		}
 	}
 	// /Kernel
-	auto t2 = now();
+	auto t_cleanup = now();
+	auto t_postprocessing = t_cleanup;
+	auto t_end = t_cleanup;
 
-	cout << fixed << setprecision(6);
-	double time_elapsed = diffToNanoseconds(t1, t2, cpu_frequency);
-	cout << "contrast1D (cpu): \t\t" << time_elapsed << " nanoseconds." << endl;
+	*result = ResultContainer(t_preprocessing, t_init, t_kernel, t_cleanup, t_postprocessing, t_end, cpu_frequency);
 }

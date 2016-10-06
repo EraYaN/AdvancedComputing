@@ -1,3 +1,6 @@
+#ifdef USE_LIBJPEG
+#define cimg_use_jpeg
+#endif
 #include <CImg.h>
 #include <iostream>
 #include <cstdlib>
@@ -31,7 +34,7 @@ int main(int argc, char *argv[]) {
 		TCLAP::UnlabeledValueArg<string> image1Arg("image1", "The first image to be compared.", true, "", "infile");
 		TCLAP::UnlabeledValueArg<string> image2Arg("image2", "The second image to be compared.", true, "", "infile");
 		TCLAP::UnlabeledValueArg<string> outputArg("output", "The output image with the difference.", false, "./diff.bmp", "outfile");
-		TCLAP::ValueArg<unsigned int> thresholdArg("t", "threshold", "The difference threshold.", false, 16, "pixels");
+		TCLAP::ValueArg<unsigned int> thresholdArg("t", "threshold", "The difference threshold.", false, 16, "0-255");
 		TCLAP::SwitchArg debugArg("d", "debug", "Enable debug mode, verbose output.", false);
 		TCLAP::SwitchArg interactiveArg("i", "interactive", "Enable interactive mode.", false);
 

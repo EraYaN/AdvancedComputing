@@ -33,8 +33,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TimerTest", "TimerTest\Time
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F93851A8-AA3A-4985-9A0C-E10E486C7C91}"
 	ProjectSection(SolutionItems) = preProject
+		BasicProfiling.nvact = BasicProfiling.nvact
 		makefile = makefile
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestPassByReference", "TestPassByReference\TestPassByReference.vcxproj", "{A98E5BE8-F8B5-4B85-AE65-E576208A282C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,6 +67,10 @@ Global
 		{2E8BED6C-CEE1-4E1B-B920-17C9CDA15DDE}.Debug|x64.Build.0 = Debug|x64
 		{2E8BED6C-CEE1-4E1B-B920-17C9CDA15DDE}.Release|x64.ActiveCfg = Release|x64
 		{2E8BED6C-CEE1-4E1B-B920-17C9CDA15DDE}.Release|x64.Build.0 = Release|x64
+		{A98E5BE8-F8B5-4B85-AE65-E576208A282C}.Debug|x64.ActiveCfg = Debug|x64
+		{A98E5BE8-F8B5-4B85-AE65-E576208A282C}.Debug|x64.Build.0 = Debug|x64
+		{A98E5BE8-F8B5-4B85-AE65-E576208A282C}.Release|x64.ActiveCfg = Release|x64
+		{A98E5BE8-F8B5-4B85-AE65-E576208A282C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -74,5 +81,6 @@ Global
 		{019DBD2A-273D-4BA4-BF86-B5EFE2ED76B1} = {58358959-73C9-43D4-B5AA-138F67B3DA06}
 		{12E3A9B6-63DF-4FD3-A441-E1DB7B907841} = {579685AD-7643-4792-A5AD-D1CF96463EED}
 		{2E8BED6C-CEE1-4E1B-B920-17C9CDA15DDE} = {579685AD-7643-4792-A5AD-D1CF96463EED}
+		{A98E5BE8-F8B5-4B85-AE65-E576208A282C} = {579685AD-7643-4792-A5AD-D1CF96463EED}
 	EndGlobalSection
 EndGlobal

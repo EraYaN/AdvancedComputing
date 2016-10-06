@@ -4,41 +4,21 @@ using namespace std;
 
 /////////////////////////////////////
 __global__ void histogram1DCudaKernel(unsigned char *grayImage, unsigned int *histogram, const int width, const int height) {
-	
-	
 	int x = blockIdx.x * blockDim.x + threadIdx.x; // width
 	int y = blockIdx.y * blockDim.y + threadIdx.y; // height
 
 	if (x < width && y < height) {
 		atomicAdd(&histogram[static_cast<unsigned int>(grayImage[(y * width) + x])], (unsigned int)1);
 	}
-
-	/*
-	// create temp shared memory to store histogram data
-	__shared__ unsigned int temp[256];
-	temp[threadIdx.x] = 0;
-	__syncthreads();
-
-	int offsetX = blockDim.x * gridDim.x;
-	int offsetY = blockDim.y * gridDim.y;
-
-	while (x < width && y < height) {
-		atomicAdd(&temp[static_cast<unsigned int>(grayImage[(y * width) + x])], (unsigned int)1);
-		x += offsetX;
-		y += offsetY;
-	}
-
-	__syncthreads();
-
-	atomicAdd(&(histogram[(threadIdx.y * width) + threadIdx.x]), temp[(threadIdx.y * width) + threadIdx.x]);*/
 }
 
-void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int HISTOGRAM_SIZE, const unsigned int BAR_WIDTH, double cpu_frequency) {
+void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int histogramSize, const unsigned int barWidth, ResultContainer *result, double cpu_frequency) {
+	auto t_preprocessing = now();
 	unsigned int max = 0;
 
-	memset(reinterpret_cast<void *>(histogram), 0, HISTOGRAM_SIZE * sizeof(unsigned int));
+	memset(reinterpret_cast<void *>(histogram), 0, histogramSize * sizeof(unsigned int));
 
-	auto t1 = now();
+	auto t_init = now();
 	// Kernel
 
 	// specify thread and block dimensions
@@ -48,51 +28,44 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, co
 	// allocate GPU memory
 	unsigned char *dev_a;
 	unsigned int *dev_b;
-	int size = width * height;
 
-	cudaMalloc((void**)&dev_a, size * (sizeof(unsigned char)));
-	cudaMalloc((void**)&dev_b, HISTOGRAM_SIZE * (sizeof(unsigned int)));
+	checkCudaCall(cudaHostGetDevicePointer(&dev_a, grayImage, 0));
+	checkCudaCall(cudaHostGetDevicePointer(&dev_b, histogram, 0));
 
-	// copy grayImage to GPU memory
-	cudaMemcpy(dev_a, grayImage, size * (sizeof(unsigned char)), cudaMemcpyHostToDevice);
-
+	auto t_kernel = now();
 	// execute actual function
-	histogram1DCudaKernel <<<numBlocks, threadsPerBlock>>>(dev_a, dev_b, width, height);
-
-	// copy result from GPU memory to histogramImage
-	cudaMemcpy(histogram, dev_b, HISTOGRAM_SIZE * (sizeof(unsigned int)), cudaMemcpyDeviceToHost);
-
-	// free memory
-	cudaFree(dev_a);
-	cudaFree(dev_b);
+	histogram1DCudaKernel<<<numBlocks, threadsPerBlock>>> (dev_a, dev_b, width, height);
+	checkCudaCall(cudaThreadSynchronize());
+	auto t_cleanup = now();
 
 	// /Kernel
-	auto t2 = now();
+	auto t_postprocessing = now();
 
-	for (unsigned int i = 0; i < HISTOGRAM_SIZE; i++) {
+	for (unsigned int i = 0; i < histogramSize; i++) {
 		if (histogram[i] > max) {
 			max = histogram[i];
 		}
 	}
 
-	for (int x = 0; x < HISTOGRAM_SIZE * BAR_WIDTH; x += BAR_WIDTH) {
+	for (int x = 0; x < histogramSize * barWidth; x += barWidth) {
 		unsigned int value = 0;
-		if(max>0)
-			value = HISTOGRAM_SIZE - ((histogram[x / BAR_WIDTH] * HISTOGRAM_SIZE) / max);
+		if (max > 0)
+			value = histogramSize - ((histogram[x / barWidth] * histogramSize) / max);
 
 		for (unsigned int y = 0; y < value; y++) {
-			for (unsigned int i = 0; i < BAR_WIDTH; i++) {
-				histogramImage[(y * HISTOGRAM_SIZE * BAR_WIDTH) + x + i] = 0;
+			for (unsigned int i = 0; i < barWidth; i++) {
+				histogramImage[(y * histogramSize * barWidth) + x + i] = 0;
 			}
 		}
-		for (unsigned int y = value; y < HISTOGRAM_SIZE; y++) {
-			for (unsigned int i = 0; i < BAR_WIDTH; i++) {
-				histogramImage[(y * HISTOGRAM_SIZE * BAR_WIDTH) + x + i] = 255;
+		for (unsigned int y = value; y < histogramSize; y++) {
+			for (unsigned int i = 0; i < barWidth; i++) {
+				histogramImage[(y * histogramSize * barWidth) + x + i] = 255;
 			}
 		}
 	}
+	auto t_end = now();
 
-	cout << fixed << setprecision(6);
-	double time_elapsed = diffToNanoseconds(t1, t2, cpu_frequency);
-	cout << "histogram1D (cpu): \t\t" << time_elapsed << " nanoseconds." << endl;
+	*result = ResultContainer(t_preprocessing, t_init, t_kernel, t_cleanup, t_postprocessing, t_end, cpu_frequency);
+
+
 }
