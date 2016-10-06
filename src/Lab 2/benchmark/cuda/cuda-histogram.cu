@@ -8,7 +8,7 @@ __global__ void histogram1DCudaKernel(unsigned char *grayImage, unsigned int *hi
 	int y = blockIdx.y * blockDim.y + threadIdx.y; // height
 
 	if (x < width && y < height) {
-		atomicAdd(histogram[static_cast<unsigned int>(grayImage[(y * width) + x])], 1);
+		atomicAdd((unsigned int *)histogram[static_cast<unsigned int>(grayImage[(y * width) + x])], (unsigned int)1);
 	}
 }
 
