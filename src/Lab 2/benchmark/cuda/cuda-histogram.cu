@@ -4,12 +4,33 @@ using namespace std;
 
 /////////////////////////////////////
 __global__ void histogram1DCudaKernel(unsigned char *grayImage, unsigned int *histogram, const int width, const int height) {
+	
+	
 	int x = blockIdx.x * blockDim.x + threadIdx.x; // width
 	int y = blockIdx.y * blockDim.y + threadIdx.y; // height
 
 	if (x < width && y < height) {
-		atomicAdd((unsigned int *)histogram[static_cast<unsigned int>(grayImage[(y * width) + x])], (unsigned int)1);
+		atomicAdd(&histogram[static_cast<unsigned int>(grayImage[(y * width) + x])], (unsigned int)1);
 	}
+
+	/*
+	// create temp shared memory to store histogram data
+	__shared__ unsigned int temp[256];
+	temp[threadIdx.x] = 0;
+	__syncthreads();
+
+	int offsetX = blockDim.x * gridDim.x;
+	int offsetY = blockDim.y * gridDim.y;
+
+	while (x < width && y < height) {
+		atomicAdd(&temp[static_cast<unsigned int>(grayImage[(y * width) + x])], (unsigned int)1);
+		x += offsetX;
+		y += offsetY;
+	}
+
+	__syncthreads();
+
+	atomicAdd(&(histogram[(threadIdx.y * width) + threadIdx.x]), temp[(threadIdx.y * width) + threadIdx.x]);*/
 }
 
 void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int HISTOGRAM_SIZE, const unsigned int BAR_WIDTH, double cpu_frequency) {
