@@ -45,9 +45,10 @@ __global__ void histogram1DCudaKernelShared(unsigned char *grayImage, unsigned i
 		// initialize shared memory
 		extern __shared__ unsigned int temp[];
 
-		for (int i = t; i < 256; i += nt) {
+		memset(temp, 0, 256*sizeof(unsigned int));
+		/*for (int i = t; i < 256; i += nt) {
 			temp[i] = 0;
-		}
+		}*/
 
 		__syncthreads();
 		// build per-block histogram in shared memory
@@ -93,12 +94,12 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, co
 
 	auto t_kernel = now();
 	// execute actual function
-	//histogram1DCudaKernel << <numBlocks, threadsPerBlock>> > (dev_a, dev_b, width, height);
-	histogram1DCudaKernelShared <<<numBlocks, threadsPerBlock, histogramSize*sizeof(unsigned int)>>> (dev_a, dev_b, width, height);
-	cudaMemcpy(histogram, dev_b, histogramSize * (sizeof(unsigned int)), cudaMemcpyDeviceToHost);
+	histogram1DCudaKernel << <numBlocks, threadsPerBlock>> > (dev_a, dev_b, width, height);
+	//histogram1DCudaKernelShared <<<numBlocks, threadsPerBlock, histogramSize*sizeof(unsigned int)>>> (dev_a, dev_b, width, height);
 	//checkCudaCall(cudaThreadSynchronize());
-
 	auto t_cleanup = now();
+
+	cudaMemcpy(histogram, dev_b, histogramSize * (sizeof(unsigned int)), cudaMemcpyDeviceToHost);
 	// Kernel
 
 	auto t_postprocessing = now();
