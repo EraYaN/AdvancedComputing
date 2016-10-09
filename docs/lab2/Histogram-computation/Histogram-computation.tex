@@ -7,6 +7,28 @@
 \begin{document}
 \chapter{Histogram Computation}
 
+\section{Kernel Implementation}
+The computation of the histogram is more difficult, whereas compared to the color to gray conversion the same field of the histogram can be altered by multiple threads.
+Therefore one needs to make use of \texttt{atomicAdd\(\)}.
+
+\includecode[cpp]{}{resources/histogramAtomicAddSnippet.cpp}{}
+
+This function allows the threads to add a number to similar histogram fields without interferring with each other.
+The rest of the CPU code is ported in a similar way as described in \cref{sec:rgb2gray}.
+
+A problem that arises in the code described above is that the histogram is being used repeatetly to write values to, the overhead on this can be reduced by using shared memory.
+
+Since very little work is done in the kernel, it is likely that the \texttt{atomicAdd\(\)} on global memory is slowing the application down.
+A great deal of contention is caused by the mere thousands of threads that want to access the same memory locations, resulting in a long queue of pending operations.
+By using shared memory, each block can compute the histogram for a part of the image with low latency.
+After which the data, that each thread block put, in shared memory is merged into the global memory; greatly reducing the strain on the global memory.
+
+In order to prepare the kernel for shared memory, first the kernel caller needs to add an extra size parameter.
+
+\includecode[cpp]{}{resources/histogramKernelCallerSnippet.cpp}{}
+
+
+
 \section{Results}
 \begin{table}[H]
 	\centering

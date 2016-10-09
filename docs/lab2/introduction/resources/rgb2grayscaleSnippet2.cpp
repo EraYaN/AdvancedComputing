@@ -1,0 +1,1 @@
+checkCudaCall(cudaMemcpy(dev_a, inputImage, 3 * width * height * sizeof(unsigned char), cudaMemcpyHostToDevice));
