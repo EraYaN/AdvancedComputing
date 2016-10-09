@@ -1,0 +1,35 @@
+%!TEX program=xelatex
+%!TEX spellcheck=en_US
+\documentclass[final]{report} %scrreprt of scrartcl
+\input{../.library/preamble.tex}
+\input{../.library/style.tex}
+\addbibresource{../.library/bibliography.bib}
+
+\title{Lab 2}
+%\author{Someone} %hardcoded
+\newcommand{\thesubtitle}{Introduction to image processing}
+\author{~}
+\date{\today}
+
+\begin{document}
+\pagenumbering{roman}
+
+%----intro
+\subimport{../.library/}{title.tex}
+\newpage
+\tableofcontents
+
+\newpage
+\pagenumbering{arabic}
+\subimport{introduction/}{introduction.tex}
+\subimport{Converting-a-color-image-to-grayscale/}{Converting-a-color-image-to-grayscale.tex}
+\subimport{Histogram-computation/}{Histogram-computation.tex}
+\subimport{Contrast-enhancement/}{Contrast-enhancement.tex}
+\subimport{Smoothing/}{Smoothing.tex}
+\subimport{Conclusion/}{Conclusion.tex}
+\newpage
+\pagenumbering{Roman}
+
+\printbibliography
+%\subimport{appendices/}{appendices.tex}
+\end{document}
