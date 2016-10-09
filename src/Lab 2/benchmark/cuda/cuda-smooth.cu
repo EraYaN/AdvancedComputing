@@ -47,13 +47,13 @@ void triangularSmoothCuda(unsigned char *grayImage, unsigned char *smoothImage, 
 	//checkCudaCall(cudaHostGetDevicePointer(&dev_filter, filter, 0));
 
 	//regular memcpy is much faster than the mapped host memory
-	cudaMalloc(&dev_a, width*height * sizeof(unsigned char));
-	cudaMemcpy(dev_a, grayImage, width*height * sizeof(unsigned char), cudaMemcpyHostToDevice);
+	checkCudaCall(cudaMalloc(&dev_a, width*height * sizeof(unsigned char)));
+	checkCudaCall(cudaMemcpy(dev_a, grayImage, width*height * sizeof(unsigned char), cudaMemcpyHostToDevice));
 
-	cudaMalloc(&dev_b, width*height * sizeof(unsigned char));
+	checkCudaCall(cudaMalloc(&dev_b, width*height * sizeof(unsigned char)));
 
-	cudaMalloc(&dev_filter, width*height * sizeof(unsigned char));
-	cudaMemcpy(dev_filter, filter, 25 * sizeof(float), cudaMemcpyHostToDevice);
+	checkCudaCall(cudaMalloc(&dev_filter, width*height * sizeof(unsigned char)));
+	checkCudaCall(cudaMemcpy(dev_filter, filter, 25 * sizeof(float), cudaMemcpyHostToDevice));
 
 	auto t_kernel = now();
 	// execute actual function
@@ -61,11 +61,11 @@ void triangularSmoothCuda(unsigned char *grayImage, unsigned char *smoothImage, 
 	//checkCudaCall(cudaThreadSynchronize());
 	auto t_cleanup = now();
 
-	cudaMemcpy(smoothImage, dev_b, width * height * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+	checkCudaCall(cudaMemcpy(smoothImage, dev_b, width * height * sizeof(unsigned char), cudaMemcpyDeviceToHost));
 
-	cudaFree(dev_a);
-	cudaFree(dev_b);
-	cudaFree(dev_filter);
+	checkCudaCall(cudaFree(dev_a));
+	checkCudaCall(cudaFree(dev_b));
+	checkCudaCall(cudaFree(dev_filter));
 
 	// /Kernel
 	auto t_postprocessing = now();

@@ -7,16 +7,16 @@ from GeneratePlots import GeneratePlot
 
 max_n = 5 # Times to run program to get average
 
-image_path = "./images/"
+image_path = "../images/"
 
 results = []
 
 generate_data = True;
 generate_plots = False;
 
-def ExecuteJob(job_title,filename,platforms,types,iteration_range,max_n,generate_data=True,generate_plots=False,output_dir='.'):
+def ExecuteJob(job_title,filename,iterations, images,max_n,generate_data=True,generate_plots=False,output_dir='.'):
     if generate_data:
-        results = ExecuteBenchmark(job_title, platforms,types,iteration_range,max_n);
+        results = ExecuteBenchmark(job_title, iterations, images,max_n);
 
         PrintResults(results);
         SaveResults("{0}.pickle".format(filename),results)
@@ -38,14 +38,15 @@ if __name__ == '__main__':
         opts = parser.parse_args(sys.argv[1:])
         output_dir_root = opts.output_dir;
 
+        images = [f for f in os.listdir(image_path) if os.path.isfile(os.path.join(image_path, f))]
+
         ### Part A
-        types = [Sequential,CUDA]
         output_dir = os.path.join(output_dir_root,'out')
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
         ## Task 1
-        ExecuteJob('sequential-test-run','sequential-test-run',platforms,types,iteration_range,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir)
+        ExecuteJob('sequential-test-run','sequential-test-run',iterations,images,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot,output_dir=output_dir)
 
         print("Done.")
     except SystemExit:

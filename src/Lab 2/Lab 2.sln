@@ -34,7 +34,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F93851A8-AA3A-4985-9A0C-E10E486C7C91}"
 	ProjectSection(SolutionItems) = preProject
 		BasicProfiling.nvact = BasicProfiling.nvact
+		FLOPSProfiling.nvact = FLOPSProfiling.nvact
 		makefile = makefile
+		run_settings.ini = run_settings.ini
+		schedule-script.sh = schedule-script.sh
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestPassByReference", "TestPassByReference\TestPassByReference.vcxproj", "{A98E5BE8-F8B5-4B85-AE65-E576208A282C}"

@@ -89,24 +89,15 @@ int main(int argc, char *argv[]) {
 		cpu_frequency = get_frequency(debug);
 #endif
 		int nDevices;
-		cudaGetDeviceCount(&nDevices);
+		checkCudaCall(cudaGetDeviceCount(&nDevices));
 		cudaDeviceProp prop;
 		int biggestDevice = -1;
 		int maxPerf = 0;
 		cudaDeviceProp biggestDeviceProp;
 		for (int i = 0; i < nDevices; i++) {
-			cudaGetDeviceProperties(&prop, i);
+			checkCudaCall(cudaGetDeviceProperties(&prop, i));
 			int cudaCores = prop.multiProcessorCount*ConvertSMVer2Cores(prop.major, prop.minor);
-			if (prop.canMapHostMemory != 1) {
-				cerr << "Device " << i << " can not map memory, skipping." << endl;
-				continue;
-			}
-			if (cudaCores*prop.clockRate > maxPerf) {
-				maxPerf = cudaCores*prop.clockRate;
-				biggestDevice = i;
-				biggestDeviceProp = prop;
-			}
-
+						
 			if (debug) {
 
 				printf("Device Number: %d\n", i);
@@ -125,13 +116,22 @@ int main(int argc, char *argv[]) {
 
 				printf("\n");
 			}
+			if (prop.canMapHostMemory != 1) {
+				cerr << "Device " << i << ", " << prop.name << " can not map memory, skipping." << endl;
+				continue;
+			}
+			if (cudaCores*prop.clockRate > maxPerf) {
+				maxPerf = cudaCores*prop.clockRate;
+				biggestDevice = i;
+				biggestDeviceProp = prop;
+			}
 		}
 
 		if (debug) {
 			if (biggestDevice >= 0) {
 				cout << "Running benchmarks on " << biggestDeviceProp.name << endl;
-				cudaSetDevice(biggestDevice);
-				cudaSetDeviceFlags(cudaDeviceMapHost);
+				checkCudaCall(cudaSetDevice(biggestDevice));
+				checkCudaCall(cudaSetDeviceFlags(cudaDeviceMapHost));
 			} else {
 				cerr << "Could not find proper CUDA device." << endl;
 				return EXIT_CUDAERROR;
@@ -172,8 +172,8 @@ int main(int argc, char *argv[]) {
 			if (debug) cout << "Saved." << endl;
 		}
 		//Use pinned memory for GPU DMA
-		cudaHostAlloc(&inputImagePinned, inputImage.size()* sizeof(unsigned char), cudaHostAllocMapped);
-		cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped);
+		checkCudaCall(cudaHostAlloc(&inputImagePinned, inputImage.size()* sizeof(unsigned char), cudaHostAllocMapped));
+		checkCudaCall(cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
 
 		memcpy(inputImagePinned, inputImage.data(), inputImage.size() * sizeof(unsigned char));
 
@@ -181,8 +181,8 @@ int main(int argc, char *argv[]) {
 
 		memcpy(grayImage.data(), grayImagePinned, grayImage.size() * sizeof(unsigned char));
 
-		cudaFreeHost(inputImagePinned);
-		cudaFreeHost(grayImagePinned);
+		checkCudaCall(cudaFreeHost(inputImagePinned));
+		checkCudaCall(cudaFreeHost(grayImagePinned));
 		cout << "Grayscale Image (CUDA) Results:" << endl << result << endl;
 
 		if (displayImages) {
@@ -212,8 +212,8 @@ int main(int argc, char *argv[]) {
 		}
 
 		//Use pinned memory for GPU DMA		
-		cudaHostAlloc(&histogramPinned, histogramSize * sizeof(unsigned int), cudaHostAllocMapped);
-		cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped);
+		checkCudaCall(cudaHostAlloc(&histogramPinned, histogramSize * sizeof(unsigned int), cudaHostAllocMapped));
+		checkCudaCall(cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
 
 		memcpy(grayImagePinned, grayImage.data(), grayImage.size() * sizeof(unsigned char));
 
@@ -221,8 +221,8 @@ int main(int argc, char *argv[]) {
 
 		memcpy(histogram_cuda, histogramPinned, histogramSize * sizeof(unsigned int));
 
-		cudaFreeHost(histogramPinned);
-		cudaFreeHost(grayImagePinned);
+		checkCudaCall(cudaFreeHost(histogramPinned));
+		checkCudaCall(cudaFreeHost(grayImagePinned));
 		cout << "Histogram (CUDA) Results:" << endl << result << endl;
 
 		if (displayImages) {
@@ -248,7 +248,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		//Use pinned memory for GPU DMA
-		cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped);
+		checkCudaCall(cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
 
 		memcpy(grayImagePinned, grayImage.data(), grayImage.size() * sizeof(unsigned char));
 
@@ -256,7 +256,7 @@ int main(int argc, char *argv[]) {
 
 		memcpy(grayImage.data(), grayImagePinned, grayImage.size() * sizeof(unsigned char));
 
-		cudaFreeHost(grayImagePinned);
+		checkCudaCall(cudaFreeHost(grayImagePinned));
 
 		cout << "Contrast Enhanced Image (CUDA) Results:" << endl << result << endl;
 
@@ -289,9 +289,9 @@ int main(int argc, char *argv[]) {
 		}
 
 		//Use pinned memory for GPU DMA
-		cudaHostAlloc(&smoothImagePinned, smoothImage.size() * sizeof(unsigned char), cudaHostAllocMapped);
-		cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped);
-		cudaHostAlloc(&filterPinned, 25 * sizeof(float), cudaHostAllocMapped);
+		checkCudaCall(cudaHostAlloc(&smoothImagePinned, smoothImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
+		checkCudaCall(cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
+		checkCudaCall(cudaHostAlloc(&filterPinned, 25 * sizeof(float), cudaHostAllocMapped));
 
 		memcpy(grayImagePinned, grayImage.data(), grayImage.size() * sizeof(unsigned char));
 		memcpy(filterPinned, filter, 25 * sizeof(float));
@@ -300,9 +300,9 @@ int main(int argc, char *argv[]) {
 
 		memcpy(smoothImage.data(), smoothImagePinned, smoothImage.size() * sizeof(unsigned char));
 
-		cudaFreeHost(smoothImagePinned);
-		cudaFreeHost(grayImagePinned);
-		cudaFreeHost(filterPinned);
+		checkCudaCall(cudaFreeHost(smoothImagePinned));
+		checkCudaCall(cudaFreeHost(grayImagePinned));
+		checkCudaCall(cudaFreeHost(filterPinned));
 
 		cout << "Smooth Image (CUDA) Results:" << endl << result << endl;
 

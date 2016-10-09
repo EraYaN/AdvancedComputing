@@ -87,9 +87,9 @@ main: checkdirs $(EXEC_MAIN)
 compare: checkdirs $(EXEC_COMPARE)
 
 $(EXEC_MAIN): $(OBJ)
-	@echo "[LD] Linking main.."
+	@echo "[LD] Linking benchmark.."
 	@$(LD) $^ -o $@ $(INCLUDES) $(CUDA_LIBS) $(CFLAGS) $(CUDA_LDFLAGS)
-	@echo "[LD] Linked main."
+	@echo "[LD] Linked benchmark."
 
 $(EXEC_COMPARE): $(OBJ_COMPARE)
 	@echo "[LD] Linking compare.."
@@ -117,8 +117,20 @@ clean:
 	rm -f $(EXEC_MAIN) *~
 	rm -f $(EXEC_COMPARE) *~
 
-run: all
+run: main
 	$(EXEC_MAIN) -d --save-images $(IMAGE) make-output
+
+#RUNSERVER_REQ_RUN_SETTINGS=True
+#RUNSERVER_DEPS=all
+#-include $(ACS_SHARED_PATH)/runserver.mk
+
+schedule: main
+	@echo "Scheduling for image04"
+	@sh schedule-script.sh $(EXEC_MAIN) "image04.bmp"
+	@echo "Scheduling for image09"
+	@sh schedule-script.sh $(EXEC_MAIN) "image09.bmp"
+	@echo "Scheduling for image15"
+	@sh schedule-script.sh $(EXEC_MAIN) "image15.jpg"
 
 #RUNSERVER_REQ_RUN_SETTINGS=True
 #RUNSERVER_DEPS=all

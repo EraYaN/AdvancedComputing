@@ -90,7 +90,7 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, co
 	checkCudaCall(cudaMalloc((void **)&dev_b, histogramSize * sizeof(unsigned int)));
 	
 	//cudaMemset(dev_b, 0, histogramSize * sizeof(unsigned int));
-	cudaMemcpy(dev_a, grayImage, width*height * sizeof(unsigned char), cudaMemcpyHostToDevice);
+	checkCudaCall(cudaMemcpy(dev_a, grayImage, width*height * sizeof(unsigned char), cudaMemcpyHostToDevice));
 
 	auto t_kernel = now();
 	// execute actual function
@@ -99,7 +99,9 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, co
 	//checkCudaCall(cudaThreadSynchronize());
 	auto t_cleanup = now();
 
-	cudaMemcpy(histogram, dev_b, histogramSize * (sizeof(unsigned int)), cudaMemcpyDeviceToHost);
+	checkCudaCall(cudaMemcpy(histogram, dev_b, histogramSize * (sizeof(unsigned int)), cudaMemcpyDeviceToHost));
+	checkCudaCall(cudaFree(dev_a));
+	checkCudaCall(cudaFree(dev_b));
 	// Kernel
 
 	auto t_postprocessing = now();

@@ -20,25 +20,19 @@ EXIT_CUDAERROR = 6
 EXIT_BADINPUT = 7
 EXIT_SAVEERROR = 8
 
-def GetNumberOfRuns(platforms,types,iteration_range,max_n):
+def GetNumberOfRuns(iterations, images, max_n):
     result = {"runs": 0, "process_runs":0}
 
-    for platform in platforms:
-        for type in types:
-            total_runs = len(platforms)*len(types)*len(iteration_range)
-            for config in type['configs']:
-                for threads in type['thread_range']:
-                    for data_size in type['data_sizes']:
-                        for iterations in iteration_range:
-                            for variant in type['variants']:
-                                for n in range(0,max_n):
-                                    result['process_runs']+=1
-                                result['runs']+=1
+    for image in images:
+        for iteration in range(0,iterations):            
+            for n in range(0,max_n):
+                result['process_runs']+=1
+            result['runs']+=1
 
     return result;
 
 
-def ExecuteBenchmark(job_title, platforms,types,iteration_range,max_n=1):
+def ExecuteBenchmark(job_title, iterations, images, max_n=1):
     platform_paths = {'x86':'','x64':'x64/'} # Platform to Directory Dictionary
     error_occured = False
     results = []

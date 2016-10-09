@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>12e3a9b6-63df-4fd3-a441-e1db7b907841</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Wrapper.py</StartupFile>
+    <StartupFile>ServerOutputParser.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -30,6 +30,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="GeneratePlots.py" />
+    <Compile Include="ServerOutputParser.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Wrapper.py" />
     <Compile Include="WrapperShared.py">
       <SubType>Code</SubType>

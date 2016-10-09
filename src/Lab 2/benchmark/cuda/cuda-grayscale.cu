@@ -29,14 +29,24 @@ void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int
 	// allocate GPU memory
 	unsigned char *dev_a, *dev_b;
 
-	checkCudaCall(cudaHostGetDevicePointer(&dev_a, inputImage, 0));
-	checkCudaCall(cudaHostGetDevicePointer(&dev_b, grayImage, 0));
+	//checkCudaCall(cudaHostGetDevicePointer(&dev_a, inputImage, 0));
+	//checkCudaCall(cudaHostGetDevicePointer(&dev_b, grayImage, 0));
+
+	checkCudaCall(cudaMalloc(&dev_a, 3*width*height * sizeof(unsigned char)));
+	checkCudaCall(cudaMalloc(&dev_b, width*height * sizeof(unsigned char)));
+	
+	checkCudaCall(cudaMemcpy(dev_a, inputImage, 3 * width * height * sizeof(unsigned char), cudaMemcpyHostToDevice));
 
 	auto t_kernel = now();
 	// execute actual function
 	rgb2grayCudaKernel<<<numBlocks, threadsPerBlock>>>(dev_a, dev_b, width, height);
-	checkCudaCall(cudaThreadSynchronize());
+	//checkCudaCall(cudaThreadSynchronize());
 	auto t_cleanup = now();
+
+	checkCudaCall(cudaMemcpy(grayImage, dev_b, width * height * sizeof(unsigned char), cudaMemcpyDeviceToHost));
+
+	checkCudaCall(cudaFree(dev_a));
+	checkCudaCall(cudaFree(dev_b));
 
 	// /Kernel
 	auto t_postprocessing = now();

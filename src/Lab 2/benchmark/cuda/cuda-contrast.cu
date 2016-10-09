@@ -49,19 +49,19 @@ void contrast1DCuda(unsigned char *grayImage, const int width, const int height,
 	// allocate GPU memory
 	unsigned char *dev_a;
 
-	checkCudaCall(cudaHostGetDevicePointer(&dev_a, grayImage, 0));
+	//checkCudaCall(cudaHostGetDevicePointer(&dev_a, grayImage, 0));
 
-	//cudaMalloc(&dev_a, width*height * sizeof(unsigned char));
-	//cudaMemcpy(dev_a, grayImage, width*height * sizeof(unsigned char), cudaMemcpyHostToDevice);
+	checkCudaCall(cudaMalloc(&dev_a, width*height * sizeof(unsigned char)));
+	checkCudaCall(cudaMemcpy(dev_a, grayImage, width*height * sizeof(unsigned char), cudaMemcpyHostToDevice));
 
 	auto t_kernel = now();
 	// execute actual function
 	contrast1DCudaKernel<<<numBlocks, threadsPerBlock>>>(dev_a, width, height, min, max, diff);
-	checkCudaCall(cudaThreadSynchronize());
+	//checkCudaCall(cudaThreadSynchronize());
 	auto t_cleanup = now();
 
-	//cudaMemcpy(grayImage, dev_a, width*height * sizeof(unsigned char), cudaMemcpyDeviceToHost);
-	//cudaFree(dev_a);
+	checkCudaCall(cudaMemcpy(grayImage, dev_a, width*height * sizeof(unsigned char), cudaMemcpyDeviceToHost));
+	checkCudaCall(cudaFree(dev_a));
 
 	// /Kernel
 	auto t_postprocessing = now();

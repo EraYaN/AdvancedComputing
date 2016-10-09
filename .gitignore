@@ -404,4 +404,9 @@ script/**/*.jpg
 *.lps
 *.lts
 *.pbes
+
+###################
+## ACS
+###################
 *.pickle
+run_output
