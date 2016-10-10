@@ -17,7 +17,7 @@ __global__ void rgb2grayCudaKernel(unsigned char *inputImage, unsigned char *gra
 	}
 }
 
-void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int width, const int height, ResultContainer *result, double cpu_frequency) {
+void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, unsigned char *dev_grayImage, const int width, const int height, ResultContainer *result, double cpu_frequency) {
 	auto t_preprocessing = now();
 	auto t_init = t_preprocessing;
 	// Kernel
@@ -27,26 +27,23 @@ void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int
 	dim3 numBlocks(ceil((double)width / threadsPerBlock.x), ceil((double)height / threadsPerBlock.y));
 
 	// allocate GPU memory
-	unsigned char *dev_a, *dev_b;
+	unsigned char *dev_inputImage;
 
-	//checkCudaCall(cudaHostGetDevicePointer(&dev_a, inputImage, 0));
-	//checkCudaCall(cudaHostGetDevicePointer(&dev_b, grayImage, 0));
+	//checkCudaCall(cudaHostGetDevicePointer(&dev_inputImage, inputImage, 0));
 
-	checkCudaCall(cudaMalloc(&dev_a, 3*width*height * sizeof(unsigned char)));
-	checkCudaCall(cudaMalloc(&dev_b, width*height * sizeof(unsigned char)));
+	checkCudaCall(cudaMalloc(&dev_inputImage, 3*width*height * sizeof(unsigned char)));
 
-	checkCudaCall(cudaMemcpy(dev_a, inputImage, 3 * width * height * sizeof(unsigned char), cudaMemcpyHostToDevice));
+	checkCudaCall(cudaMemcpy(dev_inputImage, inputImage, 3 * width * height * sizeof(unsigned char), cudaMemcpyHostToDevice));
 
 	auto t_kernel = now();
 	// execute actual function
-	rgb2grayCudaKernel<<<numBlocks, threadsPerBlock>>>(dev_a, dev_b, width, height);
+	rgb2grayCudaKernel<<<numBlocks, threadsPerBlock>>>(dev_inputImage, dev_grayImage, width, height);
 	//checkCudaCall(cudaThreadSynchronize());
 	auto t_cleanup = now();
 
-	checkCudaCall(cudaMemcpy(grayImage, dev_b, width * height * sizeof(unsigned char), cudaMemcpyDeviceToHost));
+	checkCudaCall(cudaMemcpy(grayImage, dev_grayImage, width * height * sizeof(unsigned char), cudaMemcpyDeviceToHost));
 
-	checkCudaCall(cudaFree(dev_a));
-	checkCudaCall(cudaFree(dev_b));
+	checkCudaCall(cudaFree(dev_inputImage));
 
 	// /Kernel
 	auto t_postprocessing = now();

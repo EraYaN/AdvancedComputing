@@ -67,7 +67,7 @@ __global__ void histogram1DCudaKernelShared(unsigned char *grayImage, unsigned i
 	}
 }
 
-void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int histogramSize, const unsigned int barWidth, ResultContainer *result, double cpu_frequency) {
+void histogram1DCuda(unsigned char *grayImage, unsigned char *dev_grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int histogramSize, const unsigned int barWidth, ResultContainer *result, double cpu_frequency) {
 	auto t_preprocessing = now();
 	unsigned int max = 0;
 
@@ -81,27 +81,25 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, co
 	dim3 numBlocks(ceil((double)width / threadsPerBlock.x), ceil((double)height / threadsPerBlock.y));
 
 	// allocate GPU memory
-	unsigned char *dev_a;
-	unsigned int *dev_b;
+	unsigned int *dev_histogram;
 
 	//checkCudaCall(cudaHostGetDevicePointer(&dev_a, grayImage, 0));
 	//checkCudaCall(cudaHostGetDevicePointer(&dev_b, histogram, 0));
-	checkCudaCall(cudaMalloc((void **)&dev_a, width*height * sizeof(unsigned char)));
-	checkCudaCall(cudaMalloc((void **)&dev_b, histogramSize * sizeof(unsigned int)));
+	checkCudaCall(cudaMalloc((void **)&dev_grayImage, width*height * sizeof(unsigned char)));
+	checkCudaCall(cudaMalloc((void **)&dev_histogram, histogramSize * sizeof(unsigned int)));
 
-	//cudaMemset(dev_b, 0, histogramSize * sizeof(unsigned int));
-	checkCudaCall(cudaMemcpy(dev_a, grayImage, width*height * sizeof(unsigned char), cudaMemcpyHostToDevice));
+	checkCudaCall(cudaMemset(dev_histogram, 0, histogramSize * sizeof(unsigned int)));
+	checkCudaCall(cudaMemcpy(dev_grayImage, grayImage, width*height * sizeof(unsigned char), cudaMemcpyHostToDevice));
 
 	auto t_kernel = now();
 	// execute actual function
-	//histogram1DCudaKernel << <numBlocks, threadsPerBlock>> > (dev_a, dev_b, width, height);
-	histogram1DCudaKernelShared <<<numBlocks, threadsPerBlock, histogramSize*sizeof(unsigned int)>>> (dev_a, dev_b, width, height);
+	histogram1DCudaKernel << <numBlocks, threadsPerBlock>> > (dev_grayImage, dev_histogram, width, height);
+	//histogram1DCudaKernelShared <<<numBlocks, threadsPerBlock, histogramSize*sizeof(unsigned int)>>> (dev_grayImage, dev_histogram, width, height);
 	//checkCudaCall(cudaThreadSynchronize());
 	auto t_cleanup = now();
 
-	checkCudaCall(cudaMemcpy(histogram, dev_b, histogramSize * (sizeof(unsigned int)), cudaMemcpyDeviceToHost));
-	checkCudaCall(cudaFree(dev_a));
-	checkCudaCall(cudaFree(dev_b));
+	checkCudaCall(cudaMemcpy(histogram, dev_histogram, histogramSize * (sizeof(unsigned int)), cudaMemcpyDeviceToHost));
+	checkCudaCall(cudaFree(dev_histogram));
 	// Kernel
 
 	auto t_postprocessing = now();

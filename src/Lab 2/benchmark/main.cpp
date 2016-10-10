@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
 
 		// Get the value parsed by each arg.
 		CImg< unsigned char > inputImage = CImg< unsigned char >(imageArg.getValue().c_str());
-		string output = outputArg.getValue() + "-%s.bmp";
+		string output = outputArg.getValue() + "-%s.jpg";
 		bool displayImages = displayArg.getValue();
 		bool saveAllImages = saveArg.getValue();
 		unsigned int histogramSize = histogramSizeArg.getValue();
@@ -178,8 +178,30 @@ int main(int argc, char *argv[]) {
 		unsigned char *inputImagePinned;
 		unsigned int *histogramPinned;
 		unsigned char *grayImagePinned;
+		unsigned char *dev_grayImage;
 		unsigned char *smoothImagePinned;
+
 		float *filterPinned;
+
+		//Images
+		// Convert the input image to grayscale
+		CImg< unsigned char > grayImage = CImg< unsigned char >(inputImage.width(), inputImage.height(), 1, 1);
+
+		CImg< unsigned char > histogramImage = CImg< unsigned char >(barWidth * histogramSize, histogramSize, 1, 1);
+		unsigned int *histogram_seq = new unsigned int[histogramSize];
+		unsigned int *histogram_cuda = new unsigned int[histogramSize];
+
+		CImg< unsigned char > smoothImage = CImg< unsigned char >(grayImage.width(), grayImage.height(), 1, 1);
+
+		//Use pinned memory for GPU DMA
+		checkCudaCall(cudaHostAlloc(&inputImagePinned, inputImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
+		checkCudaCall(cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
+		checkCudaCall(cudaHostAlloc(&histogramPinned, histogramSize * sizeof(unsigned int), cudaHostAllocMapped));
+		checkCudaCall(cudaHostAlloc(&smoothImagePinned, smoothImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
+		checkCudaCall(cudaHostAlloc(&filterPinned, 25 * sizeof(float), cudaHostAllocMapped));
+
+		//Global CUDA
+		checkCudaCall(cudaMalloc(&dev_grayImage, grayImage.size() * sizeof(unsigned char)));
 
 		// Load the input image
 		if (displayImages) {
@@ -190,13 +212,11 @@ int main(int argc, char *argv[]) {
 			return EXIT_BADINPUT;
 		}
 
-		// Convert the input image to grayscale
-		CImg< unsigned char > grayImage = CImg< unsigned char >(inputImage.width(), inputImage.height(), 1, 1);
+
 
 		//do both CUDA and Seq.
 		rgb2gray(inputImage.data(), grayImage.data(), inputImage.width(), inputImage.height(), &result, cpu_frequency);
 		printResults(result, Grayscale, false, debug);
-		
 
 		if (displayImages) {
 			grayImage.display("Grayscale Image (Seq.)");
@@ -206,18 +226,16 @@ int main(int argc, char *argv[]) {
 			grayImage.save(string_format(output, "grayscale-seq").c_str());
 			if (debug) cout << "Saved." << endl;
 		}
-		//Use pinned memory for GPU DMA
-		checkCudaCall(cudaHostAlloc(&inputImagePinned, inputImage.size()* sizeof(unsigned char), cudaHostAllocMapped));
-		checkCudaCall(cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
+
+		//checkCudaCall(cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
 
 		memcpy(inputImagePinned, inputImage.data(), inputImage.size() * sizeof(unsigned char));
 
-		rgb2grayCuda(inputImagePinned, grayImagePinned, inputImage.width(), inputImage.height(), &result, cpu_frequency);
+		rgb2grayCuda(inputImagePinned, grayImagePinned, dev_grayImage, inputImage.width(), inputImage.height(), &result, cpu_frequency);
 
 		memcpy(grayImage.data(), grayImagePinned, grayImage.size() * sizeof(unsigned char));
 
-		checkCudaCall(cudaFreeHost(inputImagePinned));
-		checkCudaCall(cudaFreeHost(grayImagePinned));
+
 		printResults(result, Grayscale, true, debug);
 
 		if (displayImages) {
@@ -230,9 +248,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		// Compute 1D histogram
-		CImg< unsigned char > histogramImage = CImg< unsigned char >(barWidth * histogramSize, histogramSize, 1, 1);
-		unsigned int *histogram_seq = new unsigned int[histogramSize];
-		unsigned int *histogram_cuda = new unsigned int[histogramSize];
+
 
 		histogram1D(grayImage.data(), histogramImage.data(), grayImage.width(), grayImage.height(), histogram_seq, histogramSize, barWidth, &result, cpu_frequency);
 		printResults(result, Histogram, false, debug);
@@ -247,17 +263,14 @@ int main(int argc, char *argv[]) {
 		}
 
 		//Use pinned memory for GPU DMA
-		checkCudaCall(cudaHostAlloc(&histogramPinned, histogramSize * sizeof(unsigned int), cudaHostAllocMapped));
-		checkCudaCall(cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
+
 
 		memcpy(grayImagePinned, grayImage.data(), grayImage.size() * sizeof(unsigned char));
 
-		histogram1DCuda(grayImagePinned, histogramImage.data(), grayImage.width(), grayImage.height(), histogramPinned, histogramSize, barWidth, &result, cpu_frequency);
+		histogram1DCuda(grayImagePinned, dev_grayImage, histogramImage.data(), grayImage.width(), grayImage.height(), histogramPinned, histogramSize, barWidth, &result, cpu_frequency);
 
 		memcpy(histogram_cuda, histogramPinned, histogramSize * sizeof(unsigned int));
 
-		checkCudaCall(cudaFreeHost(histogramPinned));
-		checkCudaCall(cudaFreeHost(grayImagePinned));
 		printResults(result, Histogram, true, debug);
 
 		if (displayImages) {
@@ -283,15 +296,11 @@ int main(int argc, char *argv[]) {
 		}
 
 		//Use pinned memory for GPU DMA
-		checkCudaCall(cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
 
-		memcpy(grayImagePinned, grayImage.data(), grayImage.size() * sizeof(unsigned char));
-
-		contrast1DCuda(grayImagePinned, grayImage.width(), grayImage.height(), histogram_cuda, histogramSize, contrastThreshold, &result, cpu_frequency);
+		contrast1DCuda(grayImagePinned, dev_grayImage, grayImage.width(), grayImage.height(), histogram_cuda, histogramSize, contrastThreshold, &result, cpu_frequency);
 
 		memcpy(grayImage.data(), grayImagePinned, grayImage.size() * sizeof(unsigned char));
 
-		checkCudaCall(cudaFreeHost(grayImagePinned));
 
 		printResults(result, Contrast, true, debug);
 
@@ -304,11 +313,9 @@ int main(int argc, char *argv[]) {
 			if (debug) cout << "Saved." << endl;
 		}
 
-		delete[] histogram_seq;
-		delete[] histogram_cuda;
+
 
 		// Triangular smooth (convolution)
-		CImg< unsigned char > smoothImage = CImg< unsigned char >(grayImage.width(), grayImage.height(), 1, 1);
 
 		triangularSmooth(grayImage.data(), smoothImage.data(), grayImage.width(), grayImage.height(), filter, &result, cpu_frequency);
 		printResults(result, Smooth, false, debug);
@@ -324,20 +331,12 @@ int main(int argc, char *argv[]) {
 		}
 
 		//Use pinned memory for GPU DMA
-		checkCudaCall(cudaHostAlloc(&smoothImagePinned, smoothImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
-		checkCudaCall(cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
-		checkCudaCall(cudaHostAlloc(&filterPinned, 25 * sizeof(float), cudaHostAllocMapped));
 
-		memcpy(grayImagePinned, grayImage.data(), grayImage.size() * sizeof(unsigned char));
 		memcpy(filterPinned, filter, 25 * sizeof(float));
 
-		triangularSmoothCuda(grayImagePinned, smoothImagePinned, grayImage.width(), grayImage.height(), filterPinned, &result, cpu_frequency);
+		triangularSmoothCuda(grayImagePinned, dev_grayImage, smoothImagePinned, grayImage.width(), grayImage.height(), filterPinned, &result, cpu_frequency);
 
 		memcpy(smoothImage.data(), smoothImagePinned, smoothImage.size() * sizeof(unsigned char));
-
-		checkCudaCall(cudaFreeHost(smoothImagePinned));
-		checkCudaCall(cudaFreeHost(grayImagePinned));
-		checkCudaCall(cudaFreeHost(filterPinned));
 
 		printResults(result, Smooth, true, debug);
 
@@ -350,6 +349,17 @@ int main(int argc, char *argv[]) {
 			smoothImage.save(string_format(output, "smooth-cuda").c_str());
 			if (debug) cout << "Saved." << endl;
 		}
+
+		//Free everything
+		checkCudaCall(cudaFreeHost(inputImagePinned));
+		checkCudaCall(cudaFreeHost(smoothImagePinned));
+		checkCudaCall(cudaFreeHost(grayImagePinned));
+		checkCudaCall(cudaFreeHost(filterPinned));
+
+		delete[] histogram_seq;
+		delete[] histogram_cuda;
+
+		checkCudaCall(cudaFree(dev_grayImage));
 
 		if (interactive) {
 			wait_for_input();

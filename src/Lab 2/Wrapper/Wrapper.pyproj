@@ -13,8 +13,7 @@
     <Name>Wrapper</Name>
     <RootNamespace>Wrapper</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>
-    </CommandLineArguments>
+    <CommandLineArguments>--disable-bench</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
@@ -31,10 +30,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="GeneratePlots.py" />
-    <Compile Include="ServerOutputParser.py">
+    <Compile Include="Wrapper.py" />
+    <Compile Include="WrapperShared.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Wrapper.py" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

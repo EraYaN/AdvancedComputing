@@ -14,7 +14,7 @@ mkdir -p run_output
 echo Created output directory
 cat <<EOT >> ~/run/run_settings.ini
 [general]
-exec_args = images/$2 run_output/benchmark-$2 --save-images -d
+exec_args = images/$2 run_output/benchmark-$2 --save-images
 working_dir = /data/home/group27/projects/Lab 2/
 [profiling]
 enable = no

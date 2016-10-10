@@ -10,7 +10,7 @@ import past          # pip install future
 import six           # pip install six
 
 iterations = 1
-max_n = 5 # Times to run program to get average
+max_n = 10 # Times to run program to get average
 
 make = "make all"
 make_flags = ""
@@ -35,6 +35,7 @@ def ExecuteJob(job_title,filename,iterations, images,max_n,generate_data=True,ge
     if generate_plots:
         if not generate_data:
             results = LoadResults("{0}.pickle".format(filename))
+            PrintResults(results);
         GeneratePlot(results,job_title,output_dir)
 
 

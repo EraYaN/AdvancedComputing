@@ -29,7 +29,7 @@ __global__ void triangularSmoothCudaKernel(unsigned char *grayImage, unsigned ch
 }
 
 //TODO Implement NPP: http://docs.nvidia.com/cuda/pdf/NPP_Library_Image_Filters.pdf  nppiFilterBox_8u_C1R on page 247
-void triangularSmoothCuda(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height, float *filter, ResultContainer *result, double cpu_frequency) {
+void triangularSmoothCuda(unsigned char *grayImage, unsigned char *dev_grayImage, unsigned char *smoothImage, const int width, const int height, float *filter, ResultContainer *result, double cpu_frequency) {
 	auto t_preprocessing = now();
 	auto t_init = t_preprocessing;
 	// Kernel
@@ -39,32 +39,28 @@ void triangularSmoothCuda(unsigned char *grayImage, unsigned char *smoothImage, 
 	dim3 numBlocks(ceil((double)width / threadsPerBlock.x), ceil((double)height / threadsPerBlock.y));
 
 	// allocate GPU memory
-	unsigned char *dev_a, *dev_b;
+	unsigned char *dev_smoothImage;
 	float *dev_filter;
 
-	//checkCudaCall(cudaHostGetDevicePointer(&dev_a, grayImage, 0));
-	//checkCudaCall(cudaHostGetDevicePointer(&dev_b, smoothImage, 0));
+	//checkCudaCall(cudaHostGetDevicePointer(&dev_smoothImage, smoothImage, 0));
 	//checkCudaCall(cudaHostGetDevicePointer(&dev_filter, filter, 0));
 
 	//regular memcpy is much faster than the mapped host memory
-	checkCudaCall(cudaMalloc(&dev_a, width*height * sizeof(unsigned char)));
-	checkCudaCall(cudaMemcpy(dev_a, grayImage, width*height * sizeof(unsigned char), cudaMemcpyHostToDevice));
 
-	checkCudaCall(cudaMalloc(&dev_b, width*height * sizeof(unsigned char)));
+	checkCudaCall(cudaMalloc(&dev_smoothImage, width*height * sizeof(unsigned char)));
 
 	checkCudaCall(cudaMalloc(&dev_filter, width*height * sizeof(unsigned char)));
 	checkCudaCall(cudaMemcpy(dev_filter, filter, 25 * sizeof(float), cudaMemcpyHostToDevice));
 
 	auto t_kernel = now();
 	// execute actual function
-	triangularSmoothCudaKernel<<<numBlocks, threadsPerBlock>>>(dev_a, dev_b, width, height, dev_filter);
+	triangularSmoothCudaKernel<<<numBlocks, threadsPerBlock>>>(dev_grayImage, dev_smoothImage, width, height, dev_filter);
 	//checkCudaCall(cudaThreadSynchronize());
 	auto t_cleanup = now();
 
-	checkCudaCall(cudaMemcpy(smoothImage, dev_b, width * height * sizeof(unsigned char), cudaMemcpyDeviceToHost));
+	checkCudaCall(cudaMemcpy(smoothImage, dev_smoothImage, width * height * sizeof(unsigned char), cudaMemcpyDeviceToHost));
 
-	checkCudaCall(cudaFree(dev_a));
-	checkCudaCall(cudaFree(dev_b));
+	checkCudaCall(cudaFree(dev_smoothImage));
 	checkCudaCall(cudaFree(dev_filter));
 
 	// /Kernel

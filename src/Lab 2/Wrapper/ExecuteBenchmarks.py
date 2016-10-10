@@ -7,7 +7,7 @@ try:
 except:
    import pickle
 
-#from terminaltables import AsciiTable
+from terminaltables import AsciiTable
 import csv
 
 import future        # pip install future
@@ -97,7 +97,7 @@ def ExecuteBenchmark(job_title, iterations, images, max_n=1, bin="make schedule"
                     if testName not in times:
                         times[testName] = time_template
 
-                    if isCuda == 1:
+                    if int(isCuda) == 1:
                         index = 'cuda'
 
                     times[testName][index]['preprocessing_time'] += float(preprocessing_time) / max_n
@@ -112,15 +112,17 @@ def ExecuteBenchmark(job_title, iterations, images, max_n=1, bin="make schedule"
                 #    new_time += times['seq']['total_time'] /
                 #    times['cuda']['total_time']
 
-                sys.stdout.write("{3}: Run {4} out of {5}: {0: >2} out of {1: >2} ({2: >3,.0%})\r".format(n + 1, max_n,(n + 1 + current_run * max_n) / (max_n * number_of_runs['runs']),job_title,current_run,number_of_runs['runs']))
+                sys.stdout.write("{3}: Run {4} out of {5}: {0: >2} out of {1: >2} ({2: >3,.0%})\n".format(n + 1, max_n,(n + 1 + current_run * max_n) / (max_n * number_of_runs['runs']),job_title,current_run,number_of_runs['runs']))
                 sys.stdout.flush()
 
 
             #TODO write file.
             results.append({
                 'image':image,
-                "iterations":iteration,
-                "times":times
+                "iteration":iteration,
+                "passes":max_n,
+                "times":times,
+                'has_error':error_occured
                 })
 
             #print("{0}: Run {1} out of {2} is done.
@@ -129,34 +131,43 @@ def ExecuteBenchmark(job_title, iterations, images, max_n=1, bin="make schedule"
     return results
 
 def PrintResults(results):
-    return
-    #table_heading = ['image',
-    #    'iterations',
-    #    'times']
-    #table_justify = {
-    #    0:'left',
-    #    1:'left',
-    #    2:'left'
-    #}
-    #display_results = []
-    #display_results.append(table_heading)
-    #for result in results:
-    #    error_text = "Yes" if result["had_error"] else "No"
-    #    display_results.append([result['platform'],
-    #    result['type']['name'],
-    #    result['config'],
-    #    result['threads'],
-    #    result["data_size"],
-    #    result["iterations"],
-    #    result["variant"].name,
-    #    "{0:.5f} us".format(result["sequential_time"] * 1000000 / result["iterations"]),
-    #    "{0:.5f} us".format(result["variant_time"] * 1000000 / result["iterations"]),
-    #    "{0:.3%}".format(result["relative_improvement"]),
-    #    error_text])
+    table_heading = ['image',
+        'iteration',
+        'passes',
+        'total-times-seq',
+        'total-times-cuda',
+        'kernel-times-seq',
+        'kernel-times-cuda',
+        'has error']
+    table_justify = {
+        0:'left',
+        1:'left',
+        2:'left',
+        3:'right',
+        4:'right',
+        5:'right',
+        6:'right',
+        7:'left'
+    }
+    display_results = []
+    display_results.append(table_heading)
+    for result in results:
+        if "had_error" in result:
+            error_text = "Yes" if result["had_error"] else "No"
+        else:
+            error_text = "??"
+        display_results.append([result['image'],
+        result['iteration']+1,
+        result['passes'],
+        "{0:.2f} ms".format((result['times']['Grayscale']['seq']['total_time']+result['times']['Histogram']['seq']['total_time']+result['times']['Contrast']['seq']['total_time']+result['times']['Smooth']['seq']['total_time'])/1e6),
+        "{0:.2f} ms".format((result['times']['Grayscale']['cuda']['total_time']+result['times']['Histogram']['cuda']['total_time']+result['times']['Contrast']['cuda']['total_time']+result['times']['Smooth']['cuda']['total_time'])/1e6),
+        "{0:.2f} ms".format((result['times']['Grayscale']['seq']['kernel_time']+result['times']['Histogram']['seq']['kernel_time']+result['times']['Contrast']['seq']['kernel_time']+result['times']['Smooth']['seq']['kernel_time'])/1e6),
+        "{0:.2f} ms".format((result['times']['Grayscale']['cuda']['kernel_time']+result['times']['Histogram']['cuda']['kernel_time']+result['times']['Contrast']['cuda']['kernel_time']+result['times']['Smooth']['cuda']['kernel_time'])/1e6),
+        error_text])
 
-    #results_table = AsciiTable(display_results)
-    #results_table.justify_columns = table_justify
-    #print(results_table.table)
+    results_table = AsciiTable(display_results)
+    results_table.justify_columns = table_justify
+    print(results_table.table)
 
 def SaveResults(filename,results):
     # store data in file for later use

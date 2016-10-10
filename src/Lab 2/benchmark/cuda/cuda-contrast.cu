@@ -23,7 +23,7 @@ __global__ void contrast1DCudaKernel(unsigned char *grayImage, const int width, 
 	}
 }
 
-void contrast1DCuda(unsigned char *grayImage, const int width, const int height, unsigned int *histogram, const unsigned int histogramSize, const unsigned int contrastThreshold, ResultContainer *result, double cpu_frequency) {
+void contrast1DCuda(unsigned char *grayImage, unsigned char *dev_grayImage, const int width, const int height, unsigned int *histogram, const unsigned int histogramSize, const unsigned int contrastThreshold, ResultContainer *result, double cpu_frequency) {
 	auto t_preprocessing = now();
 	unsigned int i = 0;
 
@@ -45,23 +45,14 @@ void contrast1DCuda(unsigned char *grayImage, const int width, const int height,
 	// specify thread and block dimensions
 	dim3 threadsPerBlock(16, 16);
 	dim3 numBlocks(ceil((double)width / threadsPerBlock.x), ceil((double)height / threadsPerBlock.y));
-
-	// allocate GPU memory
-	unsigned char *dev_a;
-
-	//checkCudaCall(cudaHostGetDevicePointer(&dev_a, grayImage, 0));
-
-	checkCudaCall(cudaMalloc(&dev_a, width*height * sizeof(unsigned char)));
-	checkCudaCall(cudaMemcpy(dev_a, grayImage, width*height * sizeof(unsigned char), cudaMemcpyHostToDevice));
-
+		
 	auto t_kernel = now();
 	// execute actual function
-	contrast1DCudaKernel<<<numBlocks, threadsPerBlock>>>(dev_a, width, height, min, max, diff);
+	contrast1DCudaKernel<<<numBlocks, threadsPerBlock>>>(dev_grayImage, width, height, min, max, diff);
 	//checkCudaCall(cudaThreadSynchronize());
 	auto t_cleanup = now();
 
-	checkCudaCall(cudaMemcpy(grayImage, dev_a, width*height * sizeof(unsigned char), cudaMemcpyDeviceToHost));
-	checkCudaCall(cudaFree(dev_a));
+	checkCudaCall(cudaMemcpy(grayImage, dev_grayImage, width*height * sizeof(unsigned char), cudaMemcpyDeviceToHost));
 
 	// /Kernel
 	auto t_postprocessing = now();

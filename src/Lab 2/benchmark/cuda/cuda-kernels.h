@@ -15,7 +15,7 @@ using std::endl;
 using std::fixed;
 using std::setprecision;
 
-void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int width, const int height, ResultContainer *result, double cpu_frequency = 1);
-void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int histogramSize, const unsigned int barWidth, ResultContainer *result, double cpu_frequency = 1);
-void contrast1DCuda(unsigned char *grayImage, const int width, const int height, unsigned int *histogram, const unsigned int histogramSize, const unsigned int contrastThreshold, ResultContainer *result, double cpu_frequency = 1);
-void triangularSmoothCuda(unsigned char *grayImage, unsigned char *smoothImage, const int width, const int height, float *filter, ResultContainer *result, double cpu_frequency = 1);
+void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, unsigned char *dev_grayImage, const int width, const int height, ResultContainer *result, double cpu_frequency = 1);
+void histogram1DCuda(unsigned char *grayImage, unsigned char *dev_grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int histogramSize, const unsigned int barWidth, ResultContainer *result, double cpu_frequency = 1);
+void contrast1DCuda(unsigned char *grayImage, unsigned char *dev_grayImage, const int width, const int height, unsigned int *histogram, const unsigned int histogramSize, const unsigned int contrastThreshold, ResultContainer *result, double cpu_frequency = 1);
+void triangularSmoothCuda(unsigned char *grayImage, unsigned char *dev_grayImage, unsigned char *smoothImage, const int width, const int height, float *filter, ResultContainer *result, double cpu_frequency = 1);
