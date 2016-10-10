@@ -7,42 +7,16 @@
 \begin{document}
 \chapter{Introduction}
 
-% compiler options
-% machine specifications
+The focus of this report is to inform the reader about the differences in performance between certain image processing steps when being executed on either a CPU or GPU.
+The report compares the performance of each kernel separately and in some cases compares different implementations of the same kernel.
+At the end of the report the general results are discussed and some recommendations regarding the GPU kernel implementations are given.
 
-\section{Kernel Caller Implementation}
-Througout the text the implementation of each kernel will be discussed.
-However, since the implemenation of the kernel caller function is rather similar for each task, it will only be discussed here once for the RGB2Gray kernel and after that the reader can check the rest of the caller functions on its own.
+\section{Approach}
+In order to get reliable performance measurements a total of (TODO: \#runs) has been done.
+A Python script was in control of scheduling and averaging each run on the cluster.
 
-One of the main important steps to execute the code on the GPU is to copy the data from the CPU to the GPU.
-This done by allocating global GPU memory with \texttt{cudaMalloc}, for both the color and grayscale image, respectively named \texttt{dev\_a} and \texttt{dev\_b}.
-
-\includecode[cpp]{}{resources/rgb2grayscaleSnippet1.cpp}{}
-After memory allocation, the \texttt{inputImage} needs to be copied to the global GPU memory.
-
-\includecode[cpp]{}{resources/rgb2grayscaleSnippet2.cpp}{}
-
-Another important step is to specify the number of blocks and threads per block.
-In this case a block size of 16x16 threads was chosen and the number of blocks (\texttt{numBlocks}) is computed according to the \texttt{width} and \texttt{height} of the image.
-
-\includecode[cpp]{}{resources/rgb2grayscaleSnippet3.cpp}{}
-
-After having the global memory and thread/block dimensions set, the kernel can be called.
-
-\includecode[cpp]{}{resources/rgb2grayscaleSnippet4.cpp}{}
-
-After kernel completion the results (\texttt{dev\_b}) can be copied back to the output \texttt{grayImage}.
-
-\includecode[cpp]{}{resources/rgb2grayscaleSnippet5.cpp}{}
-
-Now, the only step that is left is to free all the global GPU memory.
-
-%TODO Intro
-% The benchmarking of all the tasks has been done with Python.
-% For each task a total number of 50 runs (5 process starts with each taking 10 runs) have been done in order to create a better foundation for the outputs.
-% All benchmarks are run with the default VC++ 2015 Release or ReleaseDP configuration and in x64 mode.
-
-% \section{Hardware/Software}
+\section{Hardware/Software and Compiler Options}
+TODO[Erwin]: A short specs list and the compiler options used
 % For repeatability purposes a list of the used hardware and software is included in \cref{tab:hardware-software}.
 
 % \begin{table}[H]
@@ -63,5 +37,42 @@ Now, the only step that is left is to free all the global GPU memory.
 % \bottomrule
 % \end{tabular}
 % \end{table}
+
+\section{Meta Implementation}
+TODO[Erwin]
+
+\section{Kernel Caller Implementation}
+Througout the text the implementation of each kernel will be discussed.
+However, since the implemenation of the kernel caller function is rather similar for each task, it will only be discussed here once for the RGB2Gray kernel and after that the reader can check the rest of the caller functions on its own.
+
+One of the main important steps to execute the code on the GPU is to copy the data from the CPU to the GPU.
+This done by allocating global GPU memory with \texttt{cudaMalloc}, for both the color and grayscale image, respectively named \texttt{dev\_a} and \texttt{dev\_b}.
+
+\includecode[cpp]{}{resources/rgb2grayscaleSnippet1.cpp}{}
+After memory allocation, the \texttt{inputImage} needs to be copied to the global GPU memory.
+
+\includecode[cpp]{}{resources/rgb2grayscaleSnippet2.cpp}{}
+
+Another important step is to specify the number of blocks and threads per block.
+The number of threads per block should be a round multiple of the warp size, which is 32 on all the current NVIDIA hardware.
+Therefore a block size of 16x16 threads (256 is a round multiple of 32) was chosen and the number of blocks (\texttt{numBlocks}) is computed according to the \texttt{width} and \texttt{height} of the image.
+
+\includecode[cpp]{}{resources/rgb2grayscaleSnippet3.cpp}{}
+
+After having the global memory and thread/block dimensions set, the kernel can be called.
+
+\includecode[cpp]{}{resources/rgb2grayscaleSnippet4.cpp}{}
+
+After kernel completion the results (\texttt{dev\_b}) can be copied back to the output \texttt{grayImage}.
+
+\includecode[cpp]{}{resources/rgb2grayscaleSnippet5.cpp}{}
+
+Now, the only step that is left is to free all the global GPU memory.
+
+\subsection{Enhancement}
+An important note needs to be made regarding the kernel caller implementation. TODO[Renzo]
+
+
+
 
 \end{document}

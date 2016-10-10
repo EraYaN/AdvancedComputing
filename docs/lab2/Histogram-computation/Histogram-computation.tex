@@ -27,8 +27,8 @@ In order to prepare the kernel for shared memory, first the kernel caller needs 
 
 \includecode[cpp]{}{resources/histogramKernelCallerSnippet.cpp}{}
 
-In the kernel the main additions are the initialization of the shared memory and the use of \texttt{\_\_syncthreads\(\)}.
-The call to \texttt{\_\_syncthreads\(\)} makes sure that all the threads in a single block have finished executing before the GPU moves on to merging the computed histogram of that block into the global memory.
+In the kernel the main additions are the initialization of the shared memory and the use of \texttt{\_\_syncthreads()}.
+The call to \texttt{\_\_syncthreads()} makes sure that all the threads in a single block have finished executing before the GPU moves on to merging the computed histogram of that block into the global memory.
 
 \section{Results}
 \begin{table}[H]
@@ -47,9 +47,10 @@ The call to \texttt{\_\_syncthreads\(\)} makes sure that all the threads in a si
 	\textit{Kernel GPU time (ms)} 			& ~ 					& ~ \\
 	\textit{Kernel Speedup} 				& ~ 					& ~ \\
 	\midrule
-	\textit{GFLOP/s} 						& ~ 					& ~ \\
-	\textit{Computation Power (GFLOP/s)} 	& ~ 					& ~ \\
-	\textit{Bandwidth (GB/s)}				& ~ 					& ~ \\
+	\textit{Attained GFLOP/s} 				& ~ 					& ~ \\
+	\textit{Theoretical GFLOP/s} 			& ~ 					& ~ \\
+	\textit{Attained Bandwidth (GB/s)}		& ~ 					& ~ \\
+	\textit{Theoretical Bandwidth (GB/s)}	& ~ 					& ~ \\
 	\bottomrule
 	\end{tabular}
 \end{table}

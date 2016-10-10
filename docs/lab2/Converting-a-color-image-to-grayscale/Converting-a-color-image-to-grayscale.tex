@@ -14,7 +14,7 @@ The loops have been replaced by two integers \texttt{x} and \texttt{y} indicatin
 As long as these thread numbers are within the bounds of the size of the image, the exact same code as for the CPU is executed.
 See \cref{lst:rgb2graySnippet} for the most important highlights of the kernel code.
 
-\includecode[cpp]{RGB2Gray Kernel}{resources/rgb2grayKernelSnippet.cpp}{lst:rgb2graySnippet}
+\includecode[cpp]{Grayscale Kernel}{resources/rgb2grayKernelSnippet.cpp}{lst:rgb2graySnippet}
 
 Since each value is only used once, shared memory cannot be used to improve the speed of the kernel.
 
@@ -22,7 +22,7 @@ Since each value is only used once, shared memory cannot be used to improve the 
 \section{Results}
 \begin{table}[H]
 	\centering
-	\caption{RBG2Grayscale benchmarking results}
+	\caption{Grayscale benchmarking results}
 	\label{tab:rgb2grayscale-results}
 	\begin{tabular}{lll}
 	\toprule
@@ -36,9 +36,10 @@ Since each value is only used once, shared memory cannot be used to improve the 
 	\textit{Kernel GPU time (ms)} 			& ~ 					& ~ \\
 	\textit{Kernel Speedup} 				& ~ 					& ~ \\
 	\midrule
-	\textit{GFLOP/s} 						& ~ 					& ~ \\
-	\textit{Computation Power (GFLOP/s)} 	& ~ 					& ~ \\
-	\textit{Bandwidth (GB/s)}				& ~ 					& ~ \\
+	\textit{Attained GFLOP/s} 				& ~ 					& ~ \\
+	\textit{Theoretical GFLOP/s} 			& ~ 					& ~ \\
+	\textit{Attained Bandwidth (GB/s)}		& ~ 					& ~ \\
+	\textit{Theoretical Bandwidth (GB/s)}	& ~ 					& ~ \\
 	\bottomrule
 	\end{tabular}
 \end{table}
