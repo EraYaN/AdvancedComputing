@@ -24,7 +24,7 @@ void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int
 
 	// specify thread and block dimensions
 	dim3 threadsPerBlock(16, 16);
-	dim3 numBlocks(width / threadsPerBlock.x, height / threadsPerBlock.y);
+	dim3 numBlocks(ceil((double)width / threadsPerBlock.x), ceil((double)height / threadsPerBlock.y));
 
 	// allocate GPU memory
 	unsigned char *dev_a, *dev_b;
@@ -34,7 +34,7 @@ void rgb2grayCuda(unsigned char *inputImage, unsigned char *grayImage, const int
 
 	checkCudaCall(cudaMalloc(&dev_a, 3*width*height * sizeof(unsigned char)));
 	checkCudaCall(cudaMalloc(&dev_b, width*height * sizeof(unsigned char)));
-	
+
 	checkCudaCall(cudaMemcpy(dev_a, inputImage, 3 * width * height * sizeof(unsigned char), cudaMemcpyHostToDevice));
 
 	auto t_kernel = now();

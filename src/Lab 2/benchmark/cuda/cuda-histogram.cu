@@ -78,7 +78,7 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, co
 
 	// specify thread and block dimensions
 	dim3 threadsPerBlock(16, 16);
-	dim3 numBlocks(width / threadsPerBlock.x, height / threadsPerBlock.y);
+	dim3 numBlocks(ceil((double)width / threadsPerBlock.x), ceil((double)height / threadsPerBlock.y));
 
 	// allocate GPU memory
 	unsigned char *dev_a;
@@ -88,7 +88,7 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, co
 	//checkCudaCall(cudaHostGetDevicePointer(&dev_b, histogram, 0));
 	checkCudaCall(cudaMalloc((void **)&dev_a, width*height * sizeof(unsigned char)));
 	checkCudaCall(cudaMalloc((void **)&dev_b, histogramSize * sizeof(unsigned int)));
-	
+
 	//cudaMemset(dev_b, 0, histogramSize * sizeof(unsigned int));
 	checkCudaCall(cudaMemcpy(dev_a, grayImage, width*height * sizeof(unsigned char), cudaMemcpyHostToDevice));
 
