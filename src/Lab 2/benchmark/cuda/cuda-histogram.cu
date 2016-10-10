@@ -94,8 +94,8 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *histogramImage, co
 
 	auto t_kernel = now();
 	// execute actual function
-	histogram1DCudaKernel << <numBlocks, threadsPerBlock>> > (dev_a, dev_b, width, height);
-	//histogram1DCudaKernelShared <<<numBlocks, threadsPerBlock, histogramSize*sizeof(unsigned int)>>> (dev_a, dev_b, width, height);
+	//histogram1DCudaKernel << <numBlocks, threadsPerBlock>> > (dev_a, dev_b, width, height);
+	histogram1DCudaKernelShared <<<numBlocks, threadsPerBlock, histogramSize*sizeof(unsigned int)>>> (dev_a, dev_b, width, height);
 	//checkCudaCall(cudaThreadSynchronize());
 	auto t_cleanup = now();
 

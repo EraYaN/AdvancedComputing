@@ -10,6 +10,5 @@ for path in paths:
         #TODO parse image filename
     with open(os.path.join(path,'stderr.log'),'r') as stderr:
         #TODO parse nvprof output
-
     with open(os.path.join(path,'stdout.log'),'r') as stdout:
         #TODO parse benchmark output

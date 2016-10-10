@@ -6,6 +6,8 @@ BIN_DIR						:= $(PROJ_BASE)/bin
 EXEC_MAIN					:= $(BIN_DIR)/benchmark
 EXEC_COMPARE				:= $(BIN_DIR)/compare
 IMAGE						:=$(PROJ_BASE)/images/image15.jpg
+#RUN_IMAGE					:= "image00.jpg"
+#RUN_ID						:= 0
 CPPSTD						:= c++11
 
 MODULES						:= acs-shared benchmark benchmark/cuda benchmark/cpu
@@ -131,6 +133,10 @@ schedule: main
 	@sh schedule-script.sh $(EXEC_MAIN) "image09.bmp"
 	@echo "Scheduling for image15"
 	@sh schedule-script.sh $(EXEC_MAIN) "image15.jpg"
+
+schedule_single: main
+	@echo "Scheduling for $(RUN_IMAGE) with ID: $(RUN_ID)"
+	@sh schedule-script.sh $(EXEC_MAIN) "$(RUN_IMAGE)" $(RUN_ID)
 
 #RUNSERVER_REQ_RUN_SETTINGS=True
 #RUNSERVER_DEPS=all

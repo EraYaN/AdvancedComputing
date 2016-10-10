@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>12e3a9b6-63df-4fd3-a441-e1db7b907841</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>ServerOutputParser.py</StartupFile>
+    <StartupFile>Wrapper.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -13,7 +13,8 @@
     <Name>Wrapper</Name>
     <RootNamespace>Wrapper</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--disable-bench</CommandLineArguments>
+    <CommandLineArguments>
+    </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
@@ -34,9 +35,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Wrapper.py" />
-    <Compile Include="WrapperShared.py">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -3,7 +3,7 @@
 FIRSTTIMEOUT=2
 TIMEOUT=3
 
-if [[ $# -ne 2 ]]; then
+if [[ $# -ne 3 ]]; then
     echo "Usage: <executable> <image>"
 	exit 1
 fi
@@ -17,7 +17,7 @@ cat <<EOT >> ~/run/run_settings.ini
 exec_args = images/$2 run_output/benchmark-$2 --save-images -d
 working_dir = /data/home/group27/projects/Lab 2/
 [profiling]
-enable = yes
+enable = no
 all_metrics = no
 all_events = no
 custom_options =
@@ -37,11 +37,11 @@ do
 done
 echo Copy back output
 DATE=`date +%Y-%m-%dT%H-%M-%S`
-echo Run at $DATE
-mkdir -p run_output/$DATE
-cp ~/run/* run_output/$DATE
-rm run_output/$DATE/gpu_program.old
+echo Run at $3
+mkdir -p run_output/$3
+cp ~/run/* run_output/$3
+rm run_output/$3/gpu_program.old
 if [ -f trace.nvprof ]; then
-	mv trace.nvprof run_output/$DATE
+	mv trace.nvprof run_output/$3
 fi
 echo Done

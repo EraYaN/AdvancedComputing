@@ -21,6 +21,8 @@
 #include "cuda/cuda-kernels.h"
 #include "result_container.h"
 
+#define CSV_SEPARATOR ','
+#define LINE_MARKER '@'
 
 using cimg_library::CImg;
 using namespace std;
@@ -35,6 +37,39 @@ const float filter[] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
 						1.0f, 2.0f, 2.0f, 2.0f, 1.0f,
 						1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
 
+enum Test {
+	Grayscale = 0,
+	Histogram = 1,
+	Contrast = 2,
+	Smooth = 3
+};
+
+
+void printResults(ResultContainer result, Test test, bool cuda, bool debug = false) {
+	string testName;
+	int testId = (int)test;
+	switch (test) {
+		case Grayscale:
+			testName = "Grayscale";
+			break;
+		case Histogram:
+			testName = "Histogram";
+			break;
+		case Contrast:
+			testName = "Contrast";
+			break;
+		case Smooth:
+			testName = "Smooth";
+			break;
+		default:
+			testName = "Unknown";
+			break;
+	}
+	if (debug) {
+		cout << testName << " Image ("<< (cuda? "CUDA": "Sequential") << ") Results:" << endl << result << endl;
+	}
+	cout << LINE_MARKER << testName << CSV_SEPARATOR << testId << CSV_SEPARATOR << cuda << CSV_SEPARATOR << result.preprocessing_time << CSV_SEPARATOR << result.init_time << CSV_SEPARATOR << result.kernel_time << CSV_SEPARATOR << result.cleanup_time << CSV_SEPARATOR << result.postprocessing_time << CSV_SEPARATOR << result.total_time << endl;
+}
 
 int main(int argc, char *argv[]) {
 	try {
@@ -97,7 +132,7 @@ int main(int argc, char *argv[]) {
 		for (int i = 0; i < nDevices; i++) {
 			checkCudaCall(cudaGetDeviceProperties(&prop, i));
 			int cudaCores = prop.multiProcessorCount*ConvertSMVer2Cores(prop.major, prop.minor);
-						
+
 			if (debug) {
 
 				printf("Device Number: %d\n", i);
@@ -160,8 +195,8 @@ int main(int argc, char *argv[]) {
 
 		//do both CUDA and Seq.
 		rgb2gray(inputImage.data(), grayImage.data(), inputImage.width(), inputImage.height(), &result, cpu_frequency);
-
-		cout << "Grayscale Image (Seq.) Results:" << endl << result << endl;
+		printResults(result, Grayscale, false, debug);
+		
 
 		if (displayImages) {
 			grayImage.display("Grayscale Image (Seq.)");
@@ -183,7 +218,7 @@ int main(int argc, char *argv[]) {
 
 		checkCudaCall(cudaFreeHost(inputImagePinned));
 		checkCudaCall(cudaFreeHost(grayImagePinned));
-		cout << "Grayscale Image (CUDA) Results:" << endl << result << endl;
+		printResults(result, Grayscale, true, debug);
 
 		if (displayImages) {
 			grayImage.display("Grayscale Image (CUDA)");
@@ -200,7 +235,7 @@ int main(int argc, char *argv[]) {
 		unsigned int *histogram_cuda = new unsigned int[histogramSize];
 
 		histogram1D(grayImage.data(), histogramImage.data(), grayImage.width(), grayImage.height(), histogram_seq, histogramSize, barWidth, &result, cpu_frequency);
-		cout << "Histogram (Seq.) Results:" << endl << result << endl;
+		printResults(result, Histogram, false, debug);
 
 		if (displayImages) {
 			histogramImage.display("Histogram (Seq.)");
@@ -211,7 +246,7 @@ int main(int argc, char *argv[]) {
 			if (debug) cout << "Saved." << endl;
 		}
 
-		//Use pinned memory for GPU DMA		
+		//Use pinned memory for GPU DMA
 		checkCudaCall(cudaHostAlloc(&histogramPinned, histogramSize * sizeof(unsigned int), cudaHostAllocMapped));
 		checkCudaCall(cudaHostAlloc(&grayImagePinned, grayImage.size() * sizeof(unsigned char), cudaHostAllocMapped));
 
@@ -223,7 +258,7 @@ int main(int argc, char *argv[]) {
 
 		checkCudaCall(cudaFreeHost(histogramPinned));
 		checkCudaCall(cudaFreeHost(grayImagePinned));
-		cout << "Histogram (CUDA) Results:" << endl << result << endl;
+		printResults(result, Histogram, true, debug);
 
 		if (displayImages) {
 			histogramImage.display("Histogram (CUDA)");
@@ -236,7 +271,7 @@ int main(int argc, char *argv[]) {
 
 		// Contrast enhancement
 		contrast1D(grayImage.data(), grayImage.width(), grayImage.height(), histogram_seq, histogramSize, contrastThreshold, &result, cpu_frequency);
-		cout << "Contrast Enhanced Image (Seq.) Results:" << endl << result << endl;
+		printResults(result, Contrast, false, debug);
 
 		if (displayImages) {
 			grayImage.display("Contrast Enhanced Image (Seq.)");
@@ -258,7 +293,7 @@ int main(int argc, char *argv[]) {
 
 		checkCudaCall(cudaFreeHost(grayImagePinned));
 
-		cout << "Contrast Enhanced Image (CUDA) Results:" << endl << result << endl;
+		printResults(result, Contrast, true, debug);
 
 		if (displayImages) {
 			grayImage.display("Contrast Enhanced Image (CUDA)");
@@ -276,7 +311,7 @@ int main(int argc, char *argv[]) {
 		CImg< unsigned char > smoothImage = CImg< unsigned char >(grayImage.width(), grayImage.height(), 1, 1);
 
 		triangularSmooth(grayImage.data(), smoothImage.data(), grayImage.width(), grayImage.height(), filter, &result, cpu_frequency);
-		cout << "Smooth Image (Seq.) Results:" << endl << result << endl;
+		printResults(result, Smooth, false, debug);
 
 		if (displayImages) {
 			smoothImage.display("Smooth Image (Seq.)");
@@ -304,7 +339,7 @@ int main(int argc, char *argv[]) {
 		checkCudaCall(cudaFreeHost(grayImagePinned));
 		checkCudaCall(cudaFreeHost(filterPinned));
 
-		cout << "Smooth Image (CUDA) Results:" << endl << result << endl;
+		printResults(result, Smooth, true, debug);
 
 		if (displayImages) {
 			smoothImage.display("Smooth Image (CUDA)");
