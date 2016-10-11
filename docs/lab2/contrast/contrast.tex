@@ -10,10 +10,17 @@
 \section{Kernel Implementation}
 The kernel for contrast is again fairly straightforward.
 A similar implementation as \cref{sec:rgb2gray} had been used.
-The code does not lend itself well to shared memory, as for each memory entry only one computation is done.
+The code is not optimal for shared memory, as for each memory entry only one computation is done.
 
 \section{Results}
 \subimport{resources/}{perf-table.tex}
+
+Looking at \cref{tab:contrast-results}, one can see that the GPU improves performance by a big margin, with an average of 18x.
+The huge performance increase as opposed to the rather marginal increase for example the grayscale kernel (\cref{ch:grayscale}), is likely caused by the longer runtime and thus bigger impact of the kernel.
+Since the kernel has a bigger impact, the overall speedup is affected more by the 200-7750 times speedup of the kernel.
+Interesting to see is the lower speedup value for image09, one would expect it to be the highest since it has the most amount of pixels and therefore the biggest increase in kernel performance.
+It seems like the multiple runs and averaging were unable to recover from some measurement mistakes and therefore a lower speedup was reported for image09.
+
 
 
 \end{document}

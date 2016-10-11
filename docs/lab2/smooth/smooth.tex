@@ -16,6 +16,11 @@ However, implementing these library functions is beyond the scope of this report
 \section{Results}
 \subimport{resources/}{perf-table.tex}
 
+\cref{tab:smooth-results} shows a familiar sight, image09 has the highest speedup and the other images follow in descending order of image size.
+Again, the speedup metrics can be explained with the kernel runtime.
+For all three images the GPU kernel runtime is almost similar, however the sequential runtime differs a lot.
+The longer the sequential kernel takes, the bigger impact it has on the overall running time and the bigger the speedup becomes when improved with a parallel running GPU kernel.
+
 %\footnotetext{http://docs.nvidia.com/cuda/pdf/NPP\_Library\_Image\_Filters.pdf}
 
 \end{document}

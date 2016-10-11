@@ -11,10 +11,28 @@ The focus of this report is to inform the reader about the differences in perfor
 The report compares the performance of each kernel separately and in some cases compares different implementations of the same kernel.
 At the end of the report the general results are discussed and some recommendations regarding the GPU kernel implementations are given.
 
-\section{Approach}
+\section{Method}
 In order to get reliable performance measurements a total of (TODO: \#runs) has been done.
 A Python script was in control of scheduling and averaging each run on the cluster.
 
+TODO: Explain all the table values, how did we get the theoretical bandwidth etc.
+
+The images that the kernels will be benchmarked for are listed in \cref{tab:image-information}
+
+\begin{table}[H]
+	\centering
+	\caption{Benchmark images information}
+	\label{tab:image-information}
+	\begin{tabular}{llll}
+		\toprule
+			\textbf{Name} &\textbf{Width (pixels)} & \textbf{Height (pixels)} & \textbf{Amount (pixels)}\\
+		\midrule
+			Image04 & 1200				& 1398				& 1677600 \\
+			Image09 & 8192 				& 8192 				& 67108864 \\
+			Image15 & 3030 				& 2360 				& 7150800\\
+		\bottomrule
+	\end{tabular}
+\end{table}
 
 %\section{Hardware/Software and Compiler Options}
 %TODO[Erwin]: A short specs list and the compiler options used
