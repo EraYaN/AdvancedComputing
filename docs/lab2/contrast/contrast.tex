@@ -13,7 +13,7 @@ A similar implementation as \cref{sec:rgb2gray} had been used.
 The code is not optimal for shared memory, as for each memory entry only one computation is done.
 
 \section{Results}
-\subimport{resources/}{perf-table.tex}
+\subimport{resources/}{perf-tableshared.tex}
 
 Looking at \cref{tab:contrast-results}, one can see that the GPU improves performance by a big margin, with an average of 18x.
 The huge performance increase as opposed to the rather marginal increase for example the grayscale kernel (\cref{ch:grayscale}), is likely caused by the longer runtime and thus bigger impact of the kernel.

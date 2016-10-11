@@ -3,9 +3,13 @@
 FIRSTTIMEOUT=2
 TIMEOUT=3
 
-if [[ $# -ne 4 ]]; then
-    echo "Usage: <executable> <image> <runid> <profiling;yes|no>"
+if [[ $# -lt 4 ]]; then
+    echo "Usage: <executable> <image> <runid> <profiling;yes|no> <arguments>"
 	exit 1
+fi
+arguments=""
+if [[ $# -eq 5 ]]; then
+arguments=$5
 fi
 
 rm -f ~/run/*
@@ -14,7 +18,7 @@ mkdir -p run_output
 echo Created output directory
 cat <<EOT >> ~/run/run_settings.ini
 [general]
-exec_args = images/$2 run_output/benchmark-$2 --save-images
+exec_args = images/$2 run_output/benchmark-$2 $arguments
 working_dir = /data/home/group27/projects/Lab 2/
 [profiling]
 enable = $4

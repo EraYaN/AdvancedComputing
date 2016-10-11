@@ -26,10 +26,10 @@ results = []
 generate_data = True;
 generate_plots = False;
 
-def ExecuteJob(job_title,filename,iterations, images,max_n,generate_data=True,generate_plots=False):
+def ExecuteJob(job_title,filename,iterations, images,max_n,shared,generate_data=True,generate_plots=False):
     if generate_data:
         if PrepareBenchmark(make,make_flags,cdw) == 0:
-            results = ExecuteBenchmark(job_title, iterations, images,max_n,bin,cdw, output_dir);
+            results = ExecuteBenchmark(job_title, iterations, images,max_n,shared,bin,cdw, output_dir);
 
             PrintResults(results);
             print("Saving pickle...")
@@ -59,13 +59,10 @@ if __name__ == '__main__':
         #images = [f for f in os.listdir(os.path.join(cdw,image_path)) if os.path.isfile(os.path.join(cdw, image_path, f))]
         images = ['image04.bmp','image09.bmp','image15.jpg']
 
-        ### Part A
-        #output_dir = os.path.join(output_dir_root,'out')
-        #if not os.path.exists(output_dir):
-        #    os.makedirs(output_dir)
-
-        ## Task 1
-        ExecuteJob('main-run','main-run',iterations,images,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot)
+        shared = False
+        ExecuteJob('normal','main-run-normal',iterations,images,max_n,shared,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot)
+        shared = True
+        ExecuteJob('shared','main-run-shared',iterations,images,max_n,shared,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot)
 
         print("Done.")
     except SystemExit:
