@@ -74,7 +74,7 @@ def GeneratePlot(results, job_title, output_dir = '.'):
         resources_dir = os.path.join(output_dir,testName.lower(),'resources')
         if not os.path.exists(resources_dir):
             os.makedirs(resources_dir)
-        with open(os.path.join(resources_dir,'perf-table.tex'),'w') as file:
+        with open(os.path.join(resources_dir,'perf-table{0}.tex'.format(job_title)),'w') as file:
             file.write(table_latex)
 
     print("Generating Plot...")
@@ -119,7 +119,7 @@ def GeneratePlot(results, job_title, output_dir = '.'):
     resources_dir = os.path.join(output_dir,'conclusion','resources')
     if not os.path.exists(resources_dir):
         os.makedirs(resources_dir)
-    figure.savefig(os.path.join(resources_dir,"{0}.pdf".format("total-cuda-speedup")),format='pdf',transparent=True)
+    figure.savefig(os.path.join(resources_dir,"{0}-{1}.pdf".format("total-cuda-speedup",job_title)),format='pdf',transparent=True)
 
     print("Generating Plot...")
     xlabel = "Kernel"
@@ -163,4 +163,4 @@ def GeneratePlot(results, job_title, output_dir = '.'):
     resources_dir = os.path.join(output_dir,'conclusion','resources')
     if not os.path.exists(resources_dir):
         os.makedirs(resources_dir)
-    figure.savefig(os.path.join(resources_dir,"{0}.pdf".format("kernel-cuda-speedup")),format='pdf',transparent=True)
+    figure.savefig(os.path.join(resources_dir,"{0}-{1}.pdf".format("kernel-cuda-speedup",job_title)),format='pdf',transparent=True)

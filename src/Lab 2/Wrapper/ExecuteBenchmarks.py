@@ -46,7 +46,7 @@ def PrepareBenchmark(make="make all", make_flags="",cwd="../"):
     result = subprocess.call("{0} {1}".format(make,make_flags),cwd=cwd,shell=True)
     return result
 
-def ExecuteBenchmark(job_title, iterations, images, max_n=1, bin="make schedule",cwd="../",output_dir="../run_output"):
+def ExecuteBenchmark(job_title, iterations, images, max_n=1, shared=False, bin="make schedule",cwd="../",output_dir="../run_output"):
     error_occured = False
     results = []
     display_results = []
@@ -56,7 +56,11 @@ def ExecuteBenchmark(job_title, iterations, images, max_n=1, bin="make schedule"
     for image in images:
         for iteration in range(0,iterations):
             run_id = "{0}-{1}-{2}".format(image,iteration,"p")
-            result = subprocess.call("{0} RUN_IMAGE=\"{1}\" RUN_ID=\"{2}\" PROFILING=yes".format(bin,image,run_id),cwd=cwd,shell=True)
+            #arguments = '--save-images'
+            arguments = ''
+            if shared:
+                arguments += ' --shared-histogram-kernel'
+            result = subprocess.call("{0} RUN_IMAGE=\"{1}\" RUN_ID=\"{2}\" PROFILING=yes BENCH_ARGUMENTS=\"{3}\"".format(bin,image,run_id,arguments),cwd=cwd,shell=True)
             if result != EXIT_SUCCESS:
                 print("ERROR {1} returned {0}.".format(result, bin))
                 break;
@@ -114,7 +118,7 @@ def ExecuteBenchmark(job_title, iterations, images, max_n=1, bin="make schedule"
             for n in range(0,max_n):
                 #print("../{0}{1}/{2}.exe".format(platform_paths[platform],config,type['name']))
                 run_id = "{0}-{1}-{2}".format(image,iteration,n)
-                result = subprocess.call("{0} RUN_IMAGE=\"{1}\" RUN_ID=\"{2}\" PROFILING=no".format(bin,image,run_id),cwd=cwd,shell=True)
+                result = subprocess.call("{0} RUN_IMAGE=\"{1}\" RUN_ID=\"{2}\" PROFILING=no BENCH_ARGUMENTS=\"{3}\"".format(bin,image,run_id,arguments),cwd=cwd,shell=True)
                 #print(result.args)
                 if result != EXIT_SUCCESS:
                     print("ERROR {1} returned {0}.".format(result, bin))

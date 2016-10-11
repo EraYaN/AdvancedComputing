@@ -13,61 +13,42 @@ __global__ void histogram1DCudaKernel(unsigned char *grayImage, unsigned int *hi
 	}
 }
 
+//Sadly hardcoded histogram size
 __global__ void histogram1DCudaKernelShared(unsigned char *grayImage, unsigned int *histogram, const int width, const int height) {
-	/*__shared__ unsigned int temp[256];
-	temp[threadIdx.x] = 0;
+	// pixel coordinates
+	int x = blockIdx.x * blockDim.x + threadIdx.x;
+	int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+	// grid dimensions
+	int nx = blockDim.x * gridDim.x;
+	int ny = blockDim.y * gridDim.y;
+
+	// linear thread index within 2D block (start index in block)
+	int t = threadIdx.x + threadIdx.y * blockDim.x;
+
+	// total threads in 2D block
+	int nt = blockDim.x * blockDim.y;
+
+	// initialize temporary accumulation array in shared memory
+	__shared__ unsigned int shared_histogram[256 + 1];
+	for (int i = t; i < 256 + 1; i += nt) shared_histogram[i] = 0;
 	__syncthreads();
 
-	int i = threadIdx.x + blockIdx.x * blockDim.x;
-	int offset = blockDim.x * gridDim.x;
-	while (i < width*height) {
-		atomicAdd(&histogram[static_cast<unsigned int>(grayImage[i])], 1);
-		i += offset;
-	}
+	// process pixels
+	// updates our block's partial histogram in shared memory
+	for (int col = x; col < width; col += nx)
+		for (int row = y; row < height; row += ny) {
+			atomicAdd(&shared_histogram[static_cast<unsigned int>(grayImage[row * width + col])], 1);
+		}
 	__syncthreads();
 
-	atomicAdd(&(histogram[threadIdx.x]), temp[threadIdx.x]);*/
-	// current pixel coordinates
-	int x = blockIdx.x*blockDim.x + threadIdx.x;
-	int y = blockIdx.y*blockDim.y + threadIdx.y;
-
-	if (x < width && y < height) {
-		// grid dimensions
-		int nx = blockDim.x * gridDim.x;
-		int ny = blockDim.y * gridDim.y;
-
-		// linear thread index within 2D block
-		int t = threadIdx.x + threadIdx.y * blockDim.x;
-
-		// total threads in 2D block
-		int nt = blockDim.x * blockDim.y;
-
-		// initialize shared memory
-		extern __shared__ unsigned int temp[];
-
-		memset(temp, 0, 256*sizeof(unsigned int));
-		/*for (int i = t; i < 256; i += nt) {
-			temp[i] = 0;
-		}*/
-
-		__syncthreads();
-		// build per-block histogram in shared memory
-		for (int col = x; col < width; col += nx) {
-			for (int row = y; row < height; row += ny) {
-				unsigned int i = static_cast<unsigned int>(grayImage[(y * width) + x]);
-				atomicAdd(&temp[i], 1);
-			}
-		}
-		__syncthreads();
-
-		// merge per-block histograms to global memory
-		for (int i = t; i < 256; i += nt) {
-			atomicAdd(&histogram[i], temp[i]);
-		}
+	// write partial histogram into the global memory
+	for (int i = t; i < 256; i += nt) {
+		atomicAdd(&histogram[i], shared_histogram[i]);
 	}
 }
 
-void histogram1DCuda(unsigned char *grayImage, unsigned char *dev_grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int histogramSize, const unsigned int barWidth, ResultContainer *result, double cpu_frequency) {
+void histogram1DCuda(unsigned char *grayImage, unsigned char *dev_grayImage, unsigned char *histogramImage, const int width, const int height, unsigned int *histogram, const unsigned int histogramSize, const unsigned int barWidth, ResultContainer *result, double cpu_frequency, bool shared) {
 	auto t_preprocessing = now();
 	unsigned int max = 0;
 
@@ -83,16 +64,17 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *dev_grayImage, uns
 
 	//checkCudaCall(cudaHostGetDevicePointer(&dev_a, grayImage, 0));
 	//checkCudaCall(cudaHostGetDevicePointer(&dev_b, histogram, 0));
-	checkCudaCall(cudaMalloc((void **)&dev_grayImage, width*height * sizeof(unsigned char)));
 	checkCudaCall(cudaMalloc((void **)&dev_histogram, histogramSize * sizeof(unsigned int)));
 
 	checkCudaCall(cudaMemset(dev_histogram, 0, histogramSize * sizeof(unsigned int)));
-	checkCudaCall(cudaMemcpy(dev_grayImage, grayImage, width*height * sizeof(unsigned char), cudaMemcpyHostToDevice));
 
 	auto t_kernel = now();
-	// execute actual function
-	histogram1DCudaKernel << <numBlocks, threadsPerBlock>> > (dev_grayImage, dev_histogram, width, height);
-	//histogram1DCudaKernelShared <<<numBlocks, threadsPerBlock, histogramSize*sizeof(unsigned int)>>> (dev_grayImage, dev_histogram, width, height);
+	// execute actual function, with fall back for differing sizes.
+	if (histogramSize == 256 && shared) {
+		histogram1DCudaKernelShared <<<numBlocks, threadsPerBlock >>> (dev_grayImage, dev_histogram, width, height);
+	} else {
+		histogram1DCudaKernel <<<numBlocks, threadsPerBlock >>> (dev_grayImage, dev_histogram, width, height);
+	}
 	//checkCudaCall(cudaThreadSynchronize());
 	auto t_cleanup = now();
 

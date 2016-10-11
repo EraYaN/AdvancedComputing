@@ -89,6 +89,7 @@ int main(int argc, char *argv[]) {
 		TCLAP::ValueArg<unsigned int> histogramSizeArg("", "histogram-size", "The histogram size.", false, 256, "size");
 		TCLAP::ValueArg<unsigned int> histogramBarWidthArg("", "histogram-bar-width", "The histogram bar width.", false, 4, "pixels");
 		TCLAP::ValueArg<unsigned int> thresholdArg("", "contrast-threshold", "The contrast threshold.", false, 80, "pixels");
+		TCLAP::SwitchArg histogramSharedArg("", "shared-histogram-kernel", "Enable shared memory histogram kernel.", false);
 		TCLAP::SwitchArg displayArg("", "display-images", "Enable image display.", false);
 		TCLAP::SwitchArg saveArg("", "save-images", "Enable image save.", false);
 		TCLAP::SwitchArg debugArg("d", "debug", "Enable debug mode, verbose output.", false);
@@ -100,6 +101,7 @@ int main(int argc, char *argv[]) {
 		cmd.add(outputArg);
 		cmd.add(histogramSizeArg);
 		cmd.add(histogramBarWidthArg);
+		cmd.add(histogramSharedArg);
 		cmd.add(thresholdArg);
 		cmd.add(displayArg);
 		cmd.add(saveArg);
@@ -118,6 +120,7 @@ int main(int argc, char *argv[]) {
 		unsigned int barWidth = histogramBarWidthArg.getValue();
 		unsigned int contrastThreshold = thresholdArg.getValue();
 		bool debug = debugArg.getValue();
+		bool histogram_shared = histogramSharedArg.getValue();
 		bool interactive = interactiveArg.getValue();
 
 #ifdef USE_RDTSC
@@ -266,8 +269,10 @@ int main(int argc, char *argv[]) {
 
 
 		memcpy(grayImagePinned, grayImage.data(), grayImage.size() * sizeof(unsigned char));
-
-		histogram1DCuda(grayImagePinned, dev_grayImage, histogramImage.data(), grayImage.width(), grayImage.height(), histogramPinned, histogramSize, barWidth, &result, cpu_frequency);
+		if (histogramSize == 256 && histogram_shared) {
+			if (debug) cout << "Using shared memory kernel for histogram..." << endl;
+		}
+		histogram1DCuda(grayImagePinned, dev_grayImage, histogramImage.data(), grayImage.width(), grayImage.height(), histogramPinned, histogramSize, barWidth, &result, cpu_frequency, histogram_shared);
 
 		memcpy(histogram_cuda, histogramPinned, histogramSize * sizeof(unsigned int));
 

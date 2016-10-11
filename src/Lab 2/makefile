@@ -135,8 +135,8 @@ schedule: main
 	@sh schedule-script.sh $(EXEC_MAIN) "image15.jpg"
 
 schedule_single: main
-	@echo "Scheduling for $(RUN_IMAGE) with ID: $(RUN_ID); Profiling: $(PROFILING)"
-	@sh schedule-script.sh $(EXEC_MAIN) "$(RUN_IMAGE)" $(RUN_ID) $(PROFILING)
+	@echo "Scheduling for $(RUN_IMAGE) with ID: $(RUN_ID); Profiling: $(PROFILING); Arguments: $(BENCH_ARGUMENTS)"
+	@sh schedule-script.sh $(EXEC_MAIN) "$(RUN_IMAGE)" $(RUN_ID) $(PROFILING) $(BENCH_ARGUMENTS)
 
 #RUNSERVER_REQ_RUN_SETTINGS=True
 #RUNSERVER_DEPS=all
