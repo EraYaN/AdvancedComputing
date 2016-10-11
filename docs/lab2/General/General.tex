@@ -7,7 +7,7 @@
 \begin{document}
 \chapter{General}
 
-\section{Meta Implementation}
+\section{Meta Implementation (\texttt{Main})}
 To speedup the data copy process to the GPU, it is very good practice to copy from pinned host memory regions.
 This way the GPU can get the data through DMA.
 This is implemented in the main file, the kernels do not need any alteration.
@@ -41,7 +41,7 @@ After kernel completion the results (\texttt{dev\_b}) can be copied back to the 
 Now, the only step that is left is to free all the global GPU memory.
 
 \section{Enhancements}
-\subsection{Keeping Kernel Output in GPU memory}
+\subsection{Keeping Kernel Output in GPU memory (\textit{implemented})}
 An important note needs to be made regarding the kernel caller implementation.
 In the example above all the memory needed for the input and output of the kernel is being allocated on the GPU and freed after kernel completion.
 However, by leaving the output of each kernel in the memory and passing the pointer to the next kernel, things can be sped up drastically.
@@ -50,7 +50,7 @@ The first kernel caller will need to allocate memory for both its input and outp
 The following kernels will only need to allocate memory for the output and do not have to bother allocating memory for the input and copying data to the GPU since it is already there.
 After the execution of the last kernel all the memory will be freed up.
 
-\subsection{hostMappedMemory}
+\subsection{hostMappedMemory (\textit{not implemented})}
 On newer systems and cards, it can be very beneficial for especially the grayscale kernel to use host mapped memory.
 This is when the device directly accesses host memory via DMA, but only when needed instead of during the full copy.
 NVidia driver optimizations kick in in this scenario, and they have a very positive effect.
@@ -59,7 +59,7 @@ Sadly the benchmark server did not live up to these benchmark results, the imple
 This might be very dependent on OS and driver implementation as well as general system architecture.
 On windows with a Maxwell card, the speedup was about twice as dramatic as our current speedup.
 
-\subsection{Using proper image processing routines (NPP)}
+\subsection{Using proper image processing routines (NPP) (\textit{not implemented})}
 NVidia delivers a very nice image processing toolkit.
 As this uses the regular graphics pipeline internally, this can help to greatly speedup the process.
 You see the same thing with the Intel MKL for example, when the guys who know the hardware really well make stuff for that hardware the performance is amazing.
