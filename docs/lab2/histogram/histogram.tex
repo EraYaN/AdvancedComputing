@@ -7,7 +7,7 @@
 \begin{document}
 \chapter{Histogram Computation}
 
-\section{Kernel Implementation}
+\section{Kernel Implementation}\label{sec:hist-kernel}
 The computation of the histogram is more difficult, whereas compared to the color to gray conversion the same field of the histogram can be altered by multiple threads.
 Therefore one needs to make use of \texttt{atomicAdd\(\)}.
 
@@ -21,22 +21,24 @@ A problem that arises in the code described above is that the histogram is being
 Since very little work is done in the kernel, it is likely that the \texttt{atomicAdd\(\)} on global memory is slowing the application down.
 A great deal of contention is caused by the mere thousands of threads that want to access the same memory locations, resulting in a long queue of pending operations.
 By using shared memory, each block can compute the histogram for a part of the image with low latency.
-After which the data, that each thread block put, in shared memory is merged into the global memory; greatly reducing the strain on the global memory.
-
-In order to prepare the kernel for shared memory, first the kernel caller needs to add an extra size parameter.
-
-\includecode[cpp]{}{resources/histogramKernelCallerSnippet.cpp}{}
+After which the data, that each thread block put in shared memory, is merged into the global memory; greatly reducing the strain on the global memory.
 
 In the kernel the main additions are the initialization of the shared memory and the use of \texttt{\_\_syncthreads()}.
 The call to \texttt{\_\_syncthreads()} makes sure that all the threads in a single block have finished executing before the GPU moves on to merging the computed histogram of that block into the global memory.
 
-%TODO[e] say  something about the shit performance that we saw. (Root cause: CPU's are really good at interger instructions)
-
 \section{Results}
-Normal
+For the histogram kernel two results have been generated, one for the naive kernel (\cref{tab:histogram-naive-results}) and one for the shared memory kernel (\cref{tab:histogram-shared-results}).
 \subimport{resources/}{perf-tablenormal.tex}
 
-Shared
+The speedup with the naive kernel is neglectable.
+Even though the kernel itself is faster, the overall speedup is still 1.0.
+This is likely caused by the phenomenom talked about in \cref{sec:hist-kernel}, as the \texttt{atomicAdd()} is causing big queues trying to access the global memory.
+
+However, when the comparison is being made between the naive and shared memory kernel the GPU suddendly outperforms the CPU.
+The kernel itself is not running a lot faster, however with a more streamlined approach of writting the results back to the memory causes an overall speed up of 5.2 in the best case.
+The slight overhead caused by the shared memory is well worth the performance increase.
+The bandwidth metrics also show that the GPU uses more bandwidth in the shared memory case, confirming that the data copying is happening in a more streamlined manner.
+
 \subimport{resources/}{perf-tableshared.tex}
 
 \end{document}

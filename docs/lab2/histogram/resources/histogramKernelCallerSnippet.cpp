@@ -1,1 +1,0 @@
-histogram1DCudaKernelShared <<<numBlocks, threadsPerBlock, histogramSize*sizeof(unsigned int)>>> (dev_a, dev_b, width, height);
