@@ -1,65 +1,166 @@
-#try:
-#   import cPickle as pickle
-#except:
-#   import pickle
-#from matplotlib import pyplot as plt
-#from matplotlib import style
-#import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib import style
+import numpy as np
 
-#from WrapperShared import Variant
-#from terminaltables import AsciiTable
-#import matplotlib2tikz as tikz
-#from scipy.optimize import curve_fit
+from ExecuteBenchmarks import GetDRAMThroughput
+import jinja2
+import os
+from jinja2 import Template
+latex_jinja_env = jinja2.Environment(
+	block_start_string = '\BLOCK{',
+	block_end_string = '}',
+	variable_start_string = '\VAR{',
+	variable_end_string = '}',
+	comment_start_string = '\#{',
+	comment_end_string = '}',
+	line_statement_prefix = '%%',
+	line_comment_prefix = '%#',
+	trim_blocks = True,
+	autoescape = False,
+	loader = jinja2.FileSystemLoader(os.path.abspath('.'))
+)
 
+# GeForce 750 Ti
+MAX_GFLOPS = 1305.6
+MAX_BANDWIDTH = 86.4
+
+systemName = "750Ti Srv."
 
 def GeneratePlot(results, job_title, output_dir = '.'):
-    #TODO update plotting for difference plotting (comparison) maybe even with the diff images.
-    return "NotImplemented"
+    print("Processing Data...")
+    # Generate graph
+    ind = []
 
-    # Task specific graph settings
-    #if job_title == "openmp-number-of-threads-sweep":
-    #    xfield = "threads"
-    #    yfield= "relative_improvement"
-    #    xlabel = "Threads"
-    #    ylabel = "Speedup"
-    #    title = "OpenMP vs Sequential (data_size={0})".format(results[0]['data_size'])
-    #    order = func_poly3
-    #else:
-    #    return 'ERROR: job_title unknown'
+    columns = {}
 
-    #print("Processing Data...")
-    ## Generate graph
-    #graphX = []
-    #graphY = []
+    for result in results:
+        for testName in result['times']:
+            time_data = result['times'][testName]
+            if testName not in columns:
+                columns[testName] = {}
 
-    #for result in results:
-    #    graphX.append(result[xfield])
-    #    graphY.append(result[yfield])
+            imageNumber = int(result['image'][5:7])
+            if imageNumber not in  columns[testName]:
+                columns[testName][imageNumber] = {}
 
-    ##print("Fitting Curve...")
-    #x_sm = np.array(graphX)
-    #y_sm = np.array(graphY)
-    ##graphX_smooth = np.linspace(x_sm.min(), x_sm.max(), len(graphY)*10)
-    ##graphY_smooth = spline(graphX, graphY, graphX_smooth, kind = "smoothest")
-    ##p = np.polyfit(graphX, graphY, order)
-    ##f = np.poly1d(p)
+            columns[testName][imageNumber]['total-seq-time'] = time_data['seq']['total_time']/1e6; # ms
+            columns[testName][imageNumber]['total-cuda-time'] = time_data['cuda']['total_time']/1e6; # ms
+            columns[testName][imageNumber]['total-speedup'] = time_data['seq']['total_time']/time_data['cuda']['total_time'];
 
-    ##popt, pcov = curve_fit(order, graphX, graphY)
-    ##graphY_smooth = order(graphX_smooth, *popt);
+            columns[testName][imageNumber]['kernel-seq-time'] = time_data['seq']['kernel_time']/1e6; # ms
+            columns[testName][imageNumber]['kernel-cuda-time'] = time_data['cuda']['kernel_time']/1e3; # us
+            columns[testName][imageNumber]['kernel-speedup'] = time_data['seq']['kernel_time']/time_data['cuda']['kernel_time'];
 
-    #print("Generating Plot...")
-    #figure = plt.figure()
-    #style.use('bmh')
-    #plt.scatter(graphX,graphY)
-    ##plt.plot(graphX_smooth,graphY_smooth)
-    #plt.xlim([x_sm.min()-(x_sm.max()-x_sm.min())*0.05,x_sm.max()+(x_sm.max()-x_sm.min())*0.05])
-    #plt.ylim([y_sm.min()-(y_sm.max()-y_sm.min())*0.05,y_sm.max()+(y_sm.max()-y_sm.min())*0.05])
-    #plt.xlabel(xlabel)
-    #plt.ylabel(ylabel)
-    #plt.title(title)
-    #plt.grid(True)
+            #print("{0:e} GFLOPS".format(int(result['prof'][testName]['flop_count_sp']['max'])/1e9))
+            #print("{0:e} seconds".format(time['cuda']['kernel_time']/1e9))
+            #print("{0:f} GFLOPS/s".format((int(result['prof'][testName]['flop_count_sp']['max'])/1e9)/(time['cuda']['kernel_time']/1e9)))
 
-    #print("Saving Plot...")
-    ## convert graph to tikz
-    #figure.savefig('{0}/{1}.pdf'.format(output_dir,job_title),format='pdf',transparent=True)
-    #tikz.save('{0}/{1}.tikz'.format(output_dir,job_title),figure=figure,figureheight = '\\figureheight',figurewidth = '\\figurewidth',show_info=True,encoding='utf-8',draw_rectangles=True)
+            columns[testName][imageNumber]['theoretical-gflops'] = MAX_GFLOPS;
+            columns[testName][imageNumber]['theoretical-bandwidth'] = MAX_BANDWIDTH;
+
+            columns[testName][imageNumber]['total-mflops'] = (int(result['prof'][testName]['flop_count_sp']['max'])/1e6); # MFLOPS
+            #columns[testName][imageNumber]['attained-gflops'] = (int(result['prof'][testName]['flop_count_sp']['max'])/1e9)/(time_data['cuda']['kernel_time']/1e9); # GFLOPS/s
+            columns[testName][imageNumber]['reported-sp-efficiency'] = float(result['prof'][testName]['flop_sp_efficiency']['max'][:-1])
+            columns[testName][imageNumber]['attained-gflops'] = MAX_GFLOPS*columns[testName][imageNumber]['reported-sp-efficiency']/100; # GFLOPS/s
+            columns[testName][imageNumber]['attained-bandwidth'] = GetDRAMThroughput(result['prof'][testName],'max'); # GB/s
+
+            columns[testName][imageNumber]['reported-sm-efficiency'] = float(result['prof'][testName]['sm_efficiency']['max'][:-1])
+            columns[testName][imageNumber]['attained-iops'] = (int(result['prof'][testName]['inst_integer']['max'][:-1])/2e9)/(time_data['cuda']['kernel_time']/1e9); # GIOPS/s (2 because documentation says so)
+
+    template = latex_jinja_env.get_template('table.tex')
+    print("Writing Latex Tables...")
+    for testName in columns:
+        table_latex = template.render(systemName=systemName,test=columns[testName],testName=testName,testNameLower=testName.lower())
+        resources_dir = os.path.join(output_dir,testName.lower(),'resources')
+        if not os.path.exists(resources_dir):
+            os.makedirs(resources_dir)
+        with open(os.path.join(resources_dir,'perf-table.tex'),'w') as file:
+            file.write(table_latex)
+
+    print("Generating Plot...")
+    xlabel = "Kernel"
+    ylabel = "Speedup"
+    title = "Total CUDA Speedup"
+    style.use('bmh')
+
+    ind = np.arange(4)
+    width = 0.25
+
+
+    figure, ax = plt.subplots()
+    legend_items = []
+    rects = []
+    xticklabels = []
+    prop_iter = iter(plt.rcParams['axes.prop_cycle'])
+    i=0
+    for result in results:
+        imageNumber = int(result['image'][5:7])
+        values = []
+        for testName in result['times']:
+            values.append(columns[testName][imageNumber]['total-speedup'])
+            if testName not in xticklabels:
+                xticklabels.append(testName)
+        legend_items.append(result['image'])
+        rects.append(ax.bar(ind+width*i, values, width, color=next(prop_iter)['color']))
+        i += 1
+
+    ax.legend(rects, legend_items)
+
+    ax.set_xticklabels(xticklabels)
+    ax.set_xticks(ind + width*i/2)
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel)
+    ax.set_yscale("log", nonposy='clip')
+    ax.set_title(title)
+
+    plt.grid(True)
+
+    print("Saving Plot...")
+    resources_dir = os.path.join(output_dir,'conclusion','resources')
+    if not os.path.exists(resources_dir):
+        os.makedirs(resources_dir)
+    figure.savefig(os.path.join(resources_dir,"{0}.pdf".format("total-cuda-speedup")),format='pdf',transparent=True)
+
+    print("Generating Plot...")
+    xlabel = "Kernel"
+    ylabel = "Speedup"
+    title = "Kernel CUDA Speedup"
+    style.use('bmh')
+
+    ind = np.arange(4)
+    width = 0.25
+
+
+    figure, ax = plt.subplots()
+    legend_items = []
+    rects = []
+    xticklabels = []
+    prop_iter = iter(plt.rcParams['axes.prop_cycle'])
+    i=0
+    for result in results:
+        imageNumber = int(result['image'][5:7])
+        values = []
+        for testName in result['times']:
+            values.append(columns[testName][imageNumber]['kernel-speedup'])
+            if testName not in xticklabels:
+                xticklabels.append(testName)
+        legend_items.append(result['image'])
+        rects.append(ax.bar(ind+width*i, values, width, color=next(prop_iter)['color']))
+        i += 1
+
+    ax.legend(rects, legend_items)
+
+    ax.set_xticklabels(xticklabels)
+    ax.set_xticks(ind + width*i/2)
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel)
+    ax.set_yscale("log", nonposy='clip')
+    ax.set_title(title)
+
+    plt.grid(True)
+
+    print("Saving Plot...")
+    resources_dir = os.path.join(output_dir,'conclusion','resources')
+    if not os.path.exists(resources_dir):
+        os.makedirs(resources_dir)
+    figure.savefig(os.path.join(resources_dir,"{0}.pdf".format("kernel-cuda-speedup")),format='pdf',transparent=True)

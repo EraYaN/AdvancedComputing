@@ -1,0 +1,29 @@
+\begin{table}[H]
+	\centering
+	\caption{\VAR{testName} benchmarking results}
+	\label{tab:\VAR{testNameLower}-results}
+	\begin{tabular}{lS[table-format=7.1]S[table-format=7.1]S[table-format=7.1]}
+		\toprule
+			~ & {\textbf{\VAR{systemName} - 04}} & {\textbf{\VAR{systemName} - 09}} & {\textbf{\VAR{systemName} - 15}} \\
+		\midrule
+			{Seq. time (\si{\milli\second})} & \VAR{test[4]['total-seq-time']} & \VAR{test[9]['total-seq-time']} & \VAR{test[15]['total-seq-time']} \\
+			{GPU time (\si{\milli\second})} & \VAR{test[4]['total-cuda-time']} & \VAR{test[9]['total-cuda-time']} & \VAR{test[15]['total-cuda-time']} \\
+			{Speedup} & \VAR{test[4]['total-speedup']} &\VAR{test[9]['total-speedup']} & \VAR{test[15]['total-speedup']} \\
+		\midrule
+			{Kernel Seq. time (\si{\milli\second})} & \VAR{test[4]['kernel-seq-time']} & \VAR{test[9]['kernel-seq-time']} & \VAR{test[15]['kernel-seq-time']} \\
+			{Kernel GPU time (\si{\micro\second})} & \VAR{test[4]['kernel-cuda-time']} & \VAR{test[9]['kernel-cuda-time']} & \VAR{test[15]['kernel-cuda-time']} \\
+			{Kernel Speedup} & \VAR{test[4]['kernel-speedup']} & \VAR{test[9]['kernel-speedup']} & \VAR{test[15]['kernel-speedup']} \\
+		\midrule
+			{Total Kernel \si{\mega\flops}} & \VAR{test[4]['total-mflops']} & \VAR{test[9]['total-mflops']} & \VAR{test[15]['total-mflops']} \\
+			{Reported SP Efficiency (\si{\percent})} & \VAR{test[4]['reported-sp-efficiency']} & \VAR{test[9]['reported-sp-efficiency']} & \VAR{test[15]['reported-sp-efficiency']} \\
+			{Attained \si{\giga\flops\per\second}} & \VAR{test[4]['attained-gflops']} & \VAR{test[9]['attained-gflops']} & \VAR{test[15]['attained-gflops']} \\
+			{Theoretical \si{\giga\flops\per\second}} & \VAR{test[4]['theoretical-gflops']} & \VAR{test[9]['theoretical-gflops']} & \VAR{test[15]['theoretical-gflops']} \\
+		\midrule
+			{Reported SM Efficiency (\si{\percent})} & \VAR{test[4]['reported-sm-efficiency']} & \VAR{test[9]['reported-sm-efficiency']} & \VAR{test[15]['reported-sm-efficiency']} \\
+			{Attained \si{\giga\iops\per\second}} & \VAR{test[4]['attained-iops']} & \VAR{test[9]['attained-iops']} & \VAR{test[15]['attained-iops']} \\			
+		\midrule
+			{Attained Bandwidth (\si{\giga\byte\per\second})} & \VAR{test[4]['attained-bandwidth']} & \VAR{test[9]['attained-bandwidth']}  & \VAR{test[15]['attained-bandwidth']} \\
+			{Theoretical Bandwidth (\si{\giga\byte\per\second})}	& \VAR{test[4]['theoretical-bandwidth']} & \VAR{test[9]['theoretical-bandwidth']} & \VAR{test[15]['theoretical-bandwidth']} \\
+		\bottomrule
+	\end{tabular}
+\end{table}

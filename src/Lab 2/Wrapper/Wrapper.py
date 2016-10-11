@@ -1,8 +1,9 @@
+print("Starting...")
 import numpy as np
 import os
 import argparse as ap
 from ExecuteBenchmarks import *
-from GeneratePlots import GeneratePlot
+
 
 import future        # pip install future
 import builtins      # pip install future
@@ -17,6 +18,7 @@ make_flags = ""
 bin = "make schedule_single"
 cdw = "../"
 output_dir = "../run_output"
+docs_output_dir = "../../../docs/lab2"
 image_path = "images"
 
 results = []
@@ -30,13 +32,15 @@ def ExecuteJob(job_title,filename,iterations, images,max_n,generate_data=True,ge
             results = ExecuteBenchmark(job_title, iterations, images,max_n,bin,cdw, output_dir);
 
             PrintResults(results);
+            print("Saving pickle...")
             SaveResults("{0}.pickle".format(filename),results)
 
     if generate_plots:
         if not generate_data:
+            print("Loading pickle...")
             results = LoadResults("{0}.pickle".format(filename))
             PrintResults(results);
-        GeneratePlot(results,job_title,output_dir)
+        GeneratePlot(results,job_title,docs_output_dir)
 
 
 
@@ -49,6 +53,8 @@ if __name__ == '__main__':
     #parser.add_argument('--output-dir', action="store", help='Output directory',default=".")
     try:
         opts = parser.parse_args(sys.argv[1:])
+        if not opts.disable_plot:
+            from GeneratePlots import GeneratePlot
 
         #images = [f for f in os.listdir(os.path.join(cdw,image_path)) if os.path.isfile(os.path.join(cdw, image_path, f))]
         images = ['image04.bmp','image09.bmp','image15.jpg']

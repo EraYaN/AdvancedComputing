@@ -1,0 +1,29 @@
+\begin{table}[H]
+	\centering
+	\caption{Contrast benchmarking results}
+	\label{tab:contrast-results}
+	\begin{tabular}{lS[table-format=7.1]S[table-format=7.1]S[table-format=7.1]}
+		\toprule
+			~ & {\textbf{750Ti Srv. - 04}} & {\textbf{750Ti Srv. - 09}} & {\textbf{750Ti Srv. - 15}} \\
+		\midrule
+			{Seq. time (\si{\milli\second})} & 10.39567 & 364.8895 & 45.01405 \\
+			{GPU time (\si{\milli\second})} & 0.5773436000000001 & 21.82381 & 2.146017 \\
+			{Speedup} & 18.00603661320572 &16.719789074410013 & 20.975626008554453 \\
+		\midrule
+			{Kernel Seq. time (\si{\milli\second})} & 10.395 & 364.8889 & 45.01342 \\
+			{Kernel GPU time (\si{\micro\second})} & 48.95199999999999 & 47.09460000000001 & 49.7875 \\
+			{Kernel Speedup} & 212.35087432587028 & 7747.998708981496 & 904.1108712026111 \\
+		\midrule
+			{Total Kernel \si{\mega\flops}} & 22.87791 & 671.429764 & 114.411015 \\
+			{Reported SP Efficiency (\si{\percent})} & 6.696202 & 4.370947 & 8.891149 \\
+			{Attained \si{\giga\flops\per\second}} & 87.42561331200001 & 57.067084032 & 116.08284134399999 \\
+			{Theoretical \si{\giga\flops\per\second}} & 1305.6 & 1305.6 & 1305.6 \\
+		\midrule
+			{Reported SM Efficiency (\si{\percent})} & 98.456844 & 99.963953 & 99.588057 \\
+			{Attained \si{\giga\iops\per\second}} & 33.816166857329634 & 1695.3157580699271 & 122.46947526989706 \\			
+		\midrule
+			{Attained Bandwidth (\si{\giga\byte\per\second})} & 10.36 & 12.38  & 15.11 \\
+			{Theoretical Bandwidth (\si{\giga\byte\per\second})}	& 86.4 & 86.4 & 86.4 \\
+		\bottomrule
+	\end{tabular}
+\end{table}

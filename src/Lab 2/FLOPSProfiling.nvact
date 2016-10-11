@@ -1,7 +1,7 @@
 ﻿<Model DefinitionId="3a3ca3f4-7ba7-4c09-a182-6ba59bf12599" DisplayName="Analysis Activity" xmlns="clr-namespace:Ark.PropertyModel;assembly=Ark">
     <Property Name="ActivityType" Value="Profile" />
-    <Property Name="Application" Value="F:\Users\Erwin\Documents\GitHub\AdvancedComputing\src\Lab 2\x64\Debug\benchmark.exe" />
-    <Property Name="Arguments" Value="../images/image09.bmp -d --save-images" />
+    <Property Name="Application" Value="F:\Users\Erwin\Documents\GitHub\AdvancedComputing\src\Lab 2\x64\Release\benchmark.exe" />
+    <Property Name="Arguments" Value="../images/image15.jpg -d" />
     <Property Name="EnableCudaApiContextAttachDetach" Value="True" />
     <Property Name="EnableCudaApiContextManagement" Value="True" />
     <Property Name="EnableCudaApiD3D10Interop" Value="True" />
@@ -119,9 +119,9 @@
     <Property Name="EnableToolsExtPushPopRangeTrace" Value="True" />
     <Property Name="EnableToolsExtResourceNaming" Value="True" />
     <Property Name="EnableToolsExtStartEndRangeTrace" Value="True" />
-    <Property Name="ExperimentsCustomConfiguration" Value="AchievedFlops:1:1&lt;1&lt;2&lt;1&lt;1&lt;1&lt;1&lt;2&lt;1&lt;1&lt;2&lt;1&lt;2&lt;2&lt;2&lt;4$AchievedIops:2:1&lt;1&lt;2&lt;2&lt;2&lt;1&lt;1$MemoryGlobal:3:$MemoryLocal:4:$MemoryShared:5:$MemoryTexture:6:$MemoryCaches:7:$MemoryBuffers:8:$MemoryAtomics:9:" />
+    <Property Name="ExperimentsCustomConfiguration" Value="AchievedFlops:1:1&lt;1&lt;2&lt;1&lt;1&lt;1&lt;1&lt;2&lt;1&lt;1&lt;2&lt;1&lt;2&lt;2&lt;2&lt;4$AchievedIops:2:1&lt;1&lt;2&lt;2&lt;2&lt;1&lt;1$MemoryGlobal:3:$MemoryLocal:4:$MemoryShared:5:$MemoryTexture:6:$MemoryCaches:7:$MemoryBuffers:8:$MemoryAtomics:9:$PipeUtilization:10:$InstructionStats:11:" />
     <Property Name="ExperimentsPresetConfiguration" Value="Custom" />
     <Property Name="ExtensionsToSynchronize" Value="*;" />
     <Property Name="InitialReport" Value="CudaSourceView" />
-    <Property Name="WorkingDirectory" Value="F:\Users\Erwin\Documents\GitHub\AdvancedComputing\src\Lab 2\benchmark\" />
+    <Property Name="WorkingDirectory" Value="F:\Users\Erwin\Documents\GitHub\AdvancedComputing\src\Lab 2\benchmark" />
 </Model>

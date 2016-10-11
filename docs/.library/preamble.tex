@@ -20,7 +20,10 @@
 \usepackage{fontspec}
 \usepackage{pgfplots}
 \usepackage{tikz}
-\usepackage{siunitx}
+\usepackage[binary-units=true,parse-numbers=true,table-auto-round=true]{siunitx}
+\DeclareSIUnit\flops{FLOPS}
+\DeclareSIUnit\iops{IOPS}
+\sisetup{detect-weight=true}
 \usepackage{units}
 \usepackage{amsmath}
 \usepackage{mathtools}

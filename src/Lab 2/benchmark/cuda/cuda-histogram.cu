@@ -71,8 +71,6 @@ void histogram1DCuda(unsigned char *grayImage, unsigned char *dev_grayImage, uns
 	auto t_preprocessing = now();
 	unsigned int max = 0;
 
-	memset(reinterpret_cast<void *>(histogram), 0, histogramSize * sizeof(unsigned int));
-
 	auto t_init = now();
 	// Kernel
 

@@ -15,8 +15,10 @@ At the end of the report the general results are discussed and some recommendati
 In order to get reliable performance measurements a total of (TODO: \#runs) has been done.
 A Python script was in control of scheduling and averaging each run on the cluster.
 
-\section{Hardware/Software and Compiler Options}
-TODO[Erwin]: A short specs list and the compiler options used
+
+%\section{Hardware/Software and Compiler Options}
+%TODO[Erwin]: A short specs list and the compiler options used
+%TODO[E] Do we really need this? We have no Machine B now.
 % For repeatability purposes a list of the used hardware and software is included in \cref{tab:hardware-software}.
 
 % \begin{table}[H]
@@ -40,13 +42,15 @@ TODO[Erwin]: A short specs list and the compiler options used
 
 \section{Meta Implementation}
 TODO[Erwin]
+%TODO[E] Write about pinned memory and the speed increase from cudaMemcpy
+%TODO[E] Write about leaving stuff on the device to speed up succesive kernels
 
 \section{Kernel Caller Implementation}
-Througout the text the implementation of each kernel will be discussed.
-However, since the implemenation of the kernel caller function is rather similar for each task, it will only be discussed here once for the RGB2Gray kernel and after that the reader can check the rest of the caller functions on its own.
+Throughout the text the implementation of each kernel will be discussed.
+However, since the implementation of the kernel caller function is rather similar for each task, it will only be discussed here once for the RGB2Gray kernel and after that the reader can check the rest of the caller functions on its own.
 
 One of the main important steps to execute the code on the GPU is to copy the data from the CPU to the GPU.
-This done by allocating global GPU memory with \texttt{cudaMalloc}, for both the color and grayscale image, respectively named \texttt{dev\_a} and \texttt{dev\_b}.
+This done by allocating global GPU memory with \texttt{cudaMalloc}, for both the color and gray scale image, respectively named \texttt{dev\_a} and \texttt{dev\_b}.
 
 \includecode[cpp]{}{resources/rgb2grayscaleSnippet1.cpp}{}
 After memory allocation, the \texttt{inputImage} needs to be copied to the global GPU memory.
