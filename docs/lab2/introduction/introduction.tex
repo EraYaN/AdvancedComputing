@@ -12,12 +12,15 @@ The report compares the performance of each kernel separately and in some cases 
 At the end of the report the general results are discussed and some recommendations regarding the GPU kernel implementations are given.
 
 \section{Method}
-In order to get reliable performance measurements a total of 10 runs has been done.
-A Python script was in control of scheduling and averaging each run on the cluster.
+In order to get reliable performance measurements a total of 10 has been done.
+A Python script was in control of scheduling and averaging each run on the benchmark host.
+It also collected the profiling metrics and processed the output of the program.
 
-TODO: Explain all the table values, how did we get the theoretical bandwidth etc.
+The values in the result tables are calculated as shown in \cref{lst:table-calc-snippet}.
 
-The images that the kernels will be benchmarked for are listed in \cref{tab:image-information}
+\includecode[python]{}{resources/tableCalcSnippet.py}{lst:table-calc-snippet}
+
+The images that the kernels will be benchmarked for are listed in \cref{tab:image-information}.
 
 \begin{table}[H]
 	\centering

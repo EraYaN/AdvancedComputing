@@ -10,9 +10,7 @@
 \section{Meta Implementation}
 To speedup the data copy process to the GPU, it is very good practice to copy from pinned host memory regions.
 This way the GPU can get the data through DMA.
-This is implemented in the main file, the kernel do not need any alteration.
-The possibility to also leave some of the data on the device and just pass the device pointer to the next kernel was explored.
-This greatly affected the initialization times of successive kernels, due to the fact they did not have to copy over the data from the host memory.
+This is implemented in the main file, the kernels do not need any alteration.
 
 \section{Kernel Caller Implementation}
 Throughout the text the implementation of each kernel will be discussed.
@@ -53,13 +51,18 @@ The following kernels will only need to allocate memory for the output and do no
 After the execution of the last kernel all the memory will be freed up.
 
 \subsection{hostMappedMemory}
-TODO[Renzo]
+On newer systems and cards, it can be very beneficial for especially the grayscale kernel to use host mapped memory.
+This is when the device directly accesses host memory via DMA, but only when needed instead of during the full copy.
+NVidia driver optimizations kick in in this scenario, and they have a very positive effect.
+This way the the overall (total) speedup can be greatly increased.
+Sadly the benchmark server did not live up to these benchmark results, the implementation reverted to just copying the data over to the device.
+This might be very dependent on OS and driver implementation as well as general system architecture.
+On windows with a Maxwell card, the speedup was about twice as dramatic as our current speedup.
 
-%TODO[e] newer card hostMapped memory works for some kernels.
 \subsection{Using proper image processing routines (NPP)}
 NVidia delivers a very nice image processing toolkit.
 As this uses the regular graphics pipeline internally, this can help to greatly speedup the process.
 You see the same thing with the Intel MKL for example, when the guys who know the hardware really well make stuff for that hardware the performance is amazing.
 The one big problem with the NPP Image routines is that the documentation is quite sparse and hard to find.
 
-\end{document
+\end{document}
