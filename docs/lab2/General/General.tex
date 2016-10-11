@@ -8,13 +8,15 @@
 \chapter{General}
 
 \section{Meta Implementation}
-TODO[Erwin]
-%TODO[E] Write about pinned memory and the speed increase from cudaMemcpy
-%TODO[E] Write about leaving stuff on the device to speed up succesive kernels
+To speedup the data copy process to the GPU, it is very good practice to copy from pinned host memory regions.
+This way the GPU can get the data through DMA.
+This is implemented in the main file, the kernel do not need any alteration.
+The possibility to also leave some of the data on the device and just pass the device pointer to the next kernel was explored.
+This greatly affected the initialization times of successive kernels, due to the fact they did not have to copy over the data from the host memory.
 
 \section{Kernel Caller Implementation}
-Througout the text the implementation of each kernel will be discussed.
-However, since the implemenation of the kernel caller function is rather similar for each task, it will only be discussed here once for the RGB2Gray kernel and after that the reader can check the rest of the caller functions on its own.
+Throughout the text the implementation of each kernel will be discussed.
+However, since the implementation of the kernel caller function is rather similar for each task, it will only be discussed here once for the RGB2Gray kernel and after that the reader can check the rest of the caller functions on its own.
 
 One of the main important steps to execute the code on the GPU is to copy the data from the CPU to the GPU.
 This done by allocating global GPU memory with \texttt{cudaMalloc}, for both the color and grayscale image, respectively named \texttt{dev\_a} and \texttt{dev\_b}.
@@ -43,18 +45,21 @@ Now, the only step that is left is to free all the global GPU memory.
 \section{Enhancements}
 \subsection{Keeping Kernel Output in GPU memory}
 An important note needs to be made regarding the kernel caller implementation.
-In the example above all the memory needed for the input and output of the kernel is being allocated on the GPU and free'd after kernel completion.
+In the example above all the memory needed for the input and output of the kernel is being allocated on the GPU and freed after kernel completion.
 However, by leaving the output of each kernel in the memory and passing the pointer to the next kernel, things can be sped up drastically.
 Since the execution of the 4 image processing steps can be seen as a pipeline, the output of each kernel serves as input for the other kernel.
 The first kernel caller will need to allocate memory for both its input and output and it needs to copy the input to the GPU memory.
 The following kernels will only need to allocate memory for the output and do not have to bother allocating memory for the input and copying data to the GPU since it is already there.
-After the execution of the last kernel all the memory will be free'd up.
+After the execution of the last kernel all the memory will be freed up.
 
 \subsection{hostMappedMemory}
 TODO[Renzo]
 
 %TODO[e] newer card hostMapped memory works for some kernels.
-%TODO[e] Use NPP for actual image processing, it's much faster.
-%TODO[e] Talk about having a proper init (copy) kernel and a cleanup routine to speed up the kernels when used. And also how some might be merged.
+\subsection{Using proper image processing routines (NPP)}
+NVidia delivers a very nice image processing toolkit.
+As this uses the regular graphics pipeline internally, this can help to greatly speedup the process.
+You see the same thing with the Intel MKL for example, when the guys who know the hardware really well make stuff for that hardware the performance is amazing.
+The one big problem with the NPP Image routines is that the documentation is quite sparse and hard to find.
 
-\end{document}
+\end{document
