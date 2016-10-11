@@ -27,15 +27,15 @@ In the kernel the main additions are the initialization of the shared memory and
 The call to \texttt{\_\_syncthreads()} makes sure that all the threads in a single block have finished executing before the GPU moves on to merging the computed histogram of that block into the global memory.
 
 \section{Results}
-For the histogram kernel two results have been generated, one for the naive kernel (\cref{tab:histogram-naive-results}) and one for the shared memory kernel (\cref{tab:histogram-shared-results}).
+For the histogram kernel two results have been generated, one for the global memory kernel (\cref{tab:histogram-global-results}) and one for the shared memory kernel (\cref{tab:histogram-shared-results}).
 \subimport{resources/}{perf-tablenormal.tex}
 
 The speedup with the naive kernel is neglectable.
 Even though the kernel itself is faster, the overall speedup is still 1.0.
-This is likely caused by the phenomenom talked about in \cref{sec:hist-kernel}, as the \texttt{atomicAdd()} is causing big queues trying to access the global memory.
+This is likely caused by the phenomenon talked about in \cref{sec:hist-kernel}, as the \texttt{atomicAdd()} is causing big queues trying to access the global memory.
 
-However, when the comparison is being made between the naive and shared memory kernel the GPU suddendly outperforms the CPU.
-The kernel itself is not running a lot faster, however with a more streamlined approach of writting the results back to the memory causes an overall speed up of 5.2 in the best case.
+However, when the comparison is being made between the global and shared memory kernel the GPU suddenly outperforms the CPU.
+The kernel itself is not running a lot faster, however with a more streamlined approach of writing the results back to the memory causes an overall speed up of 5.2 in the best case.
 The slight overhead caused by the shared memory is well worth the performance increase.
 The bandwidth metrics also show that the GPU uses more bandwidth in the shared memory case, confirming that the data copying is happening in a more streamlined manner.
 

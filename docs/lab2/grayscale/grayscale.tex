@@ -23,11 +23,11 @@ Since each value is only used once, shared memory cannot be used to improve the 
 \subimport{resources/}{perf-tableshared.tex}
 
 Looking at \cref{tab:grayscale-results}, one can identify that the GPU improves the performance for all the images.
-The performance increase for images 09 and 15 is sligthly higher than that of image04.
+The performance increase for images 09 and 15 is slightly higher than that of image04.
 Due to their bigger size, more pixels require more executions and because of it the kernel time has a bigger impact on the overall execution time.
 So when the GPU drastically speeds up the kernel, the overall speedup gets a bigger performance boost for larger pictures.
 
-Even though the kernel is sped up over 2000 times for image 09, the copying of data to and from the GPU takes such a big chunk of the time that the overal speedup only becomes 1.7.
+Even though the kernel is sped up over 2000 times for image 09, the copying of data to and from the GPU takes such a big chunk of the time that the overall speedup only becomes 1.7.
 
 Furthermore, the attained bandwidth reaches 45\% of the theoretical one.
 Compared to the other kernels this is rather high, indicating that very simple instructions are being executed and the fetching of the data takes a big part of the time.
