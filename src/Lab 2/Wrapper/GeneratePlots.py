@@ -21,7 +21,7 @@ latex_jinja_env = jinja2.Environment(
 )
 
 # GeForce 750 Ti
-MAX_GFLOPS = 1305.6
+MAX_GFLOPS = 1398
 MAX_BANDWIDTH = 86.4
 
 systemName = "750Ti Srv."
