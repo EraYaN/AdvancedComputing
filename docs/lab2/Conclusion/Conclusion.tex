@@ -5,7 +5,9 @@
 \input{../../.library/style.tex}
 \addbibresource{../../.library/bibliography.bib}
 \begin{document}
-\chapter{Conclusion and Results}
+\chapter{Conclusion}
+
+Wrapping up the results, one can conclude that only the histogram implementation did not see an improvement in speedup for the GPU. \cref{fig:total-cuda-speedup} and \cref{fig:kernel-cuda-speedup} illustrate the overall and kernel speedups per kernel.
 
 \begin{figure}[H]
 \centering
@@ -20,5 +22,17 @@
     \caption{The kernel speedup of the CUDA kernels.}
     \label{fig:kernel-cuda-speedup}
 \end{figure}
+
+
+The smoothing kernel saw the biggest improvement of all even when using the naive CUDA implementation.
+Regardless of the implementation, the filter has the largest sequential running time, allowing the GPU to have the biggest impact when executing everything in a parallel manner.
+A speedup as high as 196384.8 has been achieved with the smoothing kernel on the largest image (image09).
+Since the relatively slow data transfer between the CPU and GPU, the overall speedup became 44.6 in the end.
+
+When one looks at the improvement in kernel times, it is clear that the bigger the image the bigger the improvement in execution time.
+However, when one compares this performance to the overall speedup the picture is very different.
+The overall speedup is rougly the same for each images.
+This indicates that even though the kernel itself has a much more noticable performance increase for larger data sets, the speedup is compensated by the larger dataset that needs to be copied to the GPU.
+Therefore the overall speedup is the same for big and small images.
 
 \end{document}
