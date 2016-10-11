@@ -5,7 +5,6 @@ PROJ_BASE					:= .
 BIN_DIR						:= $(PROJ_BASE)/bin
 EXEC_MAIN					:= $(BIN_DIR)/benchmark
 EXEC_COMPARE				:= $(BIN_DIR)/compare
-IMAGE						:=$(PROJ_BASE)/images/image15.jpg
 #RUN_IMAGE					:= "image00.jpg"
 #RUN_ID						:= 0
 CPPSTD						:= c++11
@@ -119,20 +118,23 @@ clean:
 	rm -f $(EXEC_MAIN) *~
 	rm -f $(EXEC_COMPARE) *~
 
-run: main
-	$(EXEC_MAIN) -d --save-images $(IMAGE) make-output
+run_outputdir:
+	mkdir -p $(PROJ_BASE)/run_output
+	
+run: run_outputdir main
+	$(EXEC_MAIN) -d --save-images --shared-histogram-kernel "$(PROJ_BASE)/images/image04.bmp" $(PROJ_BASE)/run_output/image04.bmp-run
+	$(EXEC_MAIN) -d --save-images --shared-histogram-kernel "$(PROJ_BASE)/images/image04.bmp" $(PROJ_BASE)/run_output/image09.bmp-run
+	$(EXEC_MAIN) -d --save-images --shared-histogram-kernel "$(PROJ_BASE)/images/image04.bmp" $(PROJ_BASE)/run_output/image15.jpg-run
 
-#RUNSERVER_REQ_RUN_SETTINGS=True
-#RUNSERVER_DEPS=all
-#-include $(ACS_SHARED_PATH)/runserver.mk
+runserver: schedule
 
 schedule: main
-	@echo "Scheduling for image04"
-	@sh schedule-script.sh $(EXEC_MAIN) "image04.bmp"
-	@echo "Scheduling for image09"
-	@sh schedule-script.sh $(EXEC_MAIN) "image09.bmp"
-	@echo "Scheduling for image15"
-	@sh schedule-script.sh $(EXEC_MAIN) "image15.jpg"
+	@echo "Scheduling for image04.bmp with ID: img04-make; Profiling: no; Arguments: --save-images --shared-histogram-kernel -d"
+	@sh schedule-script.sh $(EXEC_MAIN) "image04.bmp" "img04-make" no "--save-images --shared-histogram-kernel -d"
+	@echo "Scheduling for image09.bmp with ID: img09-make; Profiling: no; Arguments: --save-images --shared-histogram-kernel -d"
+	@sh schedule-script.sh $(EXEC_MAIN) "image09.bmp" "img09-make" no "--save-images --shared-histogram-kernel -d"
+	@echo "Scheduling for image15.jpg with ID: img15-make; Profiling: no; Arguments: --save-images --shared-histogram-kernel -d"
+	@sh schedule-script.sh $(EXEC_MAIN) "image15.jpg" "img15-make" no "--save-images --shared-histogram-kernel -d"
 
 schedule_single: main
 	@echo "Scheduling for $(RUN_IMAGE) with ID: $(RUN_ID); Profiling: $(PROFILING); Arguments: $(BENCH_ARGUMENTS)"
@@ -141,5 +143,3 @@ schedule_single: main
 #RUNSERVER_REQ_RUN_SETTINGS=True
 #RUNSERVER_DEPS=all
 #-include $(ACS_SHARED_PATH)/runserver.mk
-
-

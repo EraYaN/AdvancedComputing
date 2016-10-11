@@ -14,6 +14,7 @@
 #endif
 
 #include <stdint.h>
+#include <stdlib.h>
 
 //  Windows#ifdef _WIN32
 
