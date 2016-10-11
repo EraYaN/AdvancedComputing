@@ -40,43 +40,4 @@ A Python script was in control of scheduling and averaging each run on the clust
 % \end{tabular}
 % \end{table}
 
-\section{Meta Implementation}
-TODO[Erwin]
-%TODO[E] Write about pinned memory and the speed increase from cudaMemcpy
-%TODO[E] Write about leaving stuff on the device to speed up succesive kernels
-
-\section{Kernel Caller Implementation}
-Throughout the text the implementation of each kernel will be discussed.
-However, since the implementation of the kernel caller function is rather similar for each task, it will only be discussed here once for the RGB2Gray kernel and after that the reader can check the rest of the caller functions on its own.
-
-One of the main important steps to execute the code on the GPU is to copy the data from the CPU to the GPU.
-This done by allocating global GPU memory with \texttt{cudaMalloc}, for both the color and gray scale image, respectively named \texttt{dev\_a} and \texttt{dev\_b}.
-
-\includecode[cpp]{}{resources/rgb2grayscaleSnippet1.cpp}{}
-After memory allocation, the \texttt{inputImage} needs to be copied to the global GPU memory.
-
-\includecode[cpp]{}{resources/rgb2grayscaleSnippet2.cpp}{}
-
-Another important step is to specify the number of blocks and threads per block.
-The number of threads per block should be a round multiple of the warp size, which is 32 on all the current NVIDIA hardware.
-Therefore a block size of 16x16 threads (256 is a round multiple of 32) was chosen and the number of blocks (\texttt{numBlocks}) is computed according to the \texttt{width} and \texttt{height} of the image.
-
-\includecode[cpp]{}{resources/rgb2grayscaleSnippet3.cpp}{}
-
-After having the global memory and thread/block dimensions set, the kernel can be called.
-
-\includecode[cpp]{}{resources/rgb2grayscaleSnippet4.cpp}{}
-
-After kernel completion the results (\texttt{dev\_b}) can be copied back to the output \texttt{grayImage}.
-
-\includecode[cpp]{}{resources/rgb2grayscaleSnippet5.cpp}{}
-
-Now, the only step that is left is to free all the global GPU memory.
-
-\subsection{Enhancement}
-An important note needs to be made regarding the kernel caller implementation. TODO[Renzo]
-
-
-
-
 \end{document}
