@@ -147,7 +147,9 @@ int main(int argc, char *argv[]){
         //Compute one sim step for all cells
         if(i>20000-1 && i<20500-1){ iApp = 6;} // start @ 1 because skipping initial values
         else{ iApp = 0;}
-		pOutFile << string_format("%d %.2f %.1f ", i + 1, i*0.05, iApp) << endl;        
+		pOutFile << string_format("%d %.2f %.1f ", i + 1, i*0.05, iApp); 
+
+
 
         if(EXTRA_TIMING){
             tNeighbourStart = now();
