@@ -92,6 +92,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <CudaCompile Include="infoli.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="checkCudaCall.h" />
     <ClInclude Include="infoli.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

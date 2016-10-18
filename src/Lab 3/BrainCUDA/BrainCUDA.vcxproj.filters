@@ -27,5 +27,8 @@
     <ClInclude Include="infoli.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="checkCudaCall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

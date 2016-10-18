@@ -23,135 +23,135 @@
 
 using namespace std;
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
 
-    const char* outFileName = "InferiorOlive_Output.txt";
-    int i, j, k, p, q;
-    int simSteps = 0;
-    int simTime = 0;
-    int inputFromFile = 0;
-    int initSteps;
-    cellState ***cellStatePtr;
-    cellCompParams **cellCompParamsPtr;
-    int seedvar;
-    char temp[100];//warning: this buffer may overflow
-    user_float_t iApp;
-    perftime_t t0, t1, tNeighbourStart, tNeighbourEnd, tComputeStart, tComputeEnd, tInitStart, tInitEnd, tLoopStart, tLoopEnd, tWriteFileStart, tWriteFileEnd;
+	const char* outFileName = "InferiorOlive_Output.txt";
+	int i, j, k, p, q;
+	int simSteps = 0;
+	int simTime = 0;
+	int inputFromFile = 0;
+	int initSteps;
+	cellState ***cellStatePtr;
+	cellCompParams **cellCompParamsPtr;
+	int seedvar;
+	char temp[100];//warning: this buffer may overflow
+	user_float_t iApp;
+	perftime_t t0, t1, tNeighbourStart, tNeighbourEnd, tComputeStart, tComputeEnd, tInitStart, tInitEnd, tLoopStart, tLoopEnd, tWriteFileStart, tWriteFileEnd;
 	double tNeighbour, tCompute, tRead, tWriteFile, tInit, tLoop, usecs;
-    tNeighbour = tCompute = tWriteFile = tInit = tLoop = 0;
-    //double secs;
+	tNeighbour = tCompute = tWriteFile = tInit = tLoop = 0;
+	//double secs;
 
-    t0 = now();
-    if(EXTRA_TIMING){
-        tInitStart = now();
-    }
-    DEBUG_PRINT(("Inferior Olive Model (%d x %d cell mesh)\n", IO_NETWORK_DIM1, IO_NETWORK_DIM2));
+	t0 = now();
+	if (EXTRA_TIMING) {
+		tInitStart = now();
+	}
+	DEBUG_PRINT(("Inferior Olive Model (%d x %d cell mesh)\n", IO_NETWORK_DIM1, IO_NETWORK_DIM2));
 
-    //Open output file
+	//Open output file
 	ofstream pOutFile(outFileName);
 
-    if(!pOutFile){
-        cerr << "Error: Couldn't create "<< outFileName << endl;
-        exit(EXIT_FAILURE);
-    }
+	if (!pOutFile) {
+		cerr << "Error: Couldn't create " << outFileName << endl;
+		exit(EXIT_FAILURE);
+	}
 	pOutFile << "#simSteps Time(ms) Input(Iapp) Output(V_axon)" << endl;
 
 
-    //Malloc for the array of cellStates and cellCompParams
-    mallocCells(&cellCompParamsPtr, &cellStatePtr);
-    //Write initial state values
-    InitState(cellStatePtr[0]);
+	//Malloc for the array of cellStates and cellCompParams
+	mallocCells(&cellCompParamsPtr, &cellStatePtr);
+	//Write initial state values
+	InitState(cellStatePtr[0]);
 
-    //Initialize g_CaL
-    init_g_CaL(cellStatePtr);
-    //Random initialization: put every cell in a different oscillation state
-    if(RAND_INIT){
-        random_init(cellCompParamsPtr, cellStatePtr);
-    }
+	//Initialize g_CaL
+	init_g_CaL(cellStatePtr);
+	//Random initialization: put every cell in a different oscillation state
+	if (RAND_INIT) {
+		random_init(cellCompParamsPtr, cellStatePtr);
+	}
 
-    simTime = SIMTIME; // in miliseconds
-    simSteps = ceil(simTime/DELTA);
+	simTime = SIMTIME; // in miliseconds
+	simSteps = ceil(simTime / DELTA);
 
-    if(EXTRA_TIMING){
-        tInitEnd = now();
-        tLoopStart = now();
-    }
+	if (EXTRA_TIMING) {
+		tInitEnd = now();
+		tLoopStart = now();
+	}
 
-    for(i=0;i<simSteps;i++){
-        //Compute one sim step for all cells
-        if(i>20000-1 && i<20500-1){ iApp = 6;} // start @ 1 because skipping initial values
-        else{ iApp = 0;}
+	for (i = 0;i < simSteps;i++) {
+		//Compute one sim step for all cells
+		if (i > 20000 - 1 && i < 20500 - 1) { iApp = 6; } // start @ 1 because skipping initial values
+		else { iApp = 0; }
 		pOutFile << string_format("%d %.2f %.1f ", i + 1, i*0.05, iApp) << endl;
-        for(j=0;j<IO_NETWORK_DIM1;j++){
-            for(k=0;k<IO_NETWORK_DIM2;k++){
-                if(EXTRA_TIMING){
-                    tNeighbourStart = now();
-                }
-                neighbors(cellCompParamsPtr, cellStatePtr, i, j, k);
-                if(EXTRA_TIMING){
-                    tNeighbourEnd = now();
-                    tNeighbour += diffToNanoseconds(tNeighbourStart, tNeighbourEnd);
-                    tComputeStart = now();
-                }
-                compute(cellCompParamsPtr, cellStatePtr, iApp, i, j, k);
-                if(EXTRA_TIMING){
-                    tComputeEnd = now();
-                    tCompute += diffToNanoseconds(tComputeStart, tComputeEnd);
-                    tWriteFileStart = now();
-                }
+		for (j = 0;j < IO_NETWORK_DIM1;j++) {
+			for (k = 0;k < IO_NETWORK_DIM2;k++) {
+				if (EXTRA_TIMING) {
+					tNeighbourStart = now();
+				}
+				neighbors(cellCompParamsPtr, cellStatePtr, i, j, k);
+				if (EXTRA_TIMING) {
+					tNeighbourEnd = now();
+					tNeighbour += diffToNanoseconds(tNeighbourStart, tNeighbourEnd);
+					tComputeStart = now();
+				}
+				compute(cellCompParamsPtr, cellStatePtr, iApp, i, j, k);
+				if (EXTRA_TIMING) {
+					tComputeEnd = now();
+					tCompute += diffToNanoseconds(tComputeStart, tComputeEnd);
+					tWriteFileStart = now();
+				}
 				pOutFile << setprecision(8) << cellStatePtr[(i % 2) ^ 1][j][k].axon.V_axon << endl;
-                if(EXTRA_TIMING){
-                    tWriteFileEnd = now();
-                    tWriteFile += diffToNanoseconds(tWriteFileStart, tWriteFileEnd);
-                }
-            }
-        }
-        if(EXTRA_TIMING){
-            tWriteFileStart = now();
-        }
+				if (EXTRA_TIMING) {
+					tWriteFileEnd = now();
+					tWriteFile += diffToNanoseconds(tWriteFileStart, tWriteFileEnd);
+				}
+			}
+		}
+		if (EXTRA_TIMING) {
+			tWriteFileStart = now();
+		}
 		pOutFile << endl;
-        if(EXTRA_TIMING){
-            tWriteFileEnd = now();
-            tWriteFile += diffToNanoseconds(tWriteFileStart, tWriteFileEnd);
-        }
-    }
-    if(EXTRA_TIMING){
-        tLoopEnd = now();
-    }
+		if (EXTRA_TIMING) {
+			tWriteFileEnd = now();
+			tWriteFile += diffToNanoseconds(tWriteFileStart, tWriteFileEnd);
+		}
+	}
+	if (EXTRA_TIMING) {
+		tLoopEnd = now();
+	}
 
-    t1 = now();
-    usecs = diffToNanoseconds(t0,t1)/1000;
-    DEBUG_PRINT(("%d ms of brain time in %d simulation steps\n", simTime, simSteps));
-    DEBUG_PRINT((" %f usecs real time \n", usecs));
+	t1 = now();
+	usecs = diffToNanoseconds(t0, t1) / 1e3;
+	DEBUG_PRINT(("%d ms of brain time in %d simulation steps\n", simTime, simSteps));
+	DEBUG_PRINT((" %f usecs real time \n", usecs));
 
-    if(EXTRA_TIMING){
-        tInit = diffToNanoseconds(tInitStart, tInitEnd);
-        tLoop = diffToNanoseconds(tLoopStart, tLoopEnd);
+	if (EXTRA_TIMING) {
+		tInit = diffToNanoseconds(tInitStart, tInitEnd);
+		tLoop = diffToNanoseconds(tLoopStart, tLoopEnd);
 
-        DEBUG_PRINT(("\n"));
-        DEBUG_PRINT(("----------------------------------\n"));
-        DEBUG_PRINT(("tInit: \t\t %.1f ms\n", tInit/1000000));
-        DEBUG_PRINT(("tLoop: \t\t %.1f ms\n", tLoop / 1000000));
-        DEBUG_PRINT(("\ttNeighbour: \t %.1f ms\n", tNeighbour / 1000000));
-        DEBUG_PRINT(("\ttCompute: \t %.1f ms\n", tCompute / 1000000));
-        DEBUG_PRINT(("\ttWriteFile: \t %.1f ms\n", tWriteFile / 1000000));
-        DEBUG_PRINT(("\t----------- + \n"));
-        DEBUG_PRINT(("\ttSumLoop: \t %.1f ms\n", (tWriteFile + tCompute + tNeighbour) / 1000000));
-        DEBUG_PRINT(("----------------------------------\n"));
-        DEBUG_PRINT(("tSum: \t %.1f ms\n", (tInit + tLoop) / 1000000));
-    }
+		DEBUG_PRINT(("\n"));
+		DEBUG_PRINT(("----------------------------------\n"));
+		DEBUG_PRINT(("tInit: \t\t %.1f s\n", tInit / 1e9));
+		DEBUG_PRINT(("tLoop: \t\t %.1f s\n", tLoop / 1e9));
+		DEBUG_PRINT(("\ttNeighbour: \t %.1f s\n", tNeighbour / 1e9));
+		DEBUG_PRINT(("\ttCompute: \t %.1f s\n", tCompute / 1e9));
+		DEBUG_PRINT(("\ttWriteFile: \t %.1f s\n", tWriteFile / 1e9));
+		DEBUG_PRINT(("\t----------- + \n"));
+		DEBUG_PRINT(("\ttSumLoop: \t %.1f s\n", (tWriteFile + tCompute + tNeighbour) / 1e9));
+		DEBUG_PRINT(("----------------------------------\n"));
+		DEBUG_PRINT(("tSum: \t %.1f s\n", (tInit + tLoop) / 1e9));
+	}
 
 
-    //Free up memory and close files
-    free(cellStatePtr[0]);
-    free(cellStatePtr[1]);
-    free(cellStatePtr);
-    free(cellCompParamsPtr);
+	//Free up memory and close files
+	free(cellStatePtr[0]);
+	free(cellStatePtr[1]);
+	free(cellStatePtr);
+	free(cellCompParamsPtr);
 	pOutFile.close();
 
 	wait_for_input();
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
 /**
@@ -164,21 +164,21 @@ k: current position in dimension 2 of the IO network
 
 Retreive the voltage of the dendrite (V_dend) from each neighbour
 **/
-void neighbors(cellCompParams **cellCompParamsPtr, cellState ***cellStatePtr, int i, int j, int k){
-    int n, p, q ;
-    n = 0;
-    for(p=j-1;p<=j+1;p++){
-        for(q=k-1;q<=k+1;q++){
-            if(((p!=j)||(q!=k)) && ((p>=0)&&(q>=0)) && ((p<IO_NETWORK_DIM1)&&(q<IO_NETWORK_DIM2))){
-                cellCompParamsPtr[j][k].neighVdend[n++] = cellStatePtr[i%2][p][q].dend.V_dend;
-            }else if(p==j && q==k){
-                ;   // do nothing, this is the cell itself
-            }else{
-                //store same V_dend so that Ic becomes zero by the subtraction
-                cellCompParamsPtr[j][k].neighVdend[n++] = cellStatePtr[i%2][j][k].dend.V_dend;
-            }
-        }
-    }
+void neighbors(cellCompParams **cellCompParamsPtr, cellState ***cellStatePtr, int i, int j, int k) {
+	int n, p, q;
+	n = 0;
+	for (p = j - 1;p <= j + 1;p++) {
+		for (q = k - 1;q <= k + 1;q++) {
+			if (((p != j) || (q != k)) && ((p >= 0) && (q >= 0)) && ((p < IO_NETWORK_DIM1) && (q < IO_NETWORK_DIM2))) {
+				cellCompParamsPtr[j][k].neighVdend[n++] = cellStatePtr[i % 2][p][q].dend.V_dend;
+			} else if (p == j && q == k) {
+				;   // do nothing, this is the cell itself
+			} else {
+				//store same V_dend so that Ic becomes zero by the subtraction
+				cellCompParamsPtr[j][k].neighVdend[n++] = cellStatePtr[i % 2][j][k].dend.V_dend;
+			}
+		}
+	}
 }
 
 /**
@@ -194,11 +194,11 @@ Retreive the external input of the dedrite
 and update the previous and new state of the current cell.
 Then Compute the new variables of the current cell with ComputeOneCell.
 **/
-void compute(cellCompParams **cellCompParamsPtr, cellState ***cellStatePtr, int iApp, int i, int j, int k){
-    cellCompParamsPtr[j][k].iAppIn = iApp;
-    cellCompParamsPtr[j][k].prevCellState = &cellStatePtr[i%2][j][k];
-    cellCompParamsPtr[j][k].newCellState = &cellStatePtr[(i%2)^1][j][k];
-    //Compute one Cell...
-    ComputeOneCell(&cellCompParamsPtr[j][k]);
+void compute(cellCompParams **cellCompParamsPtr, cellState ***cellStatePtr, int iApp, int i, int j, int k) {
+	cellCompParamsPtr[j][k].iAppIn = iApp;
+	cellCompParamsPtr[j][k].prevCellState = &cellStatePtr[i % 2][j][k];
+	cellCompParamsPtr[j][k].newCellState = &cellStatePtr[(i % 2) ^ 1][j][k];
+	//Compute one Cell...
+	ComputeOneCell(&cellCompParamsPtr[j][k]);
 }
 
