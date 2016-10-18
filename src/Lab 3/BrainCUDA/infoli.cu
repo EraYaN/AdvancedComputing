@@ -286,23 +286,23 @@ int main(int argc, char *argv[]) {
 	if (print) {
 		printf("BlockDim x=%d, y=%d, GridDim x=%d, y=%d \n", blockDim.x, blockDim.y, IO_NETWORK_DIM1 / blockDim.x, IO_NETWORK_DIM2 / blockDim.y);
 		printf("%d ms of brain time in %d simulation steps\n", SIMTIME, 120000);
-		secs = diffToNanoseconds(t0, t3) / 1e9;
-		printf("%lld us real time \n", secs);
+		secs = diffToNanoseconds(t0, t3) / 1e3;
+		printf("%.1f us real time \n", secs);
 		cudaEventElapsedTime(&time, start, stop);
-		secs = diffToNanoseconds(t1, t2) / 1e9;
-		printf(" %f us kernel time: \n", time * 1000);
-		printf(" %lld us kernel time \n", secs);
-		secs = diffToNanoseconds(t4, t5) / 1e9;//(t5 - t4);
-		printf("   %lld us compute time per timestep to device time \n", secs);
-		secs = diffToNanoseconds(t0, t1) / 1e9;//(t1 - t0);
-		printf(" %lld us xfer to device time \n", secs);
-		secs = diffToNanoseconds(t2, t3) / 1e9;//(t3 - t2);
-		printf(" %lld us xfer to host time cellState + writing to file per timestep \n", secs);
+		secs = diffToNanoseconds(t1, t2) / 1e3;
+		printf(" %.1f us kernel time: \n", time * 1000);
+		printf(" %.1f us kernel time \n", secs);
+		secs = diffToNanoseconds(t4, t5) / 1e3;//(t5 - t4);
+		printf("   %.1f us compute time per timestep to device time \n", secs);
+		secs = diffToNanoseconds(t0, t1) / 1e3;//(t1 - t0);
+		printf(" %.1f us xfer to device time \n", secs);
+		secs = diffToNanoseconds(t2, t3) / 1e3;//(t3 - t2);
+		printf(" %.1f us xfer to host time cellState + writing to file per timestep \n", secs);
 	}
 	if (print) {
 		printf("%d ms of brain time in %d simulation steps\n", SIMTIME, 120000);
-		secs = diffToNanoseconds(t0, t3) / 1e9;//(t3 - t0);
-		printf("%lld us real time \n", secs);
+		secs = diffToNanoseconds(t0, t3) / 1e3;//(t3 - t0);
+		printf("%.1f us real time \n", secs);
 	}
 
 	//Free up memory and close files
