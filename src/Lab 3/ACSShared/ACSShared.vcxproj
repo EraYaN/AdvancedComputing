@@ -70,6 +70,7 @@
   <ItemGroup>
     <ClCompile Include="cuda_tools.cpp" />
     <ClCompile Include="interactive_tools.cpp" />
+    <ClCompile Include="opencl_helpers.cpp" />
     <ClCompile Include="string_format.cpp" />
     <ClCompile Include="timing.cpp" />
   </ItemGroup>
@@ -77,6 +78,7 @@
     <ClInclude Include="cuda_tools.h" />
     <ClInclude Include="exit_codes.h" />
     <ClInclude Include="interactive_tools.h" />
+    <ClInclude Include="opencl_helpers.h" />
     <ClInclude Include="string_format.h" />
     <ClInclude Include="timing.h" />
     <ClInclude Include="user_types.h" />

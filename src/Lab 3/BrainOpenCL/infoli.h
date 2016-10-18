@@ -33,6 +33,9 @@
 #include "variables.h" 
 #include "timing.h"
 #include "string_format.h"
+#include "exit_codes.h"
+#include "opencl_helpers.h"
+#include "interactive_tools.h"
 
 #ifdef __APPLE__
 #include <OpenCL/cl.h>

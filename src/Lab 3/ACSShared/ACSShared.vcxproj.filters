@@ -5,6 +5,7 @@
     <ClCompile Include="interactive_tools.cpp" />
     <ClCompile Include="string_format.cpp" />
     <ClCompile Include="timing.cpp" />
+    <ClCompile Include="opencl_helpers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cuda_tools.h" />
@@ -13,5 +14,6 @@
     <ClInclude Include="string_format.h" />
     <ClInclude Include="timing.h" />
     <ClInclude Include="user_types.h" />
+    <ClInclude Include="opencl_helpers.h" />
   </ItemGroup>
 </Project>

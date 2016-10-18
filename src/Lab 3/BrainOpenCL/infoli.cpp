@@ -34,7 +34,10 @@ int main(int argc, char *argv[]){
     int initSteps;
     cl_float_t *cellStatePtr;
     cl_float_t *cellCompParamsPtr;
-    cl_float_t iApp; 
+    cl_float_t iApp;
+
+	bool debug = true;
+	bool interactive = true;
 
     int seedvar;
     char temp[100];//warning: this buffer may overflow
@@ -74,69 +77,310 @@ int main(int argc, char *argv[]){
     init_g_CaL(cellStatePtr);
 
 
-    //-----------------------------------------------------
-    // STEP 1: Discover and initialize the platforms
-    //-----------------------------------------------------
+	//-----------------------------------------------------
+	// STEP 1: Discover and initialize the platforms
+	//-----------------------------------------------------
+	cl_uint numPlatforms = 0;
+	cl_platform_id *platforms = NULL;
+
+	// Use clGetPlatformIDs() to retrieve the number of
+	// platforms
+	status = clGetPlatformIDs(0, NULL, &numPlatforms);
+	// Allocate enough space for each platform
+	platforms = (cl_platform_id*)malloc(numPlatforms * sizeof(cl_platform_id));
+
+	// Fill in platforms with clGetPlatformIDs()
+	status = clGetPlatformIDs(numPlatforms, platforms, NULL);
+
+	if (status != CL_SUCCESS) {
+		cerr << "error in step 1: " << getErrorString(status) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
+
+	//-----------------------------------------------------
+	// STEP 2: Discover and initialize the devices
+	//-----------------------------------------------------
+	cl_uint numDevices = 0;
+	cl_device_id *devices = NULL;
+
+	// Use clGetDeviceIDs() to retrieve the number of
+	// devices present
+	status = clGetDeviceIDs(
+		platforms[0],
+		CL_DEVICE_TYPE_ALL,
+		0,
+		NULL,
+		&numDevices);
+	// Allocate enough space for each device
+	devices = (cl_device_id*)malloc(numDevices * sizeof(cl_device_id));
+
+	// Fill in devices with clGetDeviceIDs()
+	status |= clGetDeviceIDs(
+		platforms[0],
+		CL_DEVICE_TYPE_ALL,
+		numDevices,
+		devices,
+		NULL);
+	// select the device which will be used
+	int device_id = 0;
+
+	if ((status != CL_SUCCESS) || ((unsigned int)device_id >= numDevices)) {
+		cerr << "error in step 2: " << getErrorString(status) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
 
 
-    //-----------------------------------------------------
-    // STEP 2: Discover and initialize the devices
-    //-----------------------------------------------------
+	if (debug) {
+		// print device name
+		char* value;
+		size_t valueSize;
+		clGetDeviceInfo(devices[device_id], CL_DEVICE_NAME, 0, NULL, &valueSize);
+		value = (char*)malloc(valueSize);
+		clGetDeviceInfo(devices[device_id], CL_DEVICE_NAME, valueSize, value, NULL);
+		printf("Running on device: %s\n", value);
+		free(value);
+	}
+
+	//-----------------------------------------------------
+	// STEP 3: Create a context
+	//-----------------------------------------------------
+	cl_context context = NULL;
+
+	// Create a context using clCreateContext() and
+	// associate it with the devices
+	context = clCreateContext(
+		NULL,
+		1,
+		&devices[device_id],
+		NULL,
+		NULL,
+		&status);
+
+	if (status != CL_SUCCESS) {
+		cerr << "error in step 3: " << getErrorString(status) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
 
 
-    //-----------------------------------------------------
-    // STEP 3: Create a context
-    //-----------------------------------------------------
+	//-----------------------------------------------------
+	// STEP 4: Create a command queue
+	//-----------------------------------------------------
+	cl_command_queue cmdQueue;
 
+	// Create a command queue using clCreateCommandQueue(),
+	// and associate it with the device you want to execute
+	// on
+	cmdQueue = clCreateCommandQueue(
+		context,
+		devices[device_id],
+		0,
+		&status);
 
-    //-----------------------------------------------------
-    // STEP 4: Create a command queue
-    //-----------------------------------------------------
+	if (status != CL_SUCCESS) {
+		cerr << "error in step 4: " << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
 
 
     //-----------------------------------------------------
     // STEP 5: Create device buffers
     //-----------------------------------------------------
- 
+	cl_mem buffer_iApp, buffer_cellStatePtr, buffer_cellVDendPtr;
+
+	buffer_iApp = clCreateBuffer(
+		context,
+		CL_MEM_READ_ONLY,
+		simSteps * sizeof(double),
+		NULL,
+		&status);
+
+	if (status != CL_SUCCESS) {
+		cerr << "error in step 5, creating buffer for iApp: " << getErrorString(status) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
+
+	buffer_cellStatePtr = clCreateBuffer(
+		context,
+		CL_MEM_READ_ONLY,
+		IO_NETWORK_DIM1*IO_NETWORK_DIM2*PARAM_SIZE * sizeof(double),
+		NULL,
+		&status);
+
+	if (status != CL_SUCCESS) {
+		cerr << "error in step 5, creating buffer for cellStatePtr: " << getErrorString(status) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
+
+	buffer_cellVDendPtr = clCreateBuffer(
+		context,
+		CL_MEM_READ_ONLY,
+		IO_NETWORK_DIM1*IO_NETWORK_DIM2 * sizeof(double),
+		NULL,
+		&status);
+
+	if (status != CL_SUCCESS) {
+		cerr << "error in step 5, creating buffer for cellStatePtr: " << getErrorString(status) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
+
 
     //-----------------------------------------------------
     // STEP 6: Write host data to device buffers
     //-----------------------------------------------------
+	/**
+	** Please check if your kernel files can be opened,
+	** especially when running on the server
+	**/
+	char *computeFileName, *neighbourFileName;
+	neighbourFileName = "neighbour_kernel.cl";
+	computeFileName = "compute_kernel.cl";
+
+	// neighbourFile
+	ifstream neighbourFile(neighbourFileName);
+	if (!neighbourFile) {
+		cerr << "cannot open neighbour file" << endl;
+		cerr << "current path:" << neighbourFileName << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	std::string content(
+		(std::istreambuf_iterator<char>(neighbourFile)),
+		std::istreambuf_iterator<char>()
+	);
+	size_t neighbourSize = content.size();
+	const char* neighbourBuffer = new char[neighbourSize];
+	neighbourBuffer = content.c_str();
+
+	// computeFile
+	ifstream computeFile(computeFileName);
+	if (!computeFile) {
+		cerr << "cannot open neighbour file" << endl;
+		cerr << "current path:" << neighbourFileName << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	std::string content(
+		(std::istreambuf_iterator<char>(computeFile)),
+		std::istreambuf_iterator<char>()
+	);
+	size_t computeSize = content.size();
+	const char* computeBuffer = new char[computeSize];
+	computeBuffer = content.c_str();
+
 
     //-----------------------------------------------------
     // STEP 7: Create and compile the program
     //-----------------------------------------------------
-    /**
-    ** Please check if your kernel files can be opened, 
-    ** especially when running on the server
-    **/ 
-    char *computeFileName, *neighbourFileName;
-    neighbourFileName = "neighbour_kernel.cl";
-    computeFileName = "compute_kernel.cl";
+	cl_program programNeighbour = clCreateProgramWithSource(
+		context,
+		1,
+		(const char**)&neighbourBuffer,
+		&neighbourSize,
+		&status);
 
-	ifstream neighbourFile(neighbourFileName);
-    if(!neighbourFile){
-        cerr << "cannot open neighbour file" << endl;
-		cerr << "current path:" << neighbourFileName << endl;
-        exit(EXIT_FAILURE);
-    }
+	cl_program programCompute = clCreateProgramWithSource(
+		context,
+		1,
+		(const char**)&computeBuffer,
+		&computeSize,
+		&status);
 
-	ifstream computeFile(computeFileName);
-    if(!computeFile){
-		cerr << "cannot open neighbour file" << endl;
-		cerr << "current path:" << neighbourFileName << endl;
-        exit(EXIT_FAILURE);
-    }
+	//delete mulBuffer;
+
+	// Build (compile) the program for the devices with
+	// clBuildProgram()
+	const char options[] = "-cl-std=CL1.2";
+	status |= clBuildProgram(
+		programNeighbour,
+		1,
+		&devices[device_id],
+		options,
+		NULL,
+		NULL);
+
+	if (status != CL_SUCCESS) {
+		cerr << "error in step 6: " << getErrorString(status) << endl;
+		printCLBuildOutput(programNeighbour, &devices[device_id]);
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
+
+	const char options[] = "-cl-std=CL1.2";
+	status |= clBuildProgram(
+		programCompute,
+		1,
+		&devices[device_id],
+		options,
+		NULL,
+		NULL);
+
+	if (status != CL_SUCCESS) {
+		cerr << "error in step 6: " << getErrorString(status) << endl;
+		printCLBuildOutput(programCompute, &devices[device_id]);
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
 
     //-----------------------------------------------------
     // STEP 8: Create the kernel
     //----------------------------------------------------
+	cl_kernel neighbourKernel = NULL;
+
+	// Use clCreateKernel() to create a kernel from the
+	neighbourKernel = clCreateKernel(programNeighbour, "neighbour_kernel", &statusNeighbour);
+	if (status != CL_SUCCESS) {
+		cerr << "error in step 7: " << getErrorString(status) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
+
+	cl_kernel computeKernel = NULL;
+
+	// Use clCreateKernel() to create a kernel from the
+	computeKernel = clCreateKernel(programCompute, "compute_kernel", &statusCompute);
+	if (status != CL_SUCCESS) {
+		cerr << "error in step 7: " << getErrorString(status) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
 
 
     //-----------------------------------------------------
     // STEP 9: Set the kernel arguments
     //-----------------------------------------------------
+	// Associate the input and output buffers with the
+	// kernel
+	// using clSetKernelArg()
+	statusNeighbour = clSetKernelArg(
+		neighbourKernel,
+		0,
+		sizeof(cl_mem),
+		&buffer_iApp);
+	statusNeighbour |= clSetKernelArg(
+		neighbourKernel,
+		1,
+		sizeof(cl_mem),
+		&buffer_cellStatePtr);
+	statusNeighbour |= clSetKernelArg(
+		neighbourKernel,
+		2,
+		sizeof(cl_mem),
+		&buffer_cellVDendPtr);
 
+	// TODO: check and set neighbour and compute arguments
+
+	if (statusNeighbour != CL_SUCCESS) {
+		cerr << "error in step 8: " << getErrorString(statusNeighbour) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
 
     //-----------------------------------------------------
     // STEP 10: Configure the work-item structure
@@ -243,7 +487,15 @@ int main(int argc, char *argv[]){
     //-----------------------------------------------------
     // STEP 12: Release OpenCL resources
     //----------------------------------------------------- 
-
+	clReleaseKernel(neighbourKernel);
+	clReleaseKernel(computeKernel);
+	clReleaseProgram(programNeighbour);
+	clReleaseProgram(programCompute);
+	clReleaseCommandQueue(cmdQueue);
+	clReleaseMemObject(buffer_iApp);
+	clReleaseMemObject(buffer_cellStatePtr);
+	clReleaseMemObject(buffer_cellVDendPtr);
+	clReleaseContext(context);
 
     //Free up memory and close files
     free(cellStatePtr);
