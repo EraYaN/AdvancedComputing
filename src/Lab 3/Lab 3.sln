@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BrainCPU", "BrainCPU\BrainCPU.vcxproj", "{1DD94E64-DBD3-40C2-9CCF-AD69CDCB17D0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{20C0B8CD-2A4B-46C3-ACE5-D212651352F6} = {20C0B8CD-2A4B-46C3-ACE5-D212651352F6}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BrainOpenCL", "BrainOpenCL\BrainOpenCL.vcxproj", "{D6B77332-F775-44EC-B75F-C22C60713901}"
+	ProjectSection(ProjectDependencies) = postProject
+		{20C0B8CD-2A4B-46C3-ACE5-D212651352F6} = {20C0B8CD-2A4B-46C3-ACE5-D212651352F6}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BrainCUDA", "BrainCUDA\BrainCUDA.vcxproj", "{4C743265-8E19-41B5-8A44-E95907786D1A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{20C0B8CD-2A4B-46C3-ACE5-D212651352F6} = {20C0B8CD-2A4B-46C3-ACE5-D212651352F6}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ACSShared", "ACSShared\ACSShared.vcxproj", "{20C0B8CD-2A4B-46C3-ACE5-D212651352F6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libraries", "libraries", "{22B289E7-53E6-4E83-B872-1B28CF41E499}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1DD94E64-DBD3-40C2-9CCF-AD69CDCB17D0}.Debug|x64.ActiveCfg = Debug|x64
+		{1DD94E64-DBD3-40C2-9CCF-AD69CDCB17D0}.Debug|x64.Build.0 = Debug|x64
+		{1DD94E64-DBD3-40C2-9CCF-AD69CDCB17D0}.Release|x64.ActiveCfg = Release|x64
+		{1DD94E64-DBD3-40C2-9CCF-AD69CDCB17D0}.Release|x64.Build.0 = Release|x64
+		{D6B77332-F775-44EC-B75F-C22C60713901}.Debug|x64.ActiveCfg = Debug|x64
+		{D6B77332-F775-44EC-B75F-C22C60713901}.Debug|x64.Build.0 = Debug|x64
+		{D6B77332-F775-44EC-B75F-C22C60713901}.Release|x64.ActiveCfg = Release|x64
+		{D6B77332-F775-44EC-B75F-C22C60713901}.Release|x64.Build.0 = Release|x64
+		{4C743265-8E19-41B5-8A44-E95907786D1A}.Debug|x64.ActiveCfg = Debug|x64
+		{4C743265-8E19-41B5-8A44-E95907786D1A}.Debug|x64.Build.0 = Debug|x64
+		{4C743265-8E19-41B5-8A44-E95907786D1A}.Release|x64.ActiveCfg = Release|x64
+		{4C743265-8E19-41B5-8A44-E95907786D1A}.Release|x64.Build.0 = Release|x64
+		{20C0B8CD-2A4B-46C3-ACE5-D212651352F6}.Debug|x64.ActiveCfg = Debug|x64
+		{20C0B8CD-2A4B-46C3-ACE5-D212651352F6}.Debug|x64.Build.0 = Debug|x64
+		{20C0B8CD-2A4B-46C3-ACE5-D212651352F6}.Release|x64.ActiveCfg = Release|x64
+		{20C0B8CD-2A4B-46C3-ACE5-D212651352F6}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{20C0B8CD-2A4B-46C3-ACE5-D212651352F6} = {22B289E7-53E6-4E83-B872-1B28CF41E499}
+	EndGlobalSection
+EndGlobal
