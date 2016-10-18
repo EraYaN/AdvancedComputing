@@ -21,42 +21,33 @@
  */
 #include "infoli.h"
 #include "init.h"
-#include "ioFile.h"
 
-typedef unsigned long long timestamp_t;
-
-static timestamp_t get_timestamp ()
-{
-    struct timeval now;
-    gettimeofday (&now, NULL);
-    return  now.tv_usec + (timestamp_t)now.tv_sec * 1000000;
-}
+using namespace std;
 
 int main(int argc, char *argv[]){
 
     char *outFileName = "InferiorOlive_Output.txt";
-    FILE *pOutFile;
     cl_uint i, j, k , p, q;
     int simSteps = 0;
     int simTime = 0;
     int inputFromFile = 0;
     int initSteps;
-    cl_mod_prec *cellStatePtr;
-    cl_mod_prec *cellCompParamsPtr;
-    cl_mod_prec iApp; 
+    cl_float_t *cellStatePtr;
+    cl_float_t *cellCompParamsPtr;
+    cl_float_t iApp; 
 
     int seedvar;
     char temp[100];//warning: this buffer may overflow
-    timestamp_t t0, t1, usecs, tNeighbourStart, tNeighbourEnd, tComputeStart, tComputeEnd, tReadStart, tReadEnd, tWriteStateStart, tWriteStateEnd, tWriteCompStart, tWriteCompEnd, tInitStart, tInitEnd, tLoopStart, tLoopEnd, tWriteFileStart, tWriteFileEnd;
-    timestamp_t tNeighbour, tCompute, tUpdate, tRead, tWriteFile, tInit, tLoop;
+    perftime_t t0, t1, tNeighbourStart, tNeighbourEnd, tComputeStart, tComputeEnd, tReadStart, tReadEnd, tWriteStateStart, tWriteStateEnd, tWriteCompStart, tWriteCompEnd, tInitStart, tInitEnd, tLoopStart, tLoopEnd, tWriteFileStart, tWriteFileEnd;
+	double tNeighbour, tCompute, tUpdate, tRead, tWriteFile, tInit, tLoop, usecs;
     tNeighbour = tCompute = tUpdate = tRead = tWriteFile = tInit = tLoop = 0;
 
     cl_event writeDone, neighbourDone, computeDone, readDone;
-    cl_int status;
+    cl_int status = 0;
 
-    t0 = get_timestamp();
+    t0 = now();
     if(EXTRA_TIMING){
-        tInitStart = get_timestamp();    
+        tInitStart = now();    
     }
 
     simTime = SIMTIME; // in miliseconds
@@ -65,14 +56,13 @@ int main(int argc, char *argv[]){
     DEBUG_PRINT(("Inferior Olive Model (%d x %d cell mesh)\n", IO_NETWORK_DIM1, IO_NETWORK_DIM2));
 
     //Open output file
-    pOutFile = fopen(outFileName,"w");
-    if(pOutFile==NULL){
-        printf("Error: Couldn't create %s\n", outFileName);
-        exit(EXIT_FAILURE);
-    }
-    writeOutput(temp, ("#simSteps Time(ms) Input(Iapp) Output(V_axon)\n"), pOutFile);
+	ofstream pOutFile(outFileName);
 
-
+	if (!pOutFile) {
+		cerr << "Error: Couldn't create " << outFileName << endl;
+		exit(EXIT_FAILURE);
+	}
+	pOutFile << "#simSteps Time(ms) Input(Iapp) Output(V_axon)" << endl; 
 
     //Malloc for the array of cellStates and cellCompParams
     mallocCells(&cellCompParamsPtr, &cellStatePtr);
@@ -124,18 +114,17 @@ int main(int argc, char *argv[]){
     neighbourFileName = "neighbour_kernel.cl";
     computeFileName = "compute_kernel.cl";
 
-    FILE *computeFile, *neighbourFile;
-    neighbourFile = fopen(neighbourFileName, "r");
-    if(neighbourFile == NULL){
-        printf("cannot open neighbour file\n");
-        printf("current path: %s\n", neighbourFileName);
+	ifstream neighbourFile(neighbourFileName);
+    if(!neighbourFile){
+        cerr << "cannot open neighbour file" << endl;
+		cerr << "current path:" << neighbourFileName << endl;
         exit(EXIT_FAILURE);
     }
 
-    computeFile = fopen(computeFileName, "r");
-    if(computeFile == NULL){
-        printf("cannot open compute file\n");
-        printf("current path: %s\n", computeFileName);
+	ifstream computeFile(computeFileName);
+    if(!computeFile){
+		cerr << "cannot open neighbour file" << endl;
+		cerr << "current path:" << neighbourFileName << endl;
         exit(EXIT_FAILURE);
     }
 
@@ -158,11 +147,10 @@ int main(int argc, char *argv[]){
         //Compute one sim step for all cells
         if(i>20000-1 && i<20500-1){ iApp = 6;} // start @ 1 because skipping initial values
         else{ iApp = 0;}
-        sprintf(temp, "%d %.2f %.1f ", i+1, i*0.05, iApp); // start @ 1 because skipping initial values
-        fputs(temp, pOutFile);
+		pOutFile << string_format("%d %.2f %.1f ", i + 1, i*0.05, iApp) << endl;        
 
         if(EXTRA_TIMING){
-            tNeighbourStart = get_timestamp();
+            tNeighbourStart = now();
         }
 
         //-----------------------------------------------------
@@ -172,9 +160,9 @@ int main(int argc, char *argv[]){
 
         if(EXTRA_TIMING){
             status = clWaitForEvents(1, &neighbourDone);
-            tNeighbourEnd = get_timestamp();
-            tNeighbour += (tNeighbourEnd - tNeighbourStart);
-            tComputeStart = get_timestamp(); 
+            tNeighbourEnd = now();
+            tNeighbour += diffToNanoseconds(tNeighbourStart, tNeighbourEnd);
+            tComputeStart = now(); 
         }
 
         //-----------------------------------------------------
@@ -183,13 +171,13 @@ int main(int argc, char *argv[]){
 
         if(EXTRA_TIMING){
             status = clWaitForEvents(1, &computeDone);
-            tComputeEnd = get_timestamp();
-            tCompute += (tComputeEnd - tComputeStart);
-            tReadStart = get_timestamp();
+            tComputeEnd = now();
+            tCompute += diffToNanoseconds(tComputeStart, tComputeEnd);
+            tReadStart = now();
         }
 
         if(status != CL_SUCCESS){
-            printf("error in loop, compute\n");
+            cerr << "error in loop, compute" << endl;
             exit(EXIT_FAILURE);
         }
 
@@ -202,53 +190,52 @@ int main(int argc, char *argv[]){
         }
 
         if(EXTRA_TIMING){
-            tReadEnd = get_timestamp();
-            tRead += (tReadEnd - tReadStart);
+            tReadEnd = now();
+            tRead += diffToNanoseconds(tReadStart, tReadEnd);
         }
 
         // write output to file
         if(WRITE_OUTPUT){
             if(EXTRA_TIMING){
-                tWriteFileStart = get_timestamp();
+                tWriteFileStart = now();
             }
             for(j = 0; j < IO_NETWORK_DIM1; j++){
                 for(k = 0; k < IO_NETWORK_DIM2; k++){
-                    writeOutputDouble(temp, cellStatePtr[((((i%2)^1)*IO_NETWORK_SIZE + (j+ k*IO_NETWORK_DIM1))* STATE_SIZE)+ AXON_V], pOutFile);
+					pOutFile << setprecision(8) << cellStatePtr[((((i % 2) ^ 1)*IO_NETWORK_SIZE + (j + k*IO_NETWORK_DIM1))* STATE_SIZE) + AXON_V] << " ";
                 }                
             }
-
-            writeOutput(temp, ("\n"), pOutFile);
+			pOutFile << endl;
             if(EXTRA_TIMING){
-                tWriteFileEnd = get_timestamp();
-                tWriteFile += (tWriteFileEnd - tWriteFileStart);
+                tWriteFileEnd = now();
+                tWriteFile += diffToNanoseconds(tWriteFileStart, tWriteFileEnd);
             }
         }
     }
     if(EXTRA_TIMING){
-        tLoopEnd = get_timestamp();
+        tLoopEnd = now();
     }
     
-    t1 = get_timestamp();
-    usecs = (t1 - t0);// / 1000000;
+    t1 = now();
+    usecs = diffToNanoseconds(t0,t1)/1e3;// / 1000000;
     DEBUG_PRINT(("%d ms of brain time in %d simulation steps\n", simTime, simSteps));
     DEBUG_PRINT((" %lld usecs real time \n", usecs));
 
     if(EXTRA_TIMING){
-        tInit = (tInitEnd - tInitStart);
-        tLoop = (tLoopEnd - tLoopStart);
+        tInit = diffToNanoseconds(tInitStart, tInitEnd);
+        tLoop = diffToNanoseconds(tLoopStart, tLoopEnd);
         
         DEBUG_PRINT(("\n"));
         DEBUG_PRINT(("----------------------------------\n"));
-        DEBUG_PRINT(("tInit: \t\t %lld \n", tInit));
-        DEBUG_PRINT(("tLoop: \t\t %lld \n", tLoop));
-        DEBUG_PRINT(("\ttNeighbour: \t %lld \n", tNeighbour));
-        DEBUG_PRINT(("\ttCompute: \t %lld \n", tCompute));
-        DEBUG_PRINT(("\ttRead: \t\t %lld \n", tRead));
-        DEBUG_PRINT(("\ttWriteFile: \t %lld \n", tWriteFile));
+        DEBUG_PRINT(("tInit: \t\t %.1f s\n", tInit/1e9));
+        DEBUG_PRINT(("tLoop: \t\t %.1f s\n", tLoop / 1e9));
+        DEBUG_PRINT(("\ttNeighbour: \t %.1f s\n", tNeighbour / 1e9));
+        DEBUG_PRINT(("\ttCompute: \t %.1f s\n", tCompute / 1e9));
+        DEBUG_PRINT(("\ttRead: \t\t %.1f s\n", tRead / 1e9));
+        DEBUG_PRINT(("\ttWriteFile: \t %.1f s\n", tWriteFile / 1e9));
         DEBUG_PRINT(("\t----------- + \n"));
-        DEBUG_PRINT(("\ttSumLoop: \t %lld \n", (tWriteFile + tCompute + tNeighbour + tRead)));
+        DEBUG_PRINT(("\ttSumLoop: \t %.1f s\n", (tWriteFile + tCompute + tNeighbour + tRead) / 1e9));
         DEBUG_PRINT(("----------------------------------\n"));
-        DEBUG_PRINT(("tSum: \t %lld \n", (tInit + tLoop)));
+        DEBUG_PRINT(("tSum: \t %.1f s\n", (tInit + tLoop) / 1e9));
     }
     
     //-----------------------------------------------------
@@ -259,7 +246,7 @@ int main(int argc, char *argv[]){
     //Free up memory and close files
     free(cellStatePtr);
     free(cellCompParamsPtr);
-    fclose (pOutFile);
+    pOutFile.close();
 
     return EXIT_SUCCESS;
 }

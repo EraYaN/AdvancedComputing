@@ -27,13 +27,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="infoli.c">
+    <ClCompile Include="infoli.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="init.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ioFile.c">
+    <ClCompile Include="init.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -42,9 +39,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="init.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ioFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="kernel.h">

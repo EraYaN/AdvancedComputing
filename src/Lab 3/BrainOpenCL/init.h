@@ -1,5 +1,5 @@
 #include "infoli.h"
 
-void mallocCells(cl_mod_prec **cellCompParamsPtr, cl_mod_prec **cellStatePtr);
-void InitState(cl_mod_prec *cellStatePtr);
-void init_g_CaL(cl_mod_prec *cellStatePtr);
+void mallocCells(cl_float_t **cellCompParamsPtr, cl_float_t **cellStatePtr);
+void InitState(cl_float_t *cellStatePtr);
+void init_g_CaL(cl_float_t *cellStatePtr);

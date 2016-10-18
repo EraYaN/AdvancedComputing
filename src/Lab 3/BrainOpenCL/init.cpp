@@ -1,26 +1,26 @@
 #include "init.h" 
 
-void mallocCells(cl_mod_prec **cellCompParamsPtr, cl_mod_prec **cellStatePtr){
+void mallocCells(cl_float_t **cellCompParamsPtr, cl_float_t **cellStatePtr){
     int k;
-    DEBUG_PRINT(("cellStatePtr: %luB\n", 2*IO_NETWORK_SIZE*STATE_SIZE*sizeof(cl_mod_prec)));
+    DEBUG_PRINT(("cellStatePtr: %luB\n", 2*IO_NETWORK_SIZE*STATE_SIZE*sizeof(cl_float_t)));
     //Two cell state structs are needed so as to avoid having to synchronize all consumers before they start rewriting the cell state.
-    (*cellStatePtr) = malloc(2*IO_NETWORK_SIZE*STATE_SIZE*sizeof(cl_mod_prec));//current and next state
+    (*cellStatePtr) = (cl_float_t*)malloc(2*IO_NETWORK_SIZE*STATE_SIZE*sizeof(cl_float_t));//current and next state
     if((*cellStatePtr)==NULL){
         printf("Error: Couldn't malloc for cellStatePtr\n");
         exit(EXIT_FAILURE);
     }
 
-    DEBUG_PRINT(("cellCompParamsPtr: %luB\n", IO_NETWORK_SIZE*LOCAL_PARAM_SIZE*sizeof(cl_mod_prec)));
-    (*cellCompParamsPtr) = malloc(IO_NETWORK_SIZE*LOCAL_PARAM_SIZE*sizeof(cl_mod_prec));
+    DEBUG_PRINT(("cellCompParamsPtr: %luB\n", IO_NETWORK_SIZE*LOCAL_PARAM_SIZE*sizeof(cl_float_t)));
+    (*cellCompParamsPtr) = (cl_float_t*)malloc(IO_NETWORK_SIZE*LOCAL_PARAM_SIZE*sizeof(cl_float_t));
     if((*cellCompParamsPtr) ==NULL){
         printf("Error: Couldn't malloc for cellCompParamsPtr\n");
         exit(EXIT_FAILURE);
     }
 }
 
-void InitState(cl_mod_prec *cellStatePtr){
+void InitState(cl_float_t *cellStatePtr){
     int i, b;
-    cl_mod_prec  cellStateInit[STATE_SIZE];
+    cl_float_t  cellStateInit[STATE_SIZE];
     //Initial dendritic parameters
     cellStateInit[DEND_V]   = -60;  
     cellStateInit[DEND_H]   = 0.0337836;
@@ -54,7 +54,7 @@ void InitState(cl_mod_prec *cellStatePtr){
     return;
 }
 
-void init_g_CaL(cl_mod_prec *cellStatePtr){
+void init_g_CaL(cl_float_t *cellStatePtr){
     int seedvar, i;
     seedvar = 1;
     for(i=0;i<IO_NETWORK_SIZE;i++){

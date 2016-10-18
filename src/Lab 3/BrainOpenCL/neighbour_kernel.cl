@@ -9,7 +9,7 @@ i: current simulation step
 
 Retreive the voltage of the dendrite (V_dend) from each neighbour
 **/
-__kernel void neighbor_kernel(global mod_prec *cellStatePtr,global mod_prec *cellCompParamsPtr,  uint i){
+__kernel void neighbor_kernel(global user_float_t *cellStatePtr,global user_float_t *cellCompParamsPtr,  uint i){
 
 
 

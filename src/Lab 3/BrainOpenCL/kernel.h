@@ -1,23 +1,23 @@
 #include "variables.h"
 
-typedef double mod_prec;
-//typedef float mod_prec;
+typedef double user_float_t;
+//typedef float user_float_t;
 
-void ComputeOneCell(mod_prec *);
-void CompDend(mod_prec *cellCompParamsPtr);
-void DendHCurr(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_newComp1);
-void DendCaCurr(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_newComp1);
-void DendKCurr(mod_prec *chPrms_prevComp1, mod_prec *chPrms_prevComp2, mod_prec *chPrms_newComp1);
-void DendCal(mod_prec *chPrms_prevComp1, mod_prec *chPrms_prevComp2, mod_prec *chPrms_newComp1);
-void DendCurrVolt(mod_prec chComps_iC, mod_prec *chComps_iApp, mod_prec *chComps_vDend, mod_prec *chComps_newVDend, mod_prec *chComps_vSoma, mod_prec *chComps_q, mod_prec *chComps_r, mod_prec *chComps_s, mod_prec *chComps_newI_CaH);
-mod_prec IcNeighbors(mod_prec *neighVdend, mod_prec prevV_dend);
-void CompSoma(mod_prec *cellCompParamsPtr);
-void SomaCalcium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_prevComp2, mod_prec *chPrms_newComp1, mod_prec *chPrms_newComp2);
-void SomaSodium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_prevComp2, mod_prec *chPrms_newComp1, mod_prec *chPrms_newComp2);
-void SomaPotassium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_prevComp2, mod_prec *chPrms_newComp1, mod_prec *chPrms_newComp2);
-void SomaPotassiumX(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_newComp1);
-void SomaCurrVolt(mod_prec *chComps_g_CaL, mod_prec *chComps_vDend, mod_prec *chComps_vSoma, mod_prec *chComps_newVSoma, mod_prec *chComps_vAxon, mod_prec *chComps_k, mod_prec *chComps_l, mod_prec *chComps_m, mod_prec *chComps_h, mod_prec *chComps_n, mod_prec *chComps_x_s);
-void CompAxon(mod_prec *cellCompParamsPtr);
-void AxonSodium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_newComp1, mod_prec *chPrms_newComp2);
-void AxonPotassium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_newComp1);
-void AxonCurrVolt(mod_prec *chComps_vSoma, mod_prec *chComps_vAxon, mod_prec *chComps_newVAxon, mod_prec *chComps_m_a, mod_prec *chComps_h_a, mod_prec *chComps_x_a);
+void ComputeOneCell(user_float_t *);
+void CompDend(user_float_t *cellCompParamsPtr);
+void DendHCurr(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_newComp1);
+void DendCaCurr(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_newComp1);
+void DendKCurr(user_float_t *chPrms_prevComp1, user_float_t *chPrms_prevComp2, user_float_t *chPrms_newComp1);
+void DendCal(user_float_t *chPrms_prevComp1, user_float_t *chPrms_prevComp2, user_float_t *chPrms_newComp1);
+void DendCurrVolt(user_float_t chComps_iC, user_float_t *chComps_iApp, user_float_t *chComps_vDend, user_float_t *chComps_newVDend, user_float_t *chComps_vSoma, user_float_t *chComps_q, user_float_t *chComps_r, user_float_t *chComps_s, user_float_t *chComps_newI_CaH);
+user_float_t IcNeighbors(user_float_t *neighVdend, user_float_t prevV_dend);
+void CompSoma(user_float_t *cellCompParamsPtr);
+void SomaCalcium(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_prevComp2, user_float_t *chPrms_newComp1, user_float_t *chPrms_newComp2);
+void SomaSodium(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_prevComp2, user_float_t *chPrms_newComp1, user_float_t *chPrms_newComp2);
+void SomaPotassium(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_prevComp2, user_float_t *chPrms_newComp1, user_float_t *chPrms_newComp2);
+void SomaPotassiumX(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_newComp1);
+void SomaCurrVolt(user_float_t *chComps_g_CaL, user_float_t *chComps_vDend, user_float_t *chComps_vSoma, user_float_t *chComps_newVSoma, user_float_t *chComps_vAxon, user_float_t *chComps_k, user_float_t *chComps_l, user_float_t *chComps_m, user_float_t *chComps_h, user_float_t *chComps_n, user_float_t *chComps_x_s);
+void CompAxon(user_float_t *cellCompParamsPtr);
+void AxonSodium(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_newComp1, user_float_t *chPrms_newComp2);
+void AxonPotassium(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_newComp1);
+void AxonCurrVolt(user_float_t *chComps_vSoma, user_float_t *chComps_vAxon, user_float_t *chComps_newVAxon, user_float_t *chComps_m_a, user_float_t *chComps_h_a, user_float_t *chComps_x_a);

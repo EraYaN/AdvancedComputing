@@ -73,14 +73,12 @@
     <None Include="neighbour_kernel.cl" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="infoli.c" />
-    <ClCompile Include="init.c" />
-    <ClCompile Include="ioFile.c" />
+    <ClCompile Include="infoli.cpp" />
+    <ClCompile Include="init.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="infoli.h" />
     <ClInclude Include="init.h" />
-    <ClInclude Include="ioFile.h" />
     <ClInclude Include="kernel.h" />
     <ClInclude Include="variables.h" />
   </ItemGroup>

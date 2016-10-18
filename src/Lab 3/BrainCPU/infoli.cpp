@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
 					tCompute += diffToNanoseconds(tComputeStart, tComputeEnd);
 					tWriteFileStart = now();
 				}
-				pOutFile << setprecision(8) << cellStatePtr[(i % 2) ^ 1][j][k].axon.V_axon << endl;
+				pOutFile << setprecision(8) << cellStatePtr[(i % 2) ^ 1][j][k].axon.V_axon << " ";
 				if (EXTRA_TIMING) {
 					tWriteFileEnd = now();
 					tWriteFile += diffToNanoseconds(tWriteFileStart, tWriteFileEnd);

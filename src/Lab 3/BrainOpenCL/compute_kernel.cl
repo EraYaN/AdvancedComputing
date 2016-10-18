@@ -1,7 +1,7 @@
 #include "kernel.h"
 
 //#include <math.h>
-void ComputeOneCell(mod_prec *cellCompParamsPtr){
+void ComputeOneCell(user_float_t *cellCompParamsPtr){
 
     //The three compartments can be computed concurrently but only across a single sim step
     CompDend(cellCompParamsPtr);
@@ -10,7 +10,7 @@ void ComputeOneCell(mod_prec *cellCompParamsPtr){
     return;
 }
 
-void CompDend(mod_prec *cellCompParamsPtr){
+void CompDend(user_float_t *cellCompParamsPtr){
     //define variables
 
     //Prepare pointers to inputs/outputs
@@ -45,13 +45,13 @@ void CompDend(mod_prec *cellCompParamsPtr){
     return;
 }
 
-void DendHCurr(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_newComp1){
+void DendHCurr(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_newComp1){
 
-    mod_prec q_inf, tau_q, dq_dt, q_local;
+    user_float_t q_inf, tau_q, dq_dt, q_local;
 
     //Get inputs
-    mod_prec prevV_dend = *chPrms_v; // *chPrms->v;
-    mod_prec prevHcurrent_q = *chPrms_prevComp1;//*chPrms->prevComp1;
+    user_float_t prevV_dend = *chPrms_v; // *chPrms->v;
+    user_float_t prevHcurrent_q = *chPrms_prevComp1;//*chPrms->prevComp1;
 
     // Update dendritic H current component
     q_inf = 1 /(1 + exp((prevV_dend + 80) / 4));
@@ -64,13 +64,13 @@ void DendHCurr(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_
     return;
 }
 
-void DendCaCurr(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_newComp1){
+void DendCaCurr(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_newComp1){
 
-    mod_prec alpha_r, beta_r, r_inf, tau_r, dr_dt, r_local;
+    user_float_t alpha_r, beta_r, r_inf, tau_r, dr_dt, r_local;
 
     //Get inputs
-    mod_prec prevV_dend = *chPrms_v; //*chPrms->v;
-    mod_prec prevCalcium_r = *chPrms_prevComp1; //*chPrms->prevComp1;
+    user_float_t prevV_dend = *chPrms_v; //*chPrms->v;
+    user_float_t prevCalcium_r = *chPrms_prevComp1; //*chPrms->prevComp1;
 
     // Update dendritic high-threshold Ca current component
     alpha_r = 1.7 / (1 + exp( -(prevV_dend - 5) / 13.9));
@@ -84,13 +84,13 @@ void DendCaCurr(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms
 
     return;
 }
-void DendKCurr(mod_prec *chPrms_prevComp1, mod_prec *chPrms_prevComp2, mod_prec *chPrms_newComp1){
+void DendKCurr(user_float_t *chPrms_prevComp1, user_float_t *chPrms_prevComp2, user_float_t *chPrms_newComp1){
 
-    mod_prec  alpha_s = 0.01, beta_s, s_inf, tau_s, ds_dt, s_local;
+    user_float_t  alpha_s = 0.01, beta_s, s_inf, tau_s, ds_dt, s_local;
 
     //Get inputs
-    mod_prec prevPotassium_s = *chPrms_prevComp1;//*chPrms->prevComp1;
-    mod_prec prevCa2Plus = *chPrms_prevComp2; //*chPrms->prevComp2;
+    user_float_t prevPotassium_s = *chPrms_prevComp1;//*chPrms->prevComp1;
+    user_float_t prevCa2Plus = *chPrms_prevComp2; //*chPrms->prevComp2;
 
     // Update dendritic Ca-dependent K current component
     if ((0.00002*prevCa2Plus)<0.01)
@@ -106,13 +106,13 @@ void DendKCurr(mod_prec *chPrms_prevComp1, mod_prec *chPrms_prevComp2, mod_prec 
     return;
 }
 //Consider merging DendCal into DendKCurr since DendCal's output doesn't go to DendCurrVolt but to DendKCurr
-void DendCal(mod_prec *chPrms_prevComp1, mod_prec *chPrms_prevComp2, mod_prec *chPrms_newComp1){
+void DendCal(user_float_t *chPrms_prevComp1, user_float_t *chPrms_prevComp2, user_float_t *chPrms_newComp1){
 
-    mod_prec  dCa_dt, Ca2Plus_local;
+    user_float_t  dCa_dt, Ca2Plus_local;
 
     //Get inputs
-    mod_prec prevCa2Plus = *chPrms_prevComp1; //*chPrms->prevComp1;
-    mod_prec prevI_CaH = *chPrms_prevComp2; //*chPrms->prevComp2;
+    user_float_t prevCa2Plus = *chPrms_prevComp1; //*chPrms->prevComp1;
+    user_float_t prevI_CaH = *chPrms_prevComp2; //*chPrms->prevComp2;
 
     // update Calcium concentration
     dCa_dt = -3 * prevI_CaH - 0.075 * prevCa2Plus;
@@ -122,19 +122,19 @@ void DendCal(mod_prec *chPrms_prevComp1, mod_prec *chPrms_prevComp2, mod_prec *c
 
     return;}
 
-void DendCurrVolt(mod_prec chComps_iC, mod_prec *chComps_iApp, mod_prec *chComps_vDend, mod_prec *chComps_newVDend, mod_prec *chComps_vSoma, mod_prec *chComps_q, mod_prec *chComps_r, mod_prec *chComps_s, mod_prec *chComps_newI_CaH){
+void DendCurrVolt(user_float_t chComps_iC, user_float_t *chComps_iApp, user_float_t *chComps_vDend, user_float_t *chComps_newVDend, user_float_t *chComps_vSoma, user_float_t *chComps_q, user_float_t *chComps_r, user_float_t *chComps_s, user_float_t *chComps_newI_CaH){
 
     //Local variables
-    mod_prec I_sd, I_CaH, I_K_Ca, I_ld, I_h, dVd_dt;
+    user_float_t I_sd, I_CaH, I_K_Ca, I_ld, I_h, dVd_dt;
 
     //Get inputs
-    mod_prec I_c = chComps_iC; //chComps->iC;
-    mod_prec I_app = *chComps_iApp; //*chComps->iApp;
-    mod_prec prevV_dend = *chComps_vDend; //*chComps->vDend;
-    mod_prec prevV_soma = *chComps_vSoma; //*chComps->vSoma;
-    mod_prec q = *chComps_q; //*chComps->q;
-    mod_prec r = *chComps_r; //*chComps->r;
-    mod_prec s = *chComps_s; //*chComps->s;
+    user_float_t I_c = chComps_iC; //chComps->iC;
+    user_float_t I_app = *chComps_iApp; //*chComps->iApp;
+    user_float_t prevV_dend = *chComps_vDend; //*chComps->vDend;
+    user_float_t prevV_soma = *chComps_vSoma; //*chComps->vSoma;
+    user_float_t q = *chComps_q; //*chComps->q;
+    user_float_t r = *chComps_r; //*chComps->r;
+    user_float_t s = *chComps_s; //*chComps->s;
 
     // DENDRITIC CURRENTS
 
@@ -156,10 +156,10 @@ void DendCurrVolt(mod_prec chComps_iC, mod_prec *chComps_iApp, mod_prec *chComps
     *chComps_newI_CaH = I_CaH; //*chComps->newI_CaH //This is a state value read in DendCal
     return;
 }
-mod_prec IcNeighbors(mod_prec *neighVdend, mod_prec prevV_dend){
+user_float_t IcNeighbors(user_float_t *neighVdend, user_float_t prevV_dend){
 
     int i;
-    mod_prec f, V, I_c;
+    user_float_t f, V, I_c;
     //printf("Ic[0]= %f\n", neighVdend[0]);
 
     I_c = 0;
@@ -173,7 +173,7 @@ mod_prec IcNeighbors(mod_prec *neighVdend, mod_prec prevV_dend){
     return I_c;
 }
 
-void CompSoma(mod_prec *cellCompParamsPtr){
+void CompSoma(user_float_t *cellCompParamsPtr){
     //define variables
 
     // update somatic components
@@ -204,14 +204,14 @@ void CompSoma(mod_prec *cellCompParamsPtr){
     return;
 }
 
-void SomaCalcium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_prevComp2, mod_prec *chPrms_newComp1, mod_prec *chPrms_newComp2){
+void SomaCalcium(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_prevComp2, user_float_t *chPrms_newComp1, user_float_t *chPrms_newComp2){
 
-    mod_prec k_inf, l_inf, tau_k, tau_l, dk_dt, dl_dt, k_local, l_local;
+    user_float_t k_inf, l_inf, tau_k, tau_l, dk_dt, dl_dt, k_local, l_local;
 
     //Get inputs
-    mod_prec prevV_soma = *chPrms_v; //*chPrms->v;
-    mod_prec prevCalcium_k = *chPrms_prevComp1; //*chPrms->prevComp1;
-    mod_prec prevCalcium_l = *chPrms_prevComp2; //*chPrms->prevComp2;
+    user_float_t prevV_soma = *chPrms_v; //*chPrms->v;
+    user_float_t prevCalcium_k = *chPrms_prevComp1; //*chPrms->prevComp1;
+    user_float_t prevCalcium_l = *chPrms_prevComp2; //*chPrms->prevComp2;
 
     k_inf = (1 / (1 + exp(-1 * (prevV_soma + 61)   / 4.2)));
     l_inf = (1 / (1 + exp((     prevV_soma + 85.5) / 8.5)));
@@ -228,14 +228,14 @@ void SomaCalcium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrm
     return;
 }
 
-void SomaSodium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_prevComp2, mod_prec *chPrms_newComp1, mod_prec *chPrms_newComp2){
+void SomaSodium(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_prevComp2, user_float_t *chPrms_newComp1, user_float_t *chPrms_newComp2){
 
-    mod_prec m_inf, h_inf, tau_h, dh_dt, m_local, h_local;
+    user_float_t m_inf, h_inf, tau_h, dh_dt, m_local, h_local;
 
     //Get inputs
-    mod_prec prevV_soma = *chPrms_v; //*chPrms->v;
-    //mod_prec prevSodium_m = *chPrms->prevComp1;
-    mod_prec prevSodium_h = *chPrms_prevComp2; //*chPrms->prevComp2;
+    user_float_t prevV_soma = *chPrms_v; //*chPrms->v;
+    //user_float_t prevSodium_m = *chPrms->prevComp1;
+    user_float_t prevSodium_h = *chPrms_prevComp2; //*chPrms->prevComp2;
 
     // RAT THALAMOCORTICAL SODIUM:
     m_inf   = 1 / (1 + (exp((-30 - prevV_soma)/ 5.5)));
@@ -251,14 +251,14 @@ void SomaSodium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms
     return;
 }
 
-void SomaPotassium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_prevComp2, mod_prec *chPrms_newComp1, mod_prec *chPrms_newComp2){
+void SomaPotassium(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_prevComp2, user_float_t *chPrms_newComp1, user_float_t *chPrms_newComp2){
 
-    mod_prec n_inf, p_inf, tau_n, tau_p, dn_dt, dp_dt, n_local, p_local;
+    user_float_t n_inf, p_inf, tau_n, tau_p, dn_dt, dp_dt, n_local, p_local;
 
     //Get inputs
-    mod_prec prevV_soma = *chPrms_v; //*chPrms->v;
-    mod_prec prevPotassium_n = *chPrms_prevComp1; //*chPrms->prevComp1;
-    mod_prec prevPotassium_p = *chPrms_prevComp2; //*chPrms->prevComp2;
+    user_float_t prevV_soma = *chPrms_v; //*chPrms->v;
+    user_float_t prevPotassium_n = *chPrms_prevComp1; //*chPrms->prevComp1;
+    user_float_t prevPotassium_p = *chPrms_prevComp2; //*chPrms->prevComp2;
 
     // NEOCORTICAL
     n_inf = 1 / (1 + exp( ( -3 - prevV_soma) /  10));
@@ -276,13 +276,13 @@ void SomaPotassium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chP
     return;
 }
 
-void SomaPotassiumX(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_newComp1){
+void SomaPotassiumX(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_newComp1){
 
-    mod_prec alpha_x_s, beta_x_s, x_inf_s, tau_x_s, dx_dt_s, x_s_local;
+    user_float_t alpha_x_s, beta_x_s, x_inf_s, tau_x_s, dx_dt_s, x_s_local;
 
     //Get inputs
-    mod_prec prevV_soma = *chPrms_v; //*chPrms->v;
-    mod_prec prevPotassium_x_s = *chPrms_prevComp1; //*chPrms->prevComp1;
+    user_float_t prevV_soma = *chPrms_v; //*chPrms->v;
+    user_float_t prevPotassium_x_s = *chPrms_prevComp1; //*chPrms->prevComp1;
 
     // Voltage-dependent (fast) potassium
     alpha_x_s = 0.13 * (prevV_soma + 25) / (1 - exp(-(prevV_soma + 25) / 10));
@@ -296,22 +296,22 @@ void SomaPotassiumX(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *ch
 
     return;
 }
-void SomaCurrVolt(mod_prec *chComps_g_CaL, mod_prec *chComps_vDend, mod_prec *chComps_vSoma, mod_prec *chComps_newVSoma, mod_prec *chComps_vAxon, mod_prec *chComps_k, mod_prec *chComps_l, mod_prec *chComps_m, mod_prec *chComps_h, mod_prec *chComps_n, mod_prec *chComps_x_s){
+void SomaCurrVolt(user_float_t *chComps_g_CaL, user_float_t *chComps_vDend, user_float_t *chComps_vSoma, user_float_t *chComps_newVSoma, user_float_t *chComps_vAxon, user_float_t *chComps_k, user_float_t *chComps_l, user_float_t *chComps_m, user_float_t *chComps_h, user_float_t *chComps_n, user_float_t *chComps_x_s){
 
     //Local variables
-    mod_prec I_ds, I_CaL, I_Na_s, I_ls, I_Kdr_s, I_K_s, I_as, dVs_dt;
+    user_float_t I_ds, I_CaL, I_Na_s, I_ls, I_Kdr_s, I_K_s, I_as, dVs_dt;
 
     //Get inputs
-    mod_prec g_CaL = *chComps_g_CaL; //*chComps->g_CaL;
-    mod_prec prevV_dend = *chComps_vDend; //*chComps->vDend;
-    mod_prec prevV_soma = *chComps_vSoma; //*chComps->vSoma;
-    mod_prec prevV_axon = *chComps_vAxon; //*chComps->vAxon;
-    mod_prec k = *chComps_k; //*chComps->k;
-    mod_prec l = *chComps_l; //*chComps->l;
-    mod_prec m = *chComps_m; //*chComps->m;
-    mod_prec h = *chComps_h; //*chComps->h;
-    mod_prec n = *chComps_n; //*chComps->n;
-    mod_prec x_s = *chComps_x_s; //*chComps->x_s;
+    user_float_t g_CaL = *chComps_g_CaL; //*chComps->g_CaL;
+    user_float_t prevV_dend = *chComps_vDend; //*chComps->vDend;
+    user_float_t prevV_soma = *chComps_vSoma; //*chComps->vSoma;
+    user_float_t prevV_axon = *chComps_vAxon; //*chComps->vAxon;
+    user_float_t k = *chComps_k; //*chComps->k;
+    user_float_t l = *chComps_l; //*chComps->l;
+    user_float_t m = *chComps_m; //*chComps->m;
+    user_float_t h = *chComps_h; //*chComps->h;
+    user_float_t n = *chComps_n; //*chComps->n;
+    user_float_t x_s = *chComps_x_s; //*chComps->x_s;
 
     // SOMATIC CURRENTS
 
@@ -336,7 +336,7 @@ void SomaCurrVolt(mod_prec *chComps_g_CaL, mod_prec *chComps_vDend, mod_prec *ch
     return;
 }
 
-void CompAxon(mod_prec *cellCompParamsPtr){
+void CompAxon(user_float_t *cellCompParamsPtr){
 
     // update somatic components
     // SCHWEIGHOFER:
@@ -356,13 +356,13 @@ void CompAxon(mod_prec *cellCompParamsPtr){
     return;
 }
 
-void AxonSodium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_newComp1, mod_prec *chPrms_newComp2){
+void AxonSodium(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_newComp1, user_float_t *chPrms_newComp2){
 
-    mod_prec m_inf_a, h_inf_a, tau_h_a, dh_dt_a, m_a_local, h_a_local;
+    user_float_t m_inf_a, h_inf_a, tau_h_a, dh_dt_a, m_a_local, h_a_local;
 
     //Get inputs
-    mod_prec prevV_axon = *chPrms_v; //*chPrms->v;
-    mod_prec prevSodium_h_a = *chPrms_prevComp1; //*chPrms->prevComp1;
+    user_float_t prevV_axon = *chPrms_v; //*chPrms->v;
+    user_float_t prevSodium_h_a = *chPrms_prevComp1; //*chPrms->prevComp1;
 
     // Update axonal Na components
     // NOTE: current has shortened inactivation to account for high
@@ -380,13 +380,13 @@ void AxonSodium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms
     return;
 }
 
-void AxonPotassium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chPrms_newComp1){
+void AxonPotassium(user_float_t *chPrms_v, user_float_t *chPrms_prevComp1, user_float_t *chPrms_newComp1){
 
-    mod_prec alpha_x_a, beta_x_a, x_inf_a, tau_x_a, dx_dt_a, x_a_local;
+    user_float_t alpha_x_a, beta_x_a, x_inf_a, tau_x_a, dx_dt_a, x_a_local;
 
     //Get inputs
-    mod_prec prevV_axon = *chPrms_v; //*chPrms->v;
-    mod_prec prevPotassium_x_a = *chPrms_prevComp1; //*chPrms->prevComp1;
+    user_float_t prevV_axon = *chPrms_v; //*chPrms->v;
+    user_float_t prevPotassium_x_a = *chPrms_prevComp1; //*chPrms->prevComp1;
 
     // D'ANGELO 2001 -- Voltage-dependent potassium
     alpha_x_a = 0.13 * (prevV_axon + 25) / (1 - exp(-(prevV_axon + 25) / 10));
@@ -401,17 +401,17 @@ void AxonPotassium(mod_prec *chPrms_v, mod_prec *chPrms_prevComp1, mod_prec *chP
     return;
 }
 
-void AxonCurrVolt(mod_prec *chComps_vSoma, mod_prec *chComps_vAxon, mod_prec *chComps_newVAxon, mod_prec *chComps_m_a, mod_prec *chComps_h_a, mod_prec *chComps_x_a){
+void AxonCurrVolt(user_float_t *chComps_vSoma, user_float_t *chComps_vAxon, user_float_t *chComps_newVAxon, user_float_t *chComps_m_a, user_float_t *chComps_h_a, user_float_t *chComps_x_a){
 
     //Local variable
-    mod_prec I_Na_a, I_la, I_sa, I_K_a, dVa_dt;
+    user_float_t I_Na_a, I_la, I_sa, I_K_a, dVa_dt;
 
     //Get inputs
-    mod_prec prevV_soma = *chComps_vSoma; //*chComps->vSoma;
-    mod_prec prevV_axon = *chComps_vAxon; //*chComps->vAxon;
-    mod_prec m_a = *chComps_m_a; //*chComps->m_a;
-    mod_prec h_a = *chComps_h_a; //*chComps->h_a;
-    mod_prec x_a = *chComps_x_a; //*chComps->x_a;
+    user_float_t prevV_soma = *chComps_vSoma; //*chComps->vSoma;
+    user_float_t prevV_axon = *chComps_vAxon; //*chComps->vAxon;
+    user_float_t m_a = *chComps_m_a; //*chComps->m_a;
+    user_float_t h_a = *chComps_h_a; //*chComps->h_a;
+    user_float_t x_a = *chComps_x_a; //*chComps->x_a;
 
     // AXONAL CURRENTS
     // Sodium
@@ -439,7 +439,7 @@ Retreive the external input of the dedrite
 and update the previous and new state of the current cell.
 Then Compute the new variables of the current cell with ComputeOneCell.
 **/
-__kernel void compute_kernel(global mod_prec *cellStatePtr, global mod_prec *cellCompParamsPtr, uint i, mod_prec iApp){
+__kernel void compute_kernel(global user_float_t *cellStatePtr, global user_float_t *cellCompParamsPtr, uint i, user_float_t iApp){
 
 
 }

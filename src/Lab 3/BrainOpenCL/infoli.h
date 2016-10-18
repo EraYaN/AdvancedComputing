@@ -1,3 +1,4 @@
+#pragma once
 /*
  *
  * Copyright (c) 2012, Neurasmus B.V., The Netherlands,
@@ -19,15 +20,19 @@
  *
  */
 
-
-#ifndef MAIN_H_
-#define MAIN_H_
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <sys/time.h>
-#include <time.h>
+#define __STDC_WANT_LIB_EXT1__ 1
+#include <iostream>
+#include <iomanip>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
+#include <ctime>
 #include "variables.h" 
+#include "timing.h"
+#include "string_format.h"
 
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
@@ -42,12 +47,8 @@
 # define DEBUG_PRINT(x) do {} while (0)
 #endif
 
-
-/*** TYPEDEFS AND STRUCTS***/
-
-typedef cl_double cl_mod_prec;
-//typedef cl_float cl_mod_prec
-
-
-
-#endif /* MAIN_H_ */
+#ifdef USE_DOUBLES
+typedef cl_double cl_float_t;
+#else
+typedef float cl_float_t;
+#endif
