@@ -47,6 +47,8 @@ int main(int argc, char *argv[]){
 
     cl_event writeDone, neighbourDone, computeDone, readDone;
     cl_int status = 0;
+	cl_int statusNeighbour = 0;
+	cl_int statusCompute = 0;
 
     t0 = now();
     if(EXTRA_TIMING){
@@ -266,7 +268,7 @@ int main(int argc, char *argv[]){
 		exit(EXIT_FAILURE);
 	}
 
-	std::string content(
+	content(
 		(std::istreambuf_iterator<char>(computeFile)),
 		std::istreambuf_iterator<char>()
 	);
@@ -283,21 +285,21 @@ int main(int argc, char *argv[]){
 		1,
 		(const char**)&neighbourBuffer,
 		&neighbourSize,
-		&status);
+		&statusNeighbour);
 
 	cl_program programCompute = clCreateProgramWithSource(
 		context,
 		1,
 		(const char**)&computeBuffer,
 		&computeSize,
-		&status);
+		&statusCompute);
 
 	//delete mulBuffer;
 
 	// Build (compile) the program for the devices with
 	// clBuildProgram()
 	const char options[] = "-cl-std=CL1.2";
-	status |= clBuildProgram(
+	statusNeighbour |= clBuildProgram(
 		programNeighbour,
 		1,
 		&devices[device_id],
@@ -305,15 +307,14 @@ int main(int argc, char *argv[]){
 		NULL,
 		NULL);
 
-	if (status != CL_SUCCESS) {
-		cerr << "error in step 6: " << getErrorString(status) << endl;
+	if (statusNeighbour != CL_SUCCESS) {
+		cerr << "error in step 6: " << getErrorString(statusNeighbour) << endl;
 		printCLBuildOutput(programNeighbour, &devices[device_id]);
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
 	}
 
-	const char options[] = "-cl-std=CL1.2";
-	status |= clBuildProgram(
+	statusCompute |= clBuildProgram(
 		programCompute,
 		1,
 		&devices[device_id],
@@ -321,8 +322,8 @@ int main(int argc, char *argv[]){
 		NULL,
 		NULL);
 
-	if (status != CL_SUCCESS) {
-		cerr << "error in step 6: " << getErrorString(status) << endl;
+	if (statusCompute != CL_SUCCESS) {
+		cerr << "error in step 7: " << getErrorString(statusCompute) << endl;
 		printCLBuildOutput(programCompute, &devices[device_id]);
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
@@ -335,7 +336,7 @@ int main(int argc, char *argv[]){
 
 	// Use clCreateKernel() to create a kernel from the
 	neighbourKernel = clCreateKernel(programNeighbour, "neighbour_kernel", &statusNeighbour);
-	if (status != CL_SUCCESS) {
+	if (statusNeighbour != CL_SUCCESS) {
 		cerr << "error in step 7: " << getErrorString(status) << endl;
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
@@ -345,8 +346,8 @@ int main(int argc, char *argv[]){
 
 	// Use clCreateKernel() to create a kernel from the
 	computeKernel = clCreateKernel(programCompute, "compute_kernel", &statusCompute);
-	if (status != CL_SUCCESS) {
-		cerr << "error in step 7: " << getErrorString(status) << endl;
+	if (statusCompute != CL_SUCCESS) {
+		cerr << "error in step 8: " << getErrorString(status) << endl;
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
 	}
@@ -358,26 +359,43 @@ int main(int argc, char *argv[]){
 	// Associate the input and output buffers with the
 	// kernel
 	// using clSetKernelArg()
-	statusNeighbour = clSetKernelArg(
-		neighbourKernel,
+	// compute arguments
+	statusCompute |= clSetKernelArg(
+		computeKernel,
 		0,
 		sizeof(cl_mem),
-		&buffer_iApp);
-	statusNeighbour |= clSetKernelArg(
-		neighbourKernel,
+		&buffer_cellStatePtr);
+	statusCompute = clSetKernelArg(
+		computeKernel,
 		1,
 		sizeof(cl_mem),
-		&buffer_cellStatePtr);
-	statusNeighbour |= clSetKernelArg(
-		neighbourKernel,
+		&buffer_iApp);
+	statusCompute |= clSetKernelArg(
+		computeKernel,
 		2,
 		sizeof(cl_mem),
 		&buffer_cellVDendPtr);
 
-	// TODO: check and set neighbour and compute arguments
+	if (statusCompute != CL_SUCCESS) {
+		cerr << "error in step 9: " << getErrorString(statusCompute) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
+
+	// neighbour argument
+	statusNeighbour |= clSetKernelArg(
+		neighbourKernel,
+		0,
+		sizeof(cl_mem),
+		&buffer_cellStatePtr);
+	statusNeighbour |= clSetKernelArg(
+		neighbourKernel,
+		1,
+		sizeof(cl_mem),
+		&buffer_cellVDendPtr);
 
 	if (statusNeighbour != CL_SUCCESS) {
-		cerr << "error in step 8: " << getErrorString(statusNeighbour) << endl;
+		cerr << "error in step 9: " << getErrorString(statusNeighbour) << endl;
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
 	}
@@ -402,27 +420,61 @@ int main(int argc, char *argv[]){
         //-----------------------------------------------------
         // STEP 11.1: Run neighbour kernel
         //-----------------------------------------------------
+		// FIX: sizes
+		size_t globalWorkSize[1];
+		globalWorkSize[0] = 1;// size;
+
+		size_t localWorkSize[1];
+		localWorkSize[0] = 1;// localSize;
+
+
+		statusNeighbour |= clEnqueueNDRangeKernel(
+			cmdQueue,
+			neighbourKernel,
+			1,
+			NULL,
+			globalWorkSize,
+			localWorkSize,
+			0,
+			NULL,
+			&neighbourDone);
 
 
         if(EXTRA_TIMING){
-            status = clWaitForEvents(1, &neighbourDone);
+            statusNeighbour = clWaitForEvents(1, &neighbourDone);
             tNeighbourEnd = now();
             tNeighbour += diffToNanoseconds(tNeighbourStart, tNeighbourEnd);
             tComputeStart = now(); 
         }
 
+		if (statusNeighbour != CL_SUCCESS) {
+			cerr << "error in loop, neighbour" << endl;
+			exit(EXIT_FAILURE);
+		}
+
         //-----------------------------------------------------
         // STEP 11.2: Run compute kernel
         //-----------------------------------------------------
 
+		statusCompute |= clEnqueueNDRangeKernel(
+			cmdQueue,
+			computeKernel,
+			1,
+			NULL,
+			globalWorkSize,
+			localWorkSize,
+			0,
+			NULL,
+			&computeDone);
+
         if(EXTRA_TIMING){
-            status = clWaitForEvents(1, &computeDone);
+            statusCompute = clWaitForEvents(1, &computeDone);
             tComputeEnd = now();
             tCompute += diffToNanoseconds(tComputeStart, tComputeEnd);
             tReadStart = now();
         }
 
-        if(status != CL_SUCCESS){
+        if(statusCompute != CL_SUCCESS){
             cerr << "error in loop, compute" << endl;
             exit(EXIT_FAILURE);
         }
@@ -433,6 +485,16 @@ int main(int argc, char *argv[]){
             //-----------------------------------------------------
             // STEP 11.3: Read output data from device
             //-----------------------------------------------------
+			clEnqueueReadBuffer(
+				cmdQueue,
+				buffer_cellStatePtr,
+				CL_TRUE,
+				0,
+				IO_NETWORK_DIM1*IO_NETWORK_DIM2*PARAM_SIZE * sizeof(double),
+				cellStatePtr,
+				1,
+				&computeDone,
+				NULL);
         }
 
         if(EXTRA_TIMING){
