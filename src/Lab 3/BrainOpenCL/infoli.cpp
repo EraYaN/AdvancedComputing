@@ -52,7 +52,7 @@ int main(int argc, char *argv[]){
 
     t0 = now();
     if(EXTRA_TIMING){
-        tInitStart = now();    
+        tInitStart = now();
     }
 
     simTime = SIMTIME; // in miliseconds
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
 		cerr << "Error: Couldn't create " << outFileName << endl;
 		exit(EXIT_FAILURE);
 	}
-	pOutFile << "#simSteps Time(ms) Input(Iapp) Output(V_axon)" << endl; 
+	pOutFile << "#simSteps Time(ms) Input(Iapp) Output(V_axon)" << endl;
 
     //Malloc for the array of cellStates and cellCompParams
     mallocCells(&cellCompParamsPtr, &cellStatePtr);
@@ -252,13 +252,13 @@ int main(int argc, char *argv[]){
 		exit(EXIT_FAILURE);
 	}
 
-	std::string content(
+	std::string contentNeighbour(
 		(std::istreambuf_iterator<char>(neighbourFile)),
 		std::istreambuf_iterator<char>()
 	);
-	size_t neighbourSize = content.size();
+	size_t neighbourSize = contentNeighbour.size();
 	const char* neighbourBuffer = new char[neighbourSize];
-	neighbourBuffer = content.c_str();
+	neighbourBuffer = contentNeighbour.c_str();
 
 	// computeFile
 	ifstream computeFile(computeFileName);
@@ -268,13 +268,13 @@ int main(int argc, char *argv[]){
 		exit(EXIT_FAILURE);
 	}
 
-	content(
+	std::string contentCompute(
 		(std::istreambuf_iterator<char>(computeFile)),
 		std::istreambuf_iterator<char>()
 	);
-	size_t computeSize = content.size();
+	size_t computeSize = contentCompute.size();
 	const char* computeBuffer = new char[computeSize];
-	computeBuffer = content.c_str();
+	computeBuffer = contentCompute.c_str();
 
 
     //-----------------------------------------------------
@@ -323,8 +323,9 @@ int main(int argc, char *argv[]){
 		NULL);
 
 	if (statusCompute != CL_SUCCESS) {
-		cerr << "error in step 7: " << getErrorString(statusCompute) << endl;
+		cerr << "error in step 7: " << getErrorString(statusCompute) << endl << "Build output below:" << endl;
 		printCLBuildOutput(programCompute, &devices[device_id]);
+		cerr << "End of build log." << endl;
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
 	}
@@ -409,7 +410,7 @@ int main(int argc, char *argv[]){
         //Compute one sim step for all cells
         if(i>20000-1 && i<20500-1){ iApp = 6;} // start @ 1 because skipping initial values
         else{ iApp = 0;}
-		pOutFile << string_format("%d %.2f %.1f ", i + 1, i*0.05, iApp); 
+		pOutFile << string_format("%d %.2f %.1f ", i + 1, i*0.05, iApp);
 
 
 
@@ -444,7 +445,7 @@ int main(int argc, char *argv[]){
             statusNeighbour = clWaitForEvents(1, &neighbourDone);
             tNeighbourEnd = now();
             tNeighbour += diffToNanoseconds(tNeighbourStart, tNeighbourEnd);
-            tComputeStart = now(); 
+            tComputeStart = now();
         }
 
 		if (statusNeighbour != CL_SUCCESS) {
@@ -479,7 +480,7 @@ int main(int argc, char *argv[]){
             exit(EXIT_FAILURE);
         }
 
-        
+
         // transfer data from device to CPU
         if(WRITE_OUTPUT){
             //-----------------------------------------------------
@@ -510,7 +511,7 @@ int main(int argc, char *argv[]){
             for(j = 0; j < IO_NETWORK_DIM1; j++){
                 for(k = 0; k < IO_NETWORK_DIM2; k++){
 					pOutFile << setprecision(8) << cellStatePtr[((((i % 2) ^ 1)*IO_NETWORK_SIZE + (j + k*IO_NETWORK_DIM1))* STATE_SIZE) + AXON_V] << " ";
-                }                
+                }
             }
 			pOutFile << endl;
             if(EXTRA_TIMING){
@@ -522,7 +523,7 @@ int main(int argc, char *argv[]){
     if(EXTRA_TIMING){
         tLoopEnd = now();
     }
-    
+
     t1 = now();
     usecs = diffToNanoseconds(t0,t1)/1e3;// / 1000000;
     DEBUG_PRINT(("%d ms of brain time in %d simulation steps\n", simTime, simSteps));
@@ -531,7 +532,7 @@ int main(int argc, char *argv[]){
     if(EXTRA_TIMING){
         tInit = diffToNanoseconds(tInitStart, tInitEnd);
         tLoop = diffToNanoseconds(tLoopStart, tLoopEnd);
-        
+
         DEBUG_PRINT(("\n"));
         DEBUG_PRINT(("----------------------------------\n"));
         DEBUG_PRINT(("tInit: \t\t %.1f s\n", tInit/1e9));
@@ -545,10 +546,10 @@ int main(int argc, char *argv[]){
         DEBUG_PRINT(("----------------------------------\n"));
         DEBUG_PRINT(("tSum: \t %.1f s\n", (tInit + tLoop) / 1e9));
     }
-    
+
     //-----------------------------------------------------
     // STEP 12: Release OpenCL resources
-    //----------------------------------------------------- 
+    //-----------------------------------------------------
 	clReleaseKernel(neighbourKernel);
 	clReleaseKernel(computeKernel);
 	clReleaseProgram(programNeighbour);
