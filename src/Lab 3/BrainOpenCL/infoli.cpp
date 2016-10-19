@@ -191,7 +191,7 @@ int main(int argc, char *argv[]){
     //-----------------------------------------------------
     // STEP 5: Create device buffers
     //-----------------------------------------------------
-	cl_mem buffer_iApp, buffer_cellStatePtr, buffer_cellVDendPtr;
+	cl_mem buffer_iApp, buffer_cellStatePtr, buffer_cellCompParamsPtr;
 
 	buffer_iApp = clCreateBuffer(
 		context,
@@ -219,7 +219,7 @@ int main(int argc, char *argv[]){
 		exit(EXIT_OPENCLERROR);
 	}
 
-	buffer_cellVDendPtr = clCreateBuffer(
+	buffer_cellCompParamsPtr = clCreateBuffer(
 		context,
 		CL_MEM_READ_ONLY,
 		IO_NETWORK_DIM1*IO_NETWORK_DIM2 * sizeof(double),
@@ -338,7 +338,7 @@ int main(int argc, char *argv[]){
 	// Use clCreateKernel() to create a kernel from the
 	neighbourKernel = clCreateKernel(programNeighbour, "neighbour_kernel", &statusNeighbour);
 	if (statusNeighbour != CL_SUCCESS) {
-		cerr << "error in step 7: " << getErrorString(status) << endl;
+		cerr << "error in step 8: " << getErrorString(status) << endl;
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
 	}
@@ -349,6 +349,34 @@ int main(int argc, char *argv[]){
 	computeKernel = clCreateKernel(programCompute, "compute_kernel", &statusCompute);
 	if (statusCompute != CL_SUCCESS) {
 		cerr << "error in step 8: " << getErrorString(status) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
+
+	status = clEnqueueWriteBuffer(
+		cmdQueue,
+		buffer_cellStatePtr,
+		CL_FALSE,
+		0,
+		IO_NETWORK_DIM1*IO_NETWORK_DIM2*PARAM_SIZE * sizeof(double),
+		cellStatePtr,
+		0,
+		NULL,
+		NULL);
+
+	status |= clEnqueueWriteBuffer(
+		cmdQueue,
+		buffer_cellCompParamsPtr,
+		CL_FALSE,
+		0,
+		IO_NETWORK_DIM1*IO_NETWORK_DIM2 * sizeof(double),
+		cellCompParamsPtr,
+		0,
+		NULL,
+		NULL);
+
+	if (status != CL_SUCCESS) {
+		cerr << "error in step 8, writing data: " << getErrorString(status) << endl;
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
 	}
@@ -375,7 +403,7 @@ int main(int argc, char *argv[]){
 		computeKernel,
 		2,
 		sizeof(cl_mem),
-		&buffer_cellVDendPtr);
+		&buffer_cellCompParamsPtr);
 
 	if (statusCompute != CL_SUCCESS) {
 		cerr << "error in step 9: " << getErrorString(statusCompute) << endl;
@@ -393,7 +421,12 @@ int main(int argc, char *argv[]){
 		neighbourKernel,
 		1,
 		sizeof(cl_mem),
-		&buffer_cellVDendPtr);
+		&buffer_cellCompParamsPtr);
+	statusNeighbour |= clSetKernelArg(
+		neighbourKernel,
+		2,
+		sizeof(cl_int),
+		&i);
 
 	if (statusNeighbour != CL_SUCCESS) {
 		cerr << "error in step 9: " << getErrorString(statusNeighbour) << endl;
@@ -557,7 +590,7 @@ int main(int argc, char *argv[]){
 	clReleaseCommandQueue(cmdQueue);
 	clReleaseMemObject(buffer_iApp);
 	clReleaseMemObject(buffer_cellStatePtr);
-	clReleaseMemObject(buffer_cellVDendPtr);
+	clReleaseMemObject(buffer_cellCompParamsPtr);
 	clReleaseContext(context);
 
     //Free up memory and close files
