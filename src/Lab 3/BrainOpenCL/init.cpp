@@ -1,24 +1,24 @@
 #include "init.h" 
 
-void mallocCells(cl_float_t **cellCompParamsPtr, cl_float_t **cellStatePtr){
+void mallocCells(user_float_t **cellVDendPtr, user_float_t **cellStatePtr){
     int k;
-    DEBUG_PRINT(("cellStatePtr: %luB\n", 2*IO_NETWORK_SIZE*STATE_SIZE*sizeof(cl_float_t)));
+    DEBUG_PRINT(("cellStatePtr: %lu B\n", IO_NETWORK_SIZE*PARAM_SIZE *sizeof(user_float_t)));
     //Two cell state structs are needed so as to avoid having to synchronize all consumers before they start rewriting the cell state.
-    (*cellStatePtr) = (cl_float_t*)malloc(2*IO_NETWORK_SIZE*STATE_SIZE*sizeof(cl_float_t));//current and next state
+    (*cellStatePtr) = (user_float_t*)malloc(IO_NETWORK_SIZE*PARAM_SIZE *sizeof(user_float_t));//current and next state
     if((*cellStatePtr)==NULL){
         printf("Error: Couldn't malloc for cellStatePtr\n");
         exit(EXIT_FAILURE);
-    }
+    }	
 
-    DEBUG_PRINT(("cellCompParamsPtr: %luB\n", IO_NETWORK_SIZE*LOCAL_PARAM_SIZE*sizeof(cl_float_t)));
-    (*cellCompParamsPtr) = (cl_float_t*)malloc(IO_NETWORK_SIZE*LOCAL_PARAM_SIZE*sizeof(cl_float_t));
-    if((*cellCompParamsPtr) ==NULL){
-        printf("Error: Couldn't malloc for cellCompParamsPtr\n");
+    DEBUG_PRINT(("cellVDendPtr: %lu B\n", IO_NETWORK_SIZE*sizeof(user_float_t)));
+    (*cellVDendPtr) = (user_float_t*)malloc(IO_NETWORK_SIZE*sizeof(user_float_t));
+    if((*cellVDendPtr) ==NULL){
+        printf("Error: Couldn't malloc for cellVDendPtr\n");
         exit(EXIT_FAILURE);
     }
 }
 
-void InitState(cl_float_t *cellStatePtr){
+void InitState(user_float_t *cellStatePtr, user_float_t *cellVDendPtr){
     int i, b;
     cl_float_t  cellStateInit[STATE_SIZE];
     //Initial dendritic parameters
@@ -47,18 +47,20 @@ void InitState(cl_float_t *cellStatePtr){
     //Copy init sate to all cell states
     for(i=0;i<IO_NETWORK_SIZE;i++){
         for(b=0;b<STATE_SIZE;b++){
-            cellStatePtr[i*STATE_SIZE + b] = cellStateInit[b];
+            cellStatePtr[i*PARAM_SIZE + b + STATEADD] = cellStateInit[b];
         }
+		cellVDendPtr[i] = cellStateInit[DEND_V];
     }
 
     return;
 }
 
-void init_g_CaL(cl_float_t *cellStatePtr){
+void init_g_CaL(user_float_t *cellStatePtr){
     int seedvar, i;
     seedvar = 1;
     for(i=0;i<IO_NETWORK_SIZE;i++){
             srand(seedvar++);   // use this for debugging, now there is difference
-            cellStatePtr[(IO_NETWORK_SIZE + i)*STATE_SIZE + SOMA_G] = cellStatePtr[i*STATE_SIZE + SOMA_G] = 0.68;
+            //cellStatePtr[(IO_NETWORK_SIZE + i)*STATE_SIZE + SOMA_G] = cellStatePtr[i*STATE_SIZE + SOMA_G] = 0.68;
+			cellStatePtr[i*PARAM_SIZE + SOMA_G + STATEADD] = 0.68;
     }
 }

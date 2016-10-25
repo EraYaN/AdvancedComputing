@@ -1,7 +1,8 @@
 #include "variables.h"
 
 typedef double user_float_t;
-//typedef float user_float_t;
+
+inline int dev_fetch(int j, int k);
 
 void ComputeOneCell(user_float_t *);
 void CompDend(user_float_t *cellCompParamsPtr);

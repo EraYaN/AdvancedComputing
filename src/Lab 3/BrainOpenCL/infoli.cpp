@@ -25,16 +25,21 @@
 using namespace std;
 
 int main(int argc, char *argv[]){
-
+#ifdef _WIN32
+	_putenv_s("CUDA_CACHE_DISABLE", "1");
+#else
+	setenv("CUDA_CACHE_DISABLE", "1", 1);
+#endif
     char *outFileName = "InferiorOlive_Output.txt";
-    cl_uint i, j, k , p, q;
+	cl_uint i, j, k, p, q;
+	i = 0;
     int simSteps = 0;
     int simTime = 0;
     int inputFromFile = 0;
     int initSteps;
-    cl_float_t *cellStatePtr;
-    cl_float_t *cellCompParamsPtr;
-    cl_float_t iApp;
+    user_float_t *cellStatePtr;
+	user_float_t *cellVDendPtr;
+	user_float_t iApp;
 
 	bool debug = true;
 	bool interactive = true;
@@ -70,14 +75,18 @@ int main(int argc, char *argv[]){
 	pOutFile << "#simSteps Time(ms) Input(Iapp) Output(V_axon)" << endl;
 
     //Malloc for the array of cellStates and cellCompParams
-    mallocCells(&cellCompParamsPtr, &cellStatePtr);
+    mallocCells(&cellVDendPtr, &cellStatePtr);
 
     //Write initial state values
-    InitState(cellStatePtr);
+    InitState(cellStatePtr, cellVDendPtr);
 
-    //Initialize g_CaL
+	//Initialize g_CaL
     init_g_CaL(cellStatePtr);
 
+	for (int ind = 0; ind < IO_NETWORK_SIZE; ind++) {
+		printf("(state-cpu) dendv %d: %lf\n", ind, cellStatePtr[ind*PARAM_SIZE+ STATEADD + DEND_V]);
+		printf("(state-cpu) dend_ca2 %d: %lf\n", ind, cellStatePtr[ind*PARAM_SIZE + STATEADD + DEND_CA2]);
+	}
 
 	//-----------------------------------------------------
 	// STEP 1: Discover and initialize the platforms
@@ -191,25 +200,12 @@ int main(int argc, char *argv[]){
     //-----------------------------------------------------
     // STEP 5: Create device buffers
     //-----------------------------------------------------
-	cl_mem buffer_iApp, buffer_cellStatePtr, buffer_cellCompParamsPtr;
-
-	buffer_iApp = clCreateBuffer(
-		context,
-		CL_MEM_READ_ONLY,
-		simSteps * sizeof(double),
-		NULL,
-		&status);
-
-	if (status != CL_SUCCESS) {
-		cerr << "error in step 5, creating buffer for iApp: " << getErrorString(status) << endl;
-		if (interactive) wait_for_input();
-		exit(EXIT_OPENCLERROR);
-	}
+	cl_mem buffer_cellStatePtr, buffer_cellVDendPtr;
 
 	buffer_cellStatePtr = clCreateBuffer(
 		context,
-		CL_MEM_READ_ONLY,
-		IO_NETWORK_DIM1*IO_NETWORK_DIM2*PARAM_SIZE * sizeof(double),
+		CL_MEM_READ_WRITE,
+		IO_NETWORK_SIZE*PARAM_SIZE * sizeof(user_float_t),
 		NULL,
 		&status);
 
@@ -219,10 +215,18 @@ int main(int argc, char *argv[]){
 		exit(EXIT_OPENCLERROR);
 	}
 
-	buffer_cellCompParamsPtr = clCreateBuffer(
+	/*cl_image_format img_format;
+	img_format.image_channel_order = CL_INTENSITY;
+	img_format.image_channel_data_type = CL_FLOAT;
+	buffer_cellVDendPtr = clCreateImage2D(
 		context,
-		CL_MEM_READ_ONLY,
-		IO_NETWORK_DIM1*IO_NETWORK_DIM2 * sizeof(double),
+
+		);*/
+
+	buffer_cellVDendPtr = clCreateBuffer(
+		context,
+		CL_MEM_READ_WRITE,
+		IO_NETWORK_SIZE * sizeof(user_float_t),
 		NULL,
 		&status);
 
@@ -338,7 +342,7 @@ int main(int argc, char *argv[]){
 	// Use clCreateKernel() to create a kernel from the
 	neighbourKernel = clCreateKernel(programNeighbour, "neighbour_kernel", &statusNeighbour);
 	if (statusNeighbour != CL_SUCCESS) {
-		cerr << "error in step 8: " << getErrorString(status) << endl;
+		cerr << "error in step 8: " << getErrorString(statusNeighbour) << endl;
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
 	}
@@ -348,7 +352,7 @@ int main(int argc, char *argv[]){
 	// Use clCreateKernel() to create a kernel from the
 	computeKernel = clCreateKernel(programCompute, "compute_kernel", &statusCompute);
 	if (statusCompute != CL_SUCCESS) {
-		cerr << "error in step 8: " << getErrorString(status) << endl;
+		cerr << "error in step 8: " << getErrorString(statusCompute) << endl;
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
 	}
@@ -358,7 +362,7 @@ int main(int argc, char *argv[]){
 		buffer_cellStatePtr,
 		CL_FALSE,
 		0,
-		IO_NETWORK_DIM1*IO_NETWORK_DIM2*PARAM_SIZE * sizeof(double),
+		IO_NETWORK_SIZE*PARAM_SIZE * sizeof(user_float_t),
 		cellStatePtr,
 		0,
 		NULL,
@@ -366,11 +370,11 @@ int main(int argc, char *argv[]){
 
 	status |= clEnqueueWriteBuffer(
 		cmdQueue,
-		buffer_cellCompParamsPtr,
+		buffer_cellVDendPtr,
 		CL_FALSE,
 		0,
-		IO_NETWORK_DIM1*IO_NETWORK_DIM2 * sizeof(double),
-		cellCompParamsPtr,
+		IO_NETWORK_SIZE * sizeof(user_float_t),
+		cellVDendPtr,
 		0,
 		NULL,
 		NULL);
@@ -389,49 +393,46 @@ int main(int argc, char *argv[]){
 	// kernel
 	// using clSetKernelArg()
 	// compute arguments
-	statusCompute |= clSetKernelArg(
+	statusCompute = clSetKernelArg(
 		computeKernel,
 		0,
 		sizeof(cl_mem),
 		&buffer_cellStatePtr);
-	statusCompute = clSetKernelArg(
+	statusCompute |= clSetKernelArg(
 		computeKernel,
 		1,
 		sizeof(cl_mem),
-		&buffer_iApp);
-	statusCompute |= clSetKernelArg(
-		computeKernel,
-		2,
-		sizeof(cl_mem),
-		&buffer_cellCompParamsPtr);
+		&buffer_cellVDendPtr);
+
+
 
 	if (statusCompute != CL_SUCCESS) {
-		cerr << "error in step 9: " << getErrorString(statusCompute) << endl;
+		cerr << "error in step 9.1: " << getErrorString(statusCompute) << endl;
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
 	}
 
 	// neighbour argument
-	statusNeighbour |= clSetKernelArg(
+	statusNeighbour = clSetKernelArg(
 		neighbourKernel,
 		0,
 		sizeof(cl_mem),
 		&buffer_cellStatePtr);
+
 	statusNeighbour |= clSetKernelArg(
 		neighbourKernel,
 		1,
 		sizeof(cl_mem),
-		&buffer_cellCompParamsPtr);
-	statusNeighbour |= clSetKernelArg(
-		neighbourKernel,
-		2,
-		sizeof(cl_int),
-		&i);
+		&buffer_cellVDendPtr);
 
 	if (statusNeighbour != CL_SUCCESS) {
-		cerr << "error in step 9: " << getErrorString(statusNeighbour) << endl;
+		cerr << "error in step 9.2 " << getErrorString(statusNeighbour) << endl;
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
+	}
+
+	if (EXTRA_TIMING) {
+		tInitEnd = tLoopStart = now();
 	}
 
     //-----------------------------------------------------
@@ -445,8 +446,6 @@ int main(int argc, char *argv[]){
         else{ iApp = 0;}
 		pOutFile << string_format("%d %.2f %.1f ", i + 1, i*0.05, iApp);
 
-
-
         if(EXTRA_TIMING){
             tNeighbourStart = now();
         }
@@ -455,17 +454,19 @@ int main(int argc, char *argv[]){
         // STEP 11.1: Run neighbour kernel
         //-----------------------------------------------------
 		// FIX: sizes
-		size_t globalWorkSize[1];
-		globalWorkSize[0] = 1;// size;
+		size_t globalWorkSize[2];
+		globalWorkSize[0] = IO_NETWORK_DIM1;
+		globalWorkSize[1] = IO_NETWORK_DIM2;// size;
 
-		size_t localWorkSize[1];
+		size_t localWorkSize[2];
 		localWorkSize[0] = 1;// localSize;
+		localWorkSize[1] = 1;// localSize;
 
 
 		statusNeighbour |= clEnqueueNDRangeKernel(
 			cmdQueue,
 			neighbourKernel,
-			1,
+			2,
 			NULL,
 			globalWorkSize,
 			localWorkSize,
@@ -490,10 +491,16 @@ int main(int argc, char *argv[]){
         // STEP 11.2: Run compute kernel
         //-----------------------------------------------------
 
+		statusCompute |= clSetKernelArg(
+			computeKernel,
+			2,
+			sizeof(user_float_t),
+			&iApp);
+
 		statusCompute |= clEnqueueNDRangeKernel(
 			cmdQueue,
 			computeKernel,
-			1,
+			2,
 			NULL,
 			globalWorkSize,
 			localWorkSize,
@@ -524,7 +531,7 @@ int main(int argc, char *argv[]){
 				buffer_cellStatePtr,
 				CL_TRUE,
 				0,
-				IO_NETWORK_DIM1*IO_NETWORK_DIM2*PARAM_SIZE * sizeof(double),
+				IO_NETWORK_SIZE*PARAM_SIZE * sizeof(user_float_t),
 				cellStatePtr,
 				1,
 				&computeDone,
@@ -535,17 +542,19 @@ int main(int argc, char *argv[]){
             tReadEnd = now();
             tRead += diffToNanoseconds(tReadStart, tReadEnd);
         }
-
         // write output to file
         if(WRITE_OUTPUT){
             if(EXTRA_TIMING){
                 tWriteFileStart = now();
             }
-            for(j = 0; j < IO_NETWORK_DIM1; j++){
+			for (int b = 0; b < IO_NETWORK_SIZE; b++) {
+				pOutFile << setprecision(8) << cellStatePtr[b*PARAM_SIZE + STATEADD + AXON_V] << " ";
+			}
+            /*for(j = 0; j < IO_NETWORK_DIM1; j++){
                 for(k = 0; k < IO_NETWORK_DIM2; k++){
-					pOutFile << setprecision(8) << cellStatePtr[((((i % 2) ^ 1)*IO_NETWORK_SIZE + (j + k*IO_NETWORK_DIM1))* STATE_SIZE) + AXON_V] << " ";
+					pOutFile << setprecision(8) << cellStatePtr[(((j + k*IO_NETWORK_DIM1))* PARAM_SIZE) + AXON_V] << " ";
                 }
-            }
+            }*/
 			pOutFile << endl;
             if(EXTRA_TIMING){
                 tWriteFileEnd = now();
@@ -558,9 +567,9 @@ int main(int argc, char *argv[]){
     }
 
     t1 = now();
-    usecs = diffToNanoseconds(t0,t1)/1e3;// / 1000000;
+    usecs = diffToNanoseconds(t0,t1)/1e6;// / 1000000;
     DEBUG_PRINT(("%d ms of brain time in %d simulation steps\n", simTime, simSteps));
-    DEBUG_PRINT((" %lld usecs real time \n", usecs));
+    DEBUG_PRINT((" %.1f msecs real time \n", usecs));
 
     if(EXTRA_TIMING){
         tInit = diffToNanoseconds(tInitStart, tInitEnd);
@@ -588,15 +597,16 @@ int main(int argc, char *argv[]){
 	clReleaseProgram(programNeighbour);
 	clReleaseProgram(programCompute);
 	clReleaseCommandQueue(cmdQueue);
-	clReleaseMemObject(buffer_iApp);
 	clReleaseMemObject(buffer_cellStatePtr);
-	clReleaseMemObject(buffer_cellCompParamsPtr);
+	clReleaseMemObject(buffer_cellVDendPtr);
 	clReleaseContext(context);
 
     //Free up memory and close files
     free(cellStatePtr);
-    free(cellCompParamsPtr);
+    free(cellVDendPtr);
     pOutFile.close();
+
+	if(interactive) wait_for_input();
 
     return EXIT_SUCCESS;
 }
