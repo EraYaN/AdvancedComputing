@@ -64,7 +64,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 	char *inFileName;
-	char *outFileName = "InferiorOlive_Output.txt";
+	char *outFileName = "InferiorOlive_Output_CUDA.txt";
 	FILE *pInFile;
 	FILE *pOutFile;
 	char temp[100];//warning: this buffer may overflow

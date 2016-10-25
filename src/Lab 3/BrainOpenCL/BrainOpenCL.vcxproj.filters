@@ -19,10 +19,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="compute_kernel.cl">
+    <None Include="neighbour_kernel.cl">
       <Filter>Kernel Files</Filter>
     </None>
-    <None Include="neighbour_kernel.cl">
+    <None Include="compute_kernel.cl">
       <Filter>Kernel Files</Filter>
     </None>
   </ItemGroup>

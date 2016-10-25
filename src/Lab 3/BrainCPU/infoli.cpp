@@ -25,7 +25,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
-	const char* outFileName = "InferiorOlive_Output.txt";
+	const char* outFileName = "InferiorOlive_Output_CPU.txt";
 	int i, j, k, p, q;
 	int simSteps = 0;
 	int simTime = 0;

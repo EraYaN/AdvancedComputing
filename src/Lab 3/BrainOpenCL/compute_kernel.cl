@@ -191,6 +191,7 @@ user_float_t IcNeighbors(user_float_t *neighVdend, user_float_t prevV_dend){
     //printf("Ic[0]= %f\n", neighVdend[0]);
 
     I_c = 0;
+#pragma unroll 8
     for(i=0;i<8;i++){
         //printf("%d prevdend: %0.10lf, neighVdend: %0.10lf\n",i, prevV_dend, *neighVdend );
         V = prevV_dend - neighVdend[i];
@@ -542,7 +543,7 @@ __kernel void compute_kernel(global user_float_t *cellStatePtr, global user_floa
 	//Compute one by one sim step
 
 	d_cellCompParams[0] = iApp;
-	
+
 #pragma unroll 8
 	for (e = 0; e < STATEADD; e++) {
 		d_cellCompParams[VNEIGHSTARTADD + e] = cellStatePtr[dev_fetch(j, k) + e];
@@ -578,6 +579,6 @@ __kernel void compute_kernel(global user_float_t *cellStatePtr, global user_floa
 		g_i = g_i + 1;*/
 	barrier(CLK_GLOBAL_MEM_FENCE);
 	//printf("%d,%d, %lf\n",j,k,cellStatePtr[dev_fetch(j, k) + STATEADD + DEND_V]);
-	
+
 	return;
 }

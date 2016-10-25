@@ -82,10 +82,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="compute_kernel.cl">
-      <FileType>Document</FileType>
+      <FileType>CppCode</FileType>
     </None>
     <None Include="neighbour_kernel.cl">
-      <FileType>Document</FileType>
+      <FileType>CppCode</FileType>
     </None>
   </ItemGroup>
   <ItemGroup>

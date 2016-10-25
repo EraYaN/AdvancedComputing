@@ -30,7 +30,7 @@ int main(int argc, char *argv[]){
 #else
 	setenv("CUDA_CACHE_DISABLE", "1", 1);
 #endif
-    char *outFileName = "InferiorOlive_Output.txt";
+    char *outFileName = "InferiorOlive_Output_OpenCL.txt";
 	cl_uint i, j, k, p, q;
 	i = 0;
     int simSteps = 0;
