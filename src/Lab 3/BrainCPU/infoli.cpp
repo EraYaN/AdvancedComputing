@@ -114,6 +114,9 @@ int main(int argc, char *argv[]) {
 			tWriteFileEnd = now();
 			tWriteFile += diffToNanoseconds(tWriteFileStart, tWriteFileEnd);
 		}
+		//wait_for_input();
+
+		//if (i >= 2) break;
 	}
 	if (EXTRA_TIMING) {
 		tLoopEnd = now();
@@ -149,7 +152,7 @@ int main(int argc, char *argv[]) {
 	free(cellCompParamsPtr);
 	pOutFile.close();
 
-	wait_for_input();
+	//wait_for_input();
 
 	return EXIT_SUCCESS;
 }
@@ -197,7 +200,7 @@ Then Compute the new variables of the current cell with ComputeOneCell.
 void compute(cellCompParams **cellCompParamsPtr, cellState ***cellStatePtr, int iApp, int i, int j, int k) {
 	cellCompParamsPtr[j][k].iAppIn = iApp;
 	cellCompParamsPtr[j][k].prevCellState = &cellStatePtr[i % 2][j][k];
-	cellCompParamsPtr[j][k].newCellState = &cellStatePtr[(i % 2) ^ 1][j][k];
+	cellCompParamsPtr[j][k].nextCellState = &cellStatePtr[(i % 2) ^ 1][j][k];
 	//Compute one Cell...
 	ComputeOneCell(&cellCompParamsPtr[j][k]);
 }

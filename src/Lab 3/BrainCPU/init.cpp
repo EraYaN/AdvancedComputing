@@ -116,7 +116,7 @@ void random_init(cellCompParams **cellCompParamsPtr, cellState ***cellStatePtr){
                 //Arrange inputs
                 cellCompParamsPtr[j][k].iAppIn = 0;//No stimulus
                 cellCompParamsPtr[j][k].prevCellState = &cellStatePtr[i%2][j][k];
-                cellCompParamsPtr[j][k].newCellState = &cellStatePtr[(i%2)^1][j][k];
+                cellCompParamsPtr[j][k].nextCellState = &cellStatePtr[(i%2)^1][j][k];
                 ComputeOneCell(&cellCompParamsPtr[j][k]);
             }
             printf("Random initialization of the cell states finished.\n");

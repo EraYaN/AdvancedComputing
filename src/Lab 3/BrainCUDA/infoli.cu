@@ -321,7 +321,7 @@ int main(int argc, char *argv[]) {
 	fclose(pOutFile);
 	if (inputFromFile) { fclose(pInFile); }
 
-	wait_for_input();
+	//wait_for_input();
 
 	return EXIT_SUCCESS;
 }

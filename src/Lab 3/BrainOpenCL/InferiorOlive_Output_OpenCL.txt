@@ -1,2 +1,0 @@
-#simSteps Time(ms) Input(Iapp) Output(V_axon)
-1 0.00 0.0 -59.975967 -59.975967 -59.975967 -59.975967 

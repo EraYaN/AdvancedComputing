@@ -411,4 +411,4 @@ script/**/*.jpg
 *.pickle
 run_output
 .rsync*
-*Output.txt
+*Output*.txt

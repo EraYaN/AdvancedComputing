@@ -42,7 +42,7 @@ int main(int argc, char *argv[]){
 	user_float_t iApp;
 
 	bool debug = true;
-	bool interactive = true;
+	bool interactive = false;
 
     int seedvar;
     char temp[100];//warning: this buffer may overflow
@@ -83,10 +83,10 @@ int main(int argc, char *argv[]){
 	//Initialize g_CaL
     init_g_CaL(cellStatePtr);
 
-	for (int ind = 0; ind < IO_NETWORK_SIZE; ind++) {
-		printf("(state-cpu) dendv %d: %lf\n", ind, cellStatePtr[ind*PARAM_SIZE+ STATEADD + DEND_V]);
-		printf("(state-cpu) dend_ca2 %d: %lf\n", ind, cellStatePtr[ind*PARAM_SIZE + STATEADD + DEND_CA2]);
-	}
+	//for (int ind = 0; ind < IO_NETWORK_SIZE; ind++) {
+	//	printf("(state-cpu) dendv %d: %lf\n", ind, cellStatePtr[ind*PARAM_SIZE+ STATEADD + DEND_V]);
+	//	printf("(state-cpu) dend_ca2 %d: %lf\n", ind, cellStatePtr[ind*PARAM_SIZE + STATEADD + DEND_CA2]);
+	//}
 
 	//-----------------------------------------------------
 	// STEP 1: Discover and initialize the platforms
@@ -561,7 +561,9 @@ int main(int argc, char *argv[]){
                 tWriteFile += diffToNanoseconds(tWriteFileStart, tWriteFileEnd);
             }
         }
-		wait_for_input();
+		//wait_for_input();
+
+		//if (i >= 2) break;
     }
     if(EXTRA_TIMING){
         tLoopEnd = now();
