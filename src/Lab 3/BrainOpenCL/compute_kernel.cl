@@ -4,9 +4,11 @@
 void ComputeOneCell(user_float_t *cellCompParamsPtr){
 
     //The three compartments can be computed concurrently but only across a single sim step
-    CompDend(cellCompParamsPtr);
+
+	CompDend(cellCompParamsPtr);
     CompSoma(cellCompParamsPtr);
     CompAxon(cellCompParamsPtr);
+	
     return;
 }
 
@@ -34,6 +36,7 @@ void CompDend(user_float_t *cellCompParamsPtr){
 	chPrms_newComp1 = &(cellCompParamsPtr[NEXTSTATESTARTADD + DEND_H]); //&cellCompParamsPtr->newCellState->dend.Hcurrent_q;
 																		//Compute
 	DendHCurr(chPrms_v, chPrms_prevComp1, chPrms_newComp1);
+
 	//printf("VDend (DendHCurr): %lf\n", chPrms_v);
 	//Prepare pointers to inputs/outputs
 	chPrms_v = &(cellCompParamsPtr[PREVSTATESTARTADD + DEND_V]);  //&cellCompParamsPtr->prevCellState->dend.V_dend;
@@ -561,11 +564,27 @@ __kernel void compute_kernel(global user_float_t *cellStatePtr, global user_floa
 		printf("(loop) %d: %lf\n", ind, d_cellCompParams[ind]);*/
 	//Compute one Cell...
 	//printf("VDend (second loop): %lf\n", d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
+	// DEBUG PRINT
+	for (int i = 0; i < LOCAL_PARAM_SIZE; i++) {
+		printf("BEFORE CompDend, cellCompParamsPtr[%d]: %lf \n", i, d_cellCompParams[i]);
+	}
 	CompDend(d_cellCompParams);
+	// DEBUG PRINT
+	for (int i = 0; i < LOCAL_PARAM_SIZE; i++) {
+		printf("AFTER CompDend, cellCompParamsPtr[%d]: %lf \n", i, d_cellCompParams[i]);
+	}
 	//printf("VDend (Dend): %lf\n", d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
 	CompSoma(d_cellCompParams);
+	// DEBUG PRINT
+	for (int i = 0; i < LOCAL_PARAM_SIZE; i++) {
+		printf("AFTER CompSoma, cellCompParamsPtr[%d]: %lf \n", i, d_cellCompParams[i]);
+	}
 	//printf("VDend (Soma): %lf\n", d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
 	CompAxon(d_cellCompParams);
+	// DEBUG PRINT
+	for (int i = 0; i < LOCAL_PARAM_SIZE; i++) {
+		printf("AFTER CompAxon, cellCompParamsPtr[%d]: %lf \n", i, d_cellCompParams[i]);
+	}
 	//printf("VDend (Axon): %lf\n", d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
 	//updates
 	barrier(CLK_GLOBAL_MEM_FENCE);

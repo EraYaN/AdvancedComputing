@@ -440,7 +440,7 @@ int main(int argc, char *argv[]){
     //-----------------------------------------------------
 
 
-    for(i=0;i<simSteps;i++){
+    for(i=0;i<simSteps;i++) {
         //Compute one sim step for all cells
         if(i>20000-1 && i<20500-1){ iApp = 6;} // start @ 1 because skipping initial values
         else{ iApp = 0;}
@@ -561,6 +561,7 @@ int main(int argc, char *argv[]){
                 tWriteFile += diffToNanoseconds(tWriteFileStart, tWriteFileEnd);
             }
         }
+		wait_for_input();
     }
     if(EXTRA_TIMING){
         tLoopEnd = now();
