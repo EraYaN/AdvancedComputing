@@ -1,5 +1,7 @@
 #include "infoli.h"
 
+using namespace std;
+
 void printComParams(cellCompParams *cellCompParamsPtr) {
 	for (int i = 0; i < 8;i++)
 		printf("Neighbour %d: %f\n", i, cellCompParamsPtr->neighVdend[i]);
@@ -92,7 +94,7 @@ void CompDend(cellCompParams *cellCompParamsPtr) {
 	chPrms.newComp1 = &cellCompParamsPtr->nextCellState->dend.Calcium_r;
 	//Compute
 	DendCaCurr(&chPrms);
-	
+
 	//Prepare pointers to inputs/outputs
 	chPrms.prevComp1 = &cellCompParamsPtr->prevCellState->dend.Potassium_s;
 	chPrms.prevComp2 = &cellCompParamsPtr->prevCellState->dend.Ca2Plus;
@@ -103,7 +105,7 @@ void CompDend(cellCompParams *cellCompParamsPtr) {
 	//Prepare pointers to inputs/outputs
 	chPrms.prevComp1 = &cellCompParamsPtr->prevCellState->dend.Ca2Plus;
 	chPrms.prevComp2 = &cellCompParamsPtr->prevCellState->dend.I_CaH;
-	chPrms.newComp1 = &cellCompParamsPtr->nextCellState->dend.Ca2Plus;	
+	chPrms.newComp1 = &cellCompParamsPtr->nextCellState->dend.Ca2Plus;
 	//Compute
 	DendCal(&chPrms);
 

@@ -64,7 +64,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 	char *inFileName;
-	char *outFileName = "InferiorOlive_Output_CUDA.txt";
+	const char *outFileName = "../InferiorOlive_Output_CUDA.txt";
 	FILE *pInFile;
 	FILE *pOutFile;
 	char temp[100];//warning: this buffer may overflow
@@ -285,7 +285,7 @@ int main(int argc, char *argv[]) {
 
 	if (print) {
 		printf("BlockDim x=%d, y=%d, GridDim x=%d, y=%d \n", blockDim.x, blockDim.y, IO_NETWORK_DIM1 / blockDim.x, IO_NETWORK_DIM2 / blockDim.y);
-		printf("%d ms of brain time in %d simulation steps\n", SIMTIME, 120000);
+		printf("%d ms of brain time in %d simulation steps\n", SIMTIME, simSteps);
 		secs = diffToNanoseconds(t0, t3) / 1e3;
 		printf("%.1f us real time \n", secs);
 		cudaEventElapsedTime(&time, start, stop);
@@ -300,7 +300,7 @@ int main(int argc, char *argv[]) {
 		printf(" %.1f us xfer to host time cellState + writing to file per timestep \n", secs);
 	}
 	if (print) {
-		printf("%d ms of brain time in %d simulation steps\n", SIMTIME, 120000);
+		printf("%d ms of brain time in %d simulation steps\n", SIMTIME, simSteps);
 		secs = diffToNanoseconds(t0, t3) / 1e3;//(t3 - t0);
 		printf("%.1f us real time \n", secs);
 	}

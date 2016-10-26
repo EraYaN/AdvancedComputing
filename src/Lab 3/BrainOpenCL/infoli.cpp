@@ -30,7 +30,7 @@ int main(int argc, char *argv[]){
 #else
 	setenv("CUDA_CACHE_DISABLE", "1", 1);
 #endif
-    char *outFileName = "InferiorOlive_Output_OpenCL.txt";
+    const char *outFileName = "../InferiorOlive_Output_OpenCL.txt";
 	cl_uint i, j, k, p, q;
 	i = 0;
     int simSteps = 0;
@@ -483,7 +483,7 @@ int main(int argc, char *argv[]){
         }
 
 		if (statusNeighbour != CL_SUCCESS) {
-			cerr << "error in loop, neighbour" << endl;
+			cerr << "error in loop, neighbour. Error: " << getErrorString(statusNeighbour) << endl;
 			exit(EXIT_FAILURE);
 		}
 
@@ -491,13 +491,18 @@ int main(int argc, char *argv[]){
         // STEP 11.2: Run compute kernel
         //-----------------------------------------------------
 
-		statusCompute |= clSetKernelArg(
+		statusCompute = clSetKernelArg(
 			computeKernel,
 			2,
 			sizeof(user_float_t),
 			&iApp);
 
-		statusCompute |= clEnqueueNDRangeKernel(
+		if (statusCompute != CL_SUCCESS) {
+			cerr << "error in loop, compute clSetKernelArg. Error: " << getErrorString(statusCompute) << endl;
+			exit(EXIT_FAILURE);
+		}
+
+		statusCompute = clEnqueueNDRangeKernel(
 			cmdQueue,
 			computeKernel,
 			2,
@@ -508,15 +513,25 @@ int main(int argc, char *argv[]){
 			NULL,
 			&computeDone);
 
+		if (statusCompute != CL_SUCCESS) {
+			cerr << "error in loop, compute clEnqueueNDRangeKernel. Error: " << getErrorString(statusCompute) << endl;
+			exit(EXIT_FAILURE);
+		}
+
         if(EXTRA_TIMING){
             statusCompute = clWaitForEvents(1, &computeDone);
             tComputeEnd = now();
             tCompute += diffToNanoseconds(tComputeStart, tComputeEnd);
             tReadStart = now();
+
+			if (statusCompute != CL_SUCCESS) {
+				cerr << "error in loop, compute clWaitForEvents. Error: " << getErrorString(statusCompute) << endl;
+				exit(EXIT_FAILURE);
+			}
         }
 
         if(statusCompute != CL_SUCCESS){
-            cerr << "error in loop, compute" << endl;
+            cerr << "error in loop, compute. Error: " << getErrorString(statusCompute) << endl;
             exit(EXIT_FAILURE);
         }
 
