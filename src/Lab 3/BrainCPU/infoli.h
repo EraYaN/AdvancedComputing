@@ -76,7 +76,7 @@
 #define V_L 10       // leak current
 
 #define DEBUG 1 // comment this if nothing needs to be printed to the console
-#define WRITE_OUTPUT 1
+#define WRITE_OUTPUT 0
 #define EXTRA_TIMING 1
 
 #ifdef DEBUG

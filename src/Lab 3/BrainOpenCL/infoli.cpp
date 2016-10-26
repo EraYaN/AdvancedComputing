@@ -459,8 +459,8 @@ int main(int argc, char *argv[]){
 		globalWorkSize[1] = IO_NETWORK_DIM2;// size;
 
 		size_t localWorkSize[2];
-		localWorkSize[0] = 1;// localSize;
-		localWorkSize[1] = 1;// localSize;
+		localWorkSize[0] = 16;// localSize;
+		localWorkSize[1] = 16;// localSize;
 
 
 		statusNeighbour |= clEnqueueNDRangeKernel(

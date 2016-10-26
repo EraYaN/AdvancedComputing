@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 	FILE *pOutFile;
 	char temp[100];//warning: this buffer may overflow
 	int inputFromFile = 0;
-	int debug = 0, print = 1;
+	int debug = 0, print = 0;
 	perftime_t t0, t1, t2, t3, t4, t5;
 	double secs;
 	cudaEvent_t start, stop;
@@ -283,7 +283,7 @@ int main(int argc, char *argv[]) {
 		fputs(temp, pOutFile);
 	}
 
-	if (print) {
+	//if (print) {
 		printf("BlockDim x=%d, y=%d, GridDim x=%d, y=%d \n", blockDim.x, blockDim.y, IO_NETWORK_DIM1 / blockDim.x, IO_NETWORK_DIM2 / blockDim.y);
 		printf("%d ms of brain time in %d simulation steps\n", SIMTIME, simSteps);
 		secs = diffToNanoseconds(t0, t3) / 1e3;
@@ -298,12 +298,12 @@ int main(int argc, char *argv[]) {
 		printf(" %.1f us xfer to device time \n", secs);
 		secs = diffToNanoseconds(t2, t3) / 1e3;//(t3 - t2);
 		printf(" %.1f us xfer to host time cellState + writing to file per timestep \n", secs);
-	}
-	if (print) {
+	//}
+	//if (print) {
 		printf("%d ms of brain time in %d simulation steps\n", SIMTIME, simSteps);
-		secs = diffToNanoseconds(t0, t3) / 1e3;//(t3 - t0);
-		printf("%.1f us real time \n", secs);
-	}
+		secs = diffToNanoseconds(t0, t3) / 1e9;//(t3 - t0);
+		printf("%.1f s real time \n", secs);
+	//}
 
 	//Free up memory and close files
 	for (int i = 0; i < 5; ++i)
@@ -321,7 +321,7 @@ int main(int argc, char *argv[]) {
 	fclose(pOutFile);
 	if (inputFromFile) { fclose(pInFile); }
 
-	//wait_for_input();
+	wait_for_input();
 
 	return EXIT_SUCCESS;
 }

@@ -30,7 +30,7 @@
 #define MAIN_H_
 /*** MACROS ***/
 #define RAND_INIT 0 // make it zero to facilitate debugging
-#define SIMTIME 2000 // in ms, for when no input file is provided
+#define SIMTIME 5000 // in ms, for when no input file is provided
 //IO network size is IO_NETWORK_DIM1*IO_NETWORK_DIM2
 #define IO_NETWORK_DIM1 64
 #define IO_NETWORK_DIM2 64
