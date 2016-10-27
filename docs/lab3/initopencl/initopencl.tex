@@ -7,5 +7,25 @@
 \begin{document}
 \chapter{Initial OpenCL Implementation}\label{ch:initopencl}
 
+\section{Introduction}
+The code to start with already contained a rough outline of the OpenCL code structure.
+Most parts were fairly straightforward, however, implementing the kernels proved to be more difficult, the sections below will elaborate on this.
+
+\section{Neighbour Kernel}
+TODO: write some text about the neighbour kernel implementation
+
+\section{Compute Kernel}
+TODO: write some text about the compute kernel implementation
+
+\section{Fixing an Error in the Provided Code}
+After having set up all the right variables and kernel implementations, the OpenCL implementation seemed to work.
+However, after comparing its output to that of the CPU en CUDA implementation, it became clear that the axon voltage computation was wrong.
+Since hardly any debug tools are available for OpenCL, the entire compute kernel was fitted with \texttt{printf} statements to monitor each computation step.
+By comparing each step between the CPU and OpenCL code, the mistake was found to be in the \texttt{IcNeighbours} function.
+The problem was in the index of \texttt{neighVdend}, namely, \texttt{V = prevV\_dend - neighVdend[i]\;}, which started iterating at 0.
+The CPU implementation \texttt{cellCompParams} contains the neighbours and states in a struct format, it also has a separate value for \texttt{iApp}.
+Therefore, one can start iterating through the neighbours at 0, however, the OpenCL implementation is one single array and its neighbours start at position 1 in the array, not 0.
+The 0 spot is reserved for the \texttt{iApp} value.
+Thus the code was changed to, \texttt{V = prevV\_dend - neighVdend[VNEIGHSTARTADD + i]\;}, after which the program was fully operational with the correct output.
 
 \end{document}

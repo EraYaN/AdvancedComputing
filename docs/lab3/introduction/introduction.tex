@@ -7,12 +7,16 @@
 \begin{document}
 \chapter{Introduction}
 
-% The focus of this report is to inform the reader about the differences in performance between certain image processing steps when being executed on either a CPU or GPU.
-% The report compares the performance of each kernel separately and in some cases compares different implementations of the same kernel.
-% At the end of the report the general results are discussed and some recommendations regarding the GPU kernel implementations are given.
+The focus of this report is to provide the reader with an OpenCL implementation of a brain simulation algorithm.
+The bare bones structure of the program is discussed as well as enhancements that have been applied to improve performance.
+Furthermore, key points and bottlenecks to take into account, when programming for OpenCL, are highlighted. 
+In order to draw a conclusion on the performance of the implementation in OpenCL, it is compared to that of a CUDA and CPU implementation.
 
-% \section{Method}
-% In order to get reliable performance measurements a total of 10 runs have been done for each kernel.
+\section{Method}
+
+TODO: write something about our approach
+
+%In order to get reliable performance measurements a total of 10 runs have been done for each kernel.
 % A Python script was in control of scheduling and averaging each run on the benchmark host.
 % It also collected the profiling metrics and processed the output of the program.
 
@@ -20,21 +24,27 @@
 
 % \includecode[python]{The code used to calculate the values in the result tables.}{resources/tableCalcSnippet.py}{lst:table-calc-snippet}
 
-% The images that the kernels will be benchmarked for are listed in \cref{tab:image-information}.
+\section{System Overview}
+All the implementations discussed in this report will be benchmarked on the GPU listed in \cref{tab:gpu-specs}.
 
-% \begin{table}[H]
-% 	\centering
-% 	\caption{Benchmark images information}
-% 	\label{tab:image-information}
-% 	\begin{tabular}{llll}
-% 		\toprule
-% 			\textbf{Name} &\textbf{Width (pixels)} & \textbf{Height (pixels)} & \textbf{Amount (pixels)}\\
-% 		\midrule
-% 			Image04 & 1200				& 1398				& 1677600 \\
-% 			Image09 & 8192 				& 8192 				& 67108864 \\
-% 			Image15 & 3030 				& 2360 				& 7150800\\
-% 		\bottomrule
-% 	\end{tabular}
-% \end{table}
+\begin{table}[H]
+	\centering
+	\caption{NVIDIA Tesla K40c GPU specifications}
+	\label{tab:gpu-specs}
+	\begin{tabular}{ll}
+		\toprule
+			\textbf{Item} &\textbf{Description}\\
+		\midrule
+			\textit{Cores} & 2880	\\
+			\textit{Base clock} & 745 MHz \\
+			\textit{Board interface} & PCI Express Gen3x16 \\
+			\textit{Memory clock} & 3.0 GHz \\
+			\textit{Memory bandwidth} & 288 GB/sec \\
+			\textit{Memory interface} & 384-bit \\
+			\textit{Memory size} & 12 GB \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
 
 \end{document}
