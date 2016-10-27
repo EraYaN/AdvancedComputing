@@ -1,0 +1,40 @@
+%!TEX program=xelatex
+%!TEX spellcheck=en_US
+\documentclass[final]{report}
+\input{../../.library/preamble.tex}
+\input{../../.library/style.tex}
+\addbibresource{../../.library/bibliography.bib}
+\begin{document}
+\chapter{Introduction}
+
+% The focus of this report is to inform the reader about the differences in performance between certain image processing steps when being executed on either a CPU or GPU.
+% The report compares the performance of each kernel separately and in some cases compares different implementations of the same kernel.
+% At the end of the report the general results are discussed and some recommendations regarding the GPU kernel implementations are given.
+
+% \section{Method}
+% In order to get reliable performance measurements a total of 10 runs have been done for each kernel.
+% A Python script was in control of scheduling and averaging each run on the benchmark host.
+% It also collected the profiling metrics and processed the output of the program.
+
+% The values in the result tables are calculated as shown in \cref{lst:table-calc-snippet}.
+
+% \includecode[python]{The code used to calculate the values in the result tables.}{resources/tableCalcSnippet.py}{lst:table-calc-snippet}
+
+% The images that the kernels will be benchmarked for are listed in \cref{tab:image-information}.
+
+% \begin{table}[H]
+% 	\centering
+% 	\caption{Benchmark images information}
+% 	\label{tab:image-information}
+% 	\begin{tabular}{llll}
+% 		\toprule
+% 			\textbf{Name} &\textbf{Width (pixels)} & \textbf{Height (pixels)} & \textbf{Amount (pixels)}\\
+% 		\midrule
+% 			Image04 & 1200				& 1398				& 1677600 \\
+% 			Image09 & 8192 				& 8192 				& 67108864 \\
+% 			Image15 & 3030 				& 2360 				& 7150800\\
+% 		\bottomrule
+% 	\end{tabular}
+% \end{table}
+
+\end{document}

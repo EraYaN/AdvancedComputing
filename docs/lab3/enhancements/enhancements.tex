@@ -1,0 +1,44 @@
+%!TEX program=xelatex
+%!TEX spellcheck=en_US
+\documentclass[final]{report}
+\input{../../.library/preamble.tex}
+\input{../../.library/style.tex}
+\addbibresource{../../.library/bibliography.bib}
+\begin{document}
+\chapter{Enhancements}
+
+% \section{Kernel Implementation}\label{sec:hist-kernel}
+% The computation of the histogram is more difficult, whereas compared to the color to gray conversion the same field of the histogram can be altered by multiple threads.
+% Therefore one needs to make use of \texttt{atomicAdd\(\)}.
+
+% \includecode[cpp]{}{resources/histogramAtomicAddSnippet.cpp}{}
+
+% This function allows the threads to add a number to similar histogram fields without interfering with each other.
+% The rest of the CPU code is ported in a similar way as described in \cref{sec:rgb2gray}.
+
+% A problem that arises in the code described above is that the histogram is being used repeatedly to write values to, the overhead on this can be reduced by using shared memory.
+
+% Since very little work is done in the kernel, it is likely that the \texttt{atomicAdd\(\)} on global memory is slowing the application down.
+% A great deal of contention is caused by the mere thousands of threads that want to access the same memory locations, resulting in a long queue of pending operations.
+% By using shared memory, each block can compute the histogram for a part of the image with low latency.
+% After which the data, that each thread block put in shared memory, is merged into the global memory; greatly reducing the strain on the global memory.
+
+% In the kernel the main additions are the initialization of the shared memory and the use of \texttt{\_\_syncthreads()}.
+% The call to \texttt{\_\_syncthreads()} makes sure that all the threads in a single block have finished executing before the GPU moves on to merging the computed histogram of that block into the global memory.
+
+% \section{Results}
+% For the histogram kernel two results have been generated, one for the global memory kernel (\cref{tab:histogram-global-results}) and one for the shared memory kernel (\cref{tab:histogram-shared-results}).
+% \subimport{resources/}{perf-tablenormal.tex}
+
+% The speedup with the naive kernel is neglectable.
+% Even though the kernel itself is faster, the overall speedup is still 1.0.
+% This is likely caused by the phenomenon talked about in \cref{sec:hist-kernel}, as the \texttt{atomicAdd()} is causing big queues trying to access the global memory.
+
+% However, when the comparison is being made between the global and shared memory kernel the GPU suddenly outperforms the CPU.
+% The kernel itself is not running a lot faster, however with a more streamlined approach of writing the results back to the memory causes an overall speed up of 5.2 in the best case.
+% The slight overhead caused by the shared memory is well worth the performance increase.
+% The bandwidth metrics also show that the GPU uses more bandwidth in the shared memory case, confirming that the data copying is happening in a more streamlined manner.
+
+% \subimport{resources/}{perf-tableshared.tex}
+
+\end{document}
