@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 	FILE *pOutFile;
 	char temp[100];//warning: this buffer may overflow
 	int inputFromFile = 0;
-	int debug = 0, print = 0;
+	int debug = 0, print = 1;
 	perftime_t t0, t1, t2, t3, t4, t5;
 	double secs;
 	cudaEvent_t start, stop;
@@ -97,15 +97,17 @@ int main(int argc, char *argv[]) {
 	if (print)
 		printf("Inferior Olive Model (%d x %d cell mesh)\n", IO_NETWORK_DIM1, IO_NETWORK_DIM2);
 
-	//Open output file
-	pOutFile = fopen(outFileName, "w");
-	if (pOutFile == NULL) {
-		printf("Error: Couldn't create %s\n", outFileName);
-		exit(EXIT_FAILURE);
-	}
-	if (debug) {
-		sprintf(temp, "#simSteps Time(ms) Input(Iapp) Output(V_axon)\n");
-		fputs(temp, pOutFile);
+	if (WRITE_OUTPUT) {
+		//Open output file
+		pOutFile = fopen(outFileName, "w");
+		if (pOutFile == NULL) {
+			printf("Error: Couldn't create %s\n", outFileName);
+			exit(EXIT_FAILURE);
+		}
+		if (debug) {
+			sprintf(temp, "#simSteps Time(ms) Input(Iapp) Output(V_axon)\n");
+			fputs(temp, pOutFile);
+		}
 	}
 
 	//Process command line arguments
@@ -250,9 +252,11 @@ int main(int argc, char *argv[]) {
 	cudaEventRecord(start, 0);
 #pragma unroll 1
 	for (i = 0;i < simSteps;i++) {
-		if (print) {
-			sprintf(temp, "%d %.2f %.1f ", i + 1, i*0.05, iApp[i]); // start @ 1 because skipping initial values
-			fputs(temp, pOutFile);
+		if (WRITE_OUTPUT) {
+			if (print) {
+				sprintf(temp, "%d %.2f %.1f ", i + 1, i*0.05, iApp[i]); // start @ 1 because skipping initial values
+				fputs(temp, pOutFile);
+			}
 		}
 		s = i % 5;
 		t4 = now();
@@ -261,43 +265,48 @@ int main(int argc, char *argv[]) {
 		t5 = now();
 
 		t2 = now();
-		if (debug)
-			printf("Transferring results to host.\n");
-		checkCudaCall(cudaMemcpyAsync(cellStatePtr, dev_cellStatePtr, IO_NETWORK_DIM1*IO_NETWORK_DIM2*PARAM_SIZE * sizeof(double), cudaMemcpyDeviceToHost, stream[s]));
-		if (print) {
-			b = 0;
-			for (b = 0; b < IO_NETWORK_SIZE; b++) {
-				sprintf(temp, "%.8f ", cellStatePtr[b*PARAM_SIZE + STATEADD + AXON_V]);
+		if (WRITE_OUTPUT) {
+			if (debug)
+				printf("Transferring results to host.\n");
+			checkCudaCall(cudaMemcpyAsync(cellStatePtr, dev_cellStatePtr, IO_NETWORK_DIM1*IO_NETWORK_DIM2*PARAM_SIZE * sizeof(double), cudaMemcpyDeviceToHost, stream[s]));
+			if (print) {
+				b = 0;
+				for (b = 0; b < IO_NETWORK_SIZE; b++) {
+					sprintf(temp, "%.8f ", cellStatePtr[b*PARAM_SIZE + STATEADD + AXON_V]);
+					fputs(temp, pOutFile);
+					//printf("%d - V_AXON final state: %.8f \n", i, cellStatePtr[i*PARAM_SIZE + STATEADD + AXON_V]);
+				}
+				sprintf(temp, "\n ");
 				fputs(temp, pOutFile);
-				//printf("%d - V_AXON final state: %.8f \n", i, cellStatePtr[i*PARAM_SIZE + STATEADD + AXON_V]);
 			}
-			sprintf(temp, "\n ");
-			fputs(temp, pOutFile);
 		}
 		t3 = now();
 	}
 	cudaEventRecord(stop, 0);
 	cudaEventSynchronize(stop);
-	if (print) {
-		sprintf(temp, "\n");
-		fputs(temp, pOutFile);
+	if (WRITE_OUTPUT) {
+		if (print) {
+			sprintf(temp, "\n");
+			fputs(temp, pOutFile);
+		}
 	}
 
 	//if (print) {
+
 		printf("BlockDim x=%d, y=%d, GridDim x=%d, y=%d \n", blockDim.x, blockDim.y, IO_NETWORK_DIM1 / blockDim.x, IO_NETWORK_DIM2 / blockDim.y);
 		printf("%d ms of brain time in %d simulation steps\n", SIMTIME, simSteps);
-		secs = diffToNanoseconds(t0, t3) / 1e3;
-		printf("%.1f us real time \n", secs);
+		secs = diffToNanoseconds(t0, t3) / 1e9;
+		printf("%.1f s real time \n", secs);
 		cudaEventElapsedTime(&time, start, stop);
-		secs = diffToNanoseconds(t1, t2) / 1e3;
-		printf(" %.1f us kernel time: \n", time * 1000);
-		printf(" %.1f us kernel time \n", secs);
+		secs = diffToNanoseconds(t1, t2) / 1e9;
+		printf(" %.1f s kernel time: \n", time / 1000);
+		printf(" %.1f s kernel time \n", secs);
 		secs = diffToNanoseconds(t4, t5) / 1e3;//(t5 - t4);
 		printf("   %.1f us compute time per timestep to device time \n", secs);
-		secs = diffToNanoseconds(t0, t1) / 1e3;//(t1 - t0);
-		printf(" %.1f us xfer to device time \n", secs);
-		secs = diffToNanoseconds(t2, t3) / 1e3;//(t3 - t2);
-		printf(" %.1f us xfer to host time cellState + writing to file per timestep \n", secs);
+		secs = diffToNanoseconds(t0, t1) / 1e9;//(t1 - t0);
+		printf(" %.1f s xfer to device time \n", secs);
+		secs = diffToNanoseconds(t2, t3) / 1e9;//(t3 - t2);
+		printf(" %.1f s xfer to host time cellState + writing to file per timestep \n", secs);
 	//}
 	//if (print) {
 		printf("%d ms of brain time in %d simulation steps\n", SIMTIME, simSteps);
@@ -318,7 +327,9 @@ int main(int argc, char *argv[]) {
 	cudaEventDestroy(start);
 	cudaEventDestroy(stop);
 	cudaDeviceReset();
-	fclose(pOutFile);
+	if (WRITE_OUTPUT) {
+		fclose(pOutFile);
+	}
 	if (inputFromFile) { fclose(pInFile); }
 
 	wait_for_input();

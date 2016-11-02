@@ -42,8 +42,6 @@
 
 #define DEBUG 1
 #define EXTRA_TIMING 1
-
-
 #define WRITE_OUTPUT 0
 
 #define BLOCKSIZEX 32

@@ -26,42 +26,50 @@ inline int dev_fetch_vdend(int p, int q) {
 	return (p*IO_NETWORK_DIM1 + q);
 }
 
-__kernel void neighbour_kernel(global user_float_t *cellStatePtr, global user_float_t *cellVDendPtr){
+inline double fetch_double(image2d_t t, sampler_t sampler, int x, int y) {
+	//double2 d2 = as_double2(read_imageui(t, sampler, (int2)(x, y)));
+	//return d2.x;
+	return 0;
+}
+
+__kernel void neighbour_kernel(global user_float_t *cellStatePtr, __read_only image2d_t cellVDendPtr) {
 	int j, k, n, p, q;
 
 	k = get_global_id(0);
 	j = get_global_id(1);
 
-	//Get neighbor V_dend
+	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+
+	//get neighbor v_dend
 	n = 0;
 	for (p = j - 1; p <= j + 1; p++) {
 		for (q = k - 1; q <= k + 1; q++) {
-			//if (((p != j) || (q != k)) && ((p >= 0) && (q >= 0)) && ((p < IO_NETWORK_DIM1) && (q < IO_NETWORK_DIM2))) {
-			//	cellVDendPtr[j][k].neighVdend[n++] = cellStatePtr[i % 2][p][q].dend.V_dend;
+			//if (((p != j) || (q != k)) && ((p >= 0) && (q >= 0)) && ((p < io_network_dim1) && (q < io_network_dim2))) {
+			//	cellvdendptr[j][k].neighvdend[n++] = cellstateptr[i % 2][p][q].dend.v_dend;
 			//} else if (p == j && q == k) {
 			//	;   // do nothing, this is the cell itself
 			//} else {
-			//	//store same V_dend so that Ic becomes zero by the subtraction
-			//	cellVDendPtr[j][k].neighVdend[n++] = cellStatePtr[i % 2][j][k].dend.V_dend;
+			//	//store same v_dend so that ic becomes zero by the subtraction
+			//	cellvdendptr[j][k].neighvdend[n++] = cellstateptr[i % 2][j][k].dend.v_dend;
 			//}
 
-			if (((p != j) || (q != k)) && ((p >= 0) && (q >= 0)) && ((p < IO_NETWORK_DIM1) && (q < IO_NETWORK_DIM2))) {
-				//printf("k,j : %d, %d\ndev_fetch(j, k): %d\ndev_fetch_vdend(p, q): %d\nn: %d\nVDend: %lf\n", k, j, dev_fetch(j, k), dev_fetch_vdend(p, q), n, cellVDendPtr[dev_fetch_vdend(p, q)]);
-				cellStatePtr[dev_fetch(j, k) + (n++)] = cellVDendPtr[dev_fetch_vdend(p, q)];
-			} else if (p == j && q == k) {
+			/*if (((p != j) || (q != k)) && ((p >= 0) && (q >= 0)) && ((p < io_network_dim1) && (q < io_network_dim2))) {*/
+				//printf("k,j : %d, %d\ndev_fetch(j, k): %d\ndev_fetch_vdend(p, q): %d\nn: %d\nvdend: %lf\n", k, j, dev_fetch(j, k), dev_fetch_vdend(p, q), n, cellvdendptr[dev_fetch_vdend(p, q)]);
+			cellStatePtr[dev_fetch(j, k) + (n++)] = fetch_double(cellVDendPtr, sampler, p, q);
+			/*} else if (p == j && q == k) {
 				//	;   // do nothing, this is the cell itself
 			} else {
-				//printf("k,j : %d, %d\ndev_fetch(j, k): %d\ndev_fetch_vdend(j, k): %d\nn: %d\nVDend: %lf\n", k, j, dev_fetch(j, k), dev_fetch_vdend(j, k), n, cellVDendPtr[dev_fetch_vdend(j, k)]);
-				cellStatePtr[dev_fetch(j, k) + (n++)] = cellVDendPtr[dev_fetch_vdend(j, k)];
-			}
+				//printf("k,j : %d, %d\ndev_fetch(j, k): %d\ndev_fetch_vdend(j, k): %d\nn: %d\nvdend: %lf\n", k, j, dev_fetch(j, k), dev_fetch_vdend(j, k), n, cellvdendptr[dev_fetch_vdend(j, k)]);
+				cellstateptr[dev_fetch(j, k) + (n++)] = cellvdendptr[fetch_double(j, k)];
+			}*/
 
-			//if (p == j && q == k) n = n - 1;
+			if (p == j && q == k) n = n - 1;
 		}
 	}
 
-	/*for (int ind = 0; ind < IO_NETWORK_SIZE; ind++) {
-		for (int b = 0; b < PARAM_SIZE; b++) {
-			printf("(state_n) %d,%d: %lf\n", ind, b, cellStatePtr[ind*PARAM_SIZE + b]);
+	/*for (int ind = 0; ind < io_network_size; ind++) {
+		for (int b = 0; b < param_size; b++) {
+			printf("(state_n) %d,%d: %lf\n", ind, b, cellstateptr[ind*param_size + b]);
 		}
 	}*/
 

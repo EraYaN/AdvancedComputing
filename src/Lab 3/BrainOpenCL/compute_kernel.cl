@@ -532,6 +532,12 @@ inline int dev_fetch(int j, int k) {
 	return (j*IO_NETWORK_DIM1*PARAM_SIZE + k*PARAM_SIZE);
 }
 
+inline void put_double(image2d_t t, int x, int y, user_float_t val) {
+	//double2 d2 = ;
+	//d2.x = val;
+	//d2.y = 0;
+	write_imageui(t, (int2)(x, y), as_uint4((double2)(val, 0.0)));
+}
 /**
 Input: cellCompParamsPtr, cellStatePtr, iApp ,i
 cellCompParamsPtr: Array of struct which stores values of neighbours for each cell.
@@ -543,7 +549,7 @@ Retreive the external input of the dedrite
 and update the previous and new state of the current cell.
 Then Compute the new variables of the current cell with ComputeOneCell.
 **/
-__kernel void compute_kernel(global user_float_t *cellStatePtr, global user_float_t *cellVDendPtr, const user_float_t iApp) {
+__kernel void compute_kernel(global user_float_t *cellStatePtr, __write_only image2d_t cellVDendPtr, const user_float_t iApp) {
 
 	/*for (int ind = 0; ind < IO_NETWORK_SIZE; ind++) {
 		for (int b = 0; b < PARAM_SIZE; b++) {
@@ -561,13 +567,13 @@ __kernel void compute_kernel(global user_float_t *cellStatePtr, global user_floa
 
 	d_cellCompParams[0] = iApp;
 
-#pragma unroll 8
+#pragma unroll STATEADD
 	for (e = 0; e < STATEADD; e++) {
 		d_cellCompParams[VNEIGHSTARTADD + e] = cellStatePtr[dev_fetch(j, k) + e];
 		//d_cellCompParams[VNEIGHSTARTADD + e] = cellStatePtr[j*IO_NETWORK_DIM1*PARAM_SIZE + k*PARAM_SIZE + e];
 	}
 	//printf("VDend (first loop): %lf\n", d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
-#pragma unroll 19
+#pragma unroll STATE_SIZE
 	for (e = 0; e < STATE_SIZE; e++) {
 		d_cellCompParams[PREVSTATESTARTADD + e] = cellStatePtr[dev_fetch(j, k) + STATEADD + e];
 		//d_cellCompParams[VNEIGHSTARTADD + e] = cellStatePtr[j*IO_NETWORK_DIM1*PARAM_SIZE + k*PARAM_SIZE + e];
@@ -598,12 +604,13 @@ __kernel void compute_kernel(global user_float_t *cellStatePtr, global user_floa
 	//printf("VDend (Axon): %lf\n", d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
 	//updates
 	barrier(CLK_GLOBAL_MEM_FENCE);
-#pragma unroll 19
+#pragma unroll STATE_SIZE
 	for (e = 0; e < STATE_SIZE; e++) {
 		cellStatePtr[dev_fetch(j, k) + STATEADD + e] = d_cellCompParams[NEXTSTATESTARTADD + e];
 		//cellStatePtr[j*IO_NETWORK_DIM1*PARAM_SIZE + k*PARAM_SIZE + STATEADD + e] = d_cellCompParams[NEXTSTATESTARTADD + e];
 	}
-	cellVDendPtr[j*IO_NETWORK_DIM1 + k] = d_cellCompParams[NEXTSTATESTARTADD + DEND_V];
+	put_double(cellVDendPtr, j, k, d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
+	//cellVDendPtr[j*IO_NETWORK_DIM1 + k] = d_cellCompParams[NEXTSTATESTARTADD + DEND_V];
 	/*if (j == 0 && k == 0)
 		g_i = g_i + 1;*/
 	barrier(CLK_GLOBAL_MEM_FENCE);
@@ -611,3 +618,4 @@ __kernel void compute_kernel(global user_float_t *cellStatePtr, global user_floa
 
 	return;
 }
+

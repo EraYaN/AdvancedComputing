@@ -39,10 +39,10 @@ int main(int argc, char *argv[]){
     int initSteps;
     user_float_t *cellStatePtr;
 	user_float_t *cellVDendPtr;
-	user_float_t iApp;
+	user_float_t iApp = 0;
 
 	bool debug = true;
-	bool interactive = false;
+	bool interactive = true;
 
     int seedvar;
     char temp[100];//warning: this buffer may overflow
@@ -76,6 +76,10 @@ int main(int argc, char *argv[]){
 
     //Malloc for the array of cellStates and cellCompParams
     mallocCells(&cellVDendPtr, &cellStatePtr);
+
+	//iApp = (user_float_t *)malloc(simSteps * sizeof(user_float_t));
+
+	//memset(iApp, 0, simSteps * sizeof(user_float_t));
 
     //Write initial state values
     InitState(cellStatePtr, cellVDendPtr);
@@ -200,7 +204,9 @@ int main(int argc, char *argv[]){
     //-----------------------------------------------------
     // STEP 5: Create device buffers
     //-----------------------------------------------------
-	cl_mem buffer_cellStatePtr, buffer_cellVDendPtr;
+	cl_mem buffer_cellStatePtr;
+	cl_mem buffer_cellVDendPtr;
+	cl_mem buffer_iApp;
 
 	buffer_cellStatePtr = clCreateBuffer(
 		context,
@@ -215,6 +221,19 @@ int main(int argc, char *argv[]){
 		exit(EXIT_OPENCLERROR);
 	}
 
+	buffer_iApp = clCreateBuffer(
+		context,
+		CL_MEM_READ_WRITE,
+		simSteps * sizeof(user_float_t),
+		NULL,
+		&status);
+
+	if (status != CL_SUCCESS) {
+		cerr << "error in step 5, creating buffer for iApp: " << getErrorString(status) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
+
 	/*cl_image_format img_format;
 	img_format.image_channel_order = CL_INTENSITY;
 	img_format.image_channel_data_type = CL_FLOAT;
@@ -223,19 +242,40 @@ int main(int argc, char *argv[]){
 
 		);*/
 
-	buffer_cellVDendPtr = clCreateBuffer(
+	/*buffer_cellVDendPtr = clCreateBuffer(
 		context,
 		CL_MEM_READ_WRITE,
 		IO_NETWORK_SIZE * sizeof(user_float_t),
 		NULL,
-		&status);
+		&status);*/
 
+	cl_image_format imageFormat;
+	imageFormat.image_channel_data_type = CL_UNSIGNED_INT32;
+	imageFormat.image_channel_order = CL_RG;
+
+	cl_image_desc imageDesc;
+	imageDesc.image_type = CL_MEM_OBJECT_IMAGE2D;
+	imageDesc.image_width = IO_NETWORK_DIM1;
+	imageDesc.image_height = IO_NETWORK_DIM2;
+	//imageDesc.image_depth = 1;
+	imageDesc.image_row_pitch = 0;
+	//imageDesc.image_slice_pitch = 0;
+	imageDesc.num_mip_levels = 0;
+	imageDesc.num_samples = 0;
+	//{ cl_mem_object_type image_type; size_t image_width; size_t image_height; size_t image_depth; size_t image_array_size; size_t image_row_pitch; size_t image_slice_pitch; cl_uint num_mip_levels; cl_uint num_samples; cl_mem buffer; } cl_image_desc;
+
+	buffer_cellVDendPtr = clCreateImage(context,
+		CL_MEM_READ_WRITE,
+		&imageFormat,
+		&imageDesc,
+		NULL,
+		&status);
+	
 	if (status != CL_SUCCESS) {
-		cerr << "error in step 5, creating buffer for cellStatePtr: " << getErrorString(status) << endl;
+		cerr << "error in step 5, creating image for cellVDendPtr: " << getErrorString(status) << endl;
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
 	}
-
 
     //-----------------------------------------------------
     // STEP 6: Write host data to device buffers
@@ -253,6 +293,7 @@ int main(int argc, char *argv[]){
 	if (!neighbourFile) {
 		cerr << "cannot open neighbour file" << endl;
 		cerr << "current path:" << neighbourFileName << endl;
+		if (interactive) wait_for_input();
 		exit(EXIT_FAILURE);
 	}
 
@@ -269,6 +310,7 @@ int main(int argc, char *argv[]){
 	if (!computeFile) {
 		cerr << "cannot open neighbour file" << endl;
 		cerr << "current path:" << neighbourFileName << endl;
+		if (interactive) wait_for_input();
 		exit(EXIT_FAILURE);
 	}
 
@@ -302,7 +344,7 @@ int main(int argc, char *argv[]){
 
 	// Build (compile) the program for the devices with
 	// clBuildProgram()
-	const char options[] = "-cl-std=CL1.2";
+	const char options[] = "-cl-std=CL1.2 -cl-finite-math-only -cl-denorms-are-zero";
 	statusNeighbour |= clBuildProgram(
 		programNeighbour,
 		1,
@@ -368,12 +410,28 @@ int main(int argc, char *argv[]){
 		NULL,
 		NULL);
 
-	status |= clEnqueueWriteBuffer(
+	/*status = clEnqueueWriteBuffer(
+		cmdQueue,
+		buffer_iApp,
+		CL_FALSE,
+		0,
+		simSteps * sizeof(user_float_t),
+		iApp,
+		0,
+		NULL,
+		NULL);*/
+
+	size_t origin[3] = { 0, 0, 0 };
+	size_t region[3] = { IO_NETWORK_DIM1, IO_NETWORK_DIM2, 1 };
+
+	status |= clEnqueueWriteImage(
 		cmdQueue,
 		buffer_cellVDendPtr,
 		CL_FALSE,
+		origin, // const size_t origin[3]
+		region, // const size_t region[3]
+		0,//IO_NETWORK_DIM1 * sizeof(user_float_t),
 		0,
-		IO_NETWORK_SIZE * sizeof(user_float_t),
 		cellVDendPtr,
 		0,
 		NULL,
@@ -398,16 +456,27 @@ int main(int argc, char *argv[]){
 		0,
 		sizeof(cl_mem),
 		&buffer_cellStatePtr);
-	statusCompute |= clSetKernelArg(
+
+	if (statusCompute != CL_SUCCESS) {
+		cerr << "error in step 9.1a: " << getErrorString(statusCompute) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_OPENCLERROR);
+	}
+
+	statusCompute = clSetKernelArg(
 		computeKernel,
 		1,
 		sizeof(cl_mem),
-		&buffer_cellVDendPtr);
+		(void*)&buffer_cellVDendPtr);
 
-
+	/*statusCompute = clSetKernelArg(
+		computeKernel,
+		2,
+		sizeof(cl_mem),
+		&iApp);*/
 
 	if (statusCompute != CL_SUCCESS) {
-		cerr << "error in step 9.1: " << getErrorString(statusCompute) << endl;
+		cerr << "error in step 9.1b: " << getErrorString(statusCompute) << endl;
 		if (interactive) wait_for_input();
 		exit(EXIT_OPENCLERROR);
 	}
@@ -439,11 +508,19 @@ int main(int argc, char *argv[]){
     // STEP 10: Configure the work-item structure
     //-----------------------------------------------------
 
+	statusCompute = clSetKernelArg(
+		computeKernel,
+		2,
+		sizeof(user_float_t),
+		&iApp);
 
-    for(i=0;i<simSteps;i++) {
-        //Compute one sim step for all cells
-        if(i>20000-1 && i<20500-1){ iApp = 6;} // start @ 1 because skipping initial values
-        else{ iApp = 0;}
+	if (statusCompute != CL_SUCCESS) {
+		cerr << "error before loop, compute clSetKernelArg. Error: " << getErrorString(statusCompute) << endl;
+		if (interactive) wait_for_input();
+		exit(EXIT_FAILURE);
+	}
+
+    for(i=0;i<simSteps;i++) {        
 		pOutFile << string_format("%d %.2f %.1f ", i + 1, i*0.05, iApp);
 
         if(EXTRA_TIMING){
@@ -453,14 +530,14 @@ int main(int argc, char *argv[]){
         //-----------------------------------------------------
         // STEP 11.1: Run neighbour kernel
         //-----------------------------------------------------
-		// FIX: sizes
+		
 		size_t globalWorkSize[2];
 		globalWorkSize[0] = IO_NETWORK_DIM1;
 		globalWorkSize[1] = IO_NETWORK_DIM2;// size;
 
 		size_t localWorkSize[2];
-		localWorkSize[0] = 16;// localSize;
-		localWorkSize[1] = 16;// localSize;
+		localWorkSize[0] = min(16, IO_NETWORK_DIM1);// localSize;
+		localWorkSize[1] = min(16, IO_NETWORK_DIM2);// localSize;
 
 
 		statusNeighbour |= clEnqueueNDRangeKernel(
@@ -490,17 +567,9 @@ int main(int argc, char *argv[]){
         //-----------------------------------------------------
         // STEP 11.2: Run compute kernel
         //-----------------------------------------------------
+			
 
-		statusCompute = clSetKernelArg(
-			computeKernel,
-			2,
-			sizeof(user_float_t),
-			&iApp);
-
-		if (statusCompute != CL_SUCCESS) {
-			cerr << "error in loop, compute clSetKernelArg. Error: " << getErrorString(statusCompute) << endl;
-			exit(EXIT_FAILURE);
-		}
+		
 
 		statusCompute = clEnqueueNDRangeKernel(
 			cmdQueue,
@@ -515,6 +584,7 @@ int main(int argc, char *argv[]){
 
 		if (statusCompute != CL_SUCCESS) {
 			cerr << "error in loop, compute clEnqueueNDRangeKernel. Error: " << getErrorString(statusCompute) << endl;
+			if (interactive) wait_for_input();
 			exit(EXIT_FAILURE);
 		}
 
@@ -526,12 +596,14 @@ int main(int argc, char *argv[]){
 
 			if (statusCompute != CL_SUCCESS) {
 				cerr << "error in loop, compute clWaitForEvents. Error: " << getErrorString(statusCompute) << endl;
+				if (interactive) wait_for_input();
 				exit(EXIT_FAILURE);
 			}
         }
 
         if(statusCompute != CL_SUCCESS){
             cerr << "error in loop, compute. Error: " << getErrorString(statusCompute) << endl;
+			if (interactive) wait_for_input();
             exit(EXIT_FAILURE);
         }
 
@@ -576,7 +648,6 @@ int main(int argc, char *argv[]){
                 tWriteFile += diffToNanoseconds(tWriteFileStart, tWriteFileEnd);
             }
         }
-		//wait_for_input();
 
 		//if (i >= 2) break;
     }
@@ -585,27 +656,30 @@ int main(int argc, char *argv[]){
     }
 
     t1 = now();
-    usecs = diffToNanoseconds(t0,t1)/1e6;// / 1000000;
+    usecs = diffToNanoseconds(t0,t1)/1e9;// / 1000000;
+
+	if (EXTRA_TIMING) {
+		tInit = diffToNanoseconds(tInitStart, tInitEnd);
+		tLoop = diffToNanoseconds(tLoopStart, tLoopEnd);
+
+		DEBUG_PRINT(("\n"));
+		DEBUG_PRINT(("----------------------------------\n"));
+		DEBUG_PRINT(("tInit: \t\t %.1f s\n", tInit / 1e9));
+		DEBUG_PRINT(("tLoop: \t\t %.1f s\n", tLoop / 1e9));
+		DEBUG_PRINT(("\ttNeighbour: \t %.1f s\n", tNeighbour / 1e9));
+		DEBUG_PRINT(("\ttCompute: \t %.1f s\n", tCompute / 1e9));
+		DEBUG_PRINT(("\ttRead: \t\t %.1f s\n", tRead / 1e9));
+		DEBUG_PRINT(("\ttWriteFile: \t %.1f s\n", tWriteFile / 1e9));
+		DEBUG_PRINT(("\t----------- + \n"));
+		DEBUG_PRINT(("\ttSumLoop: \t %.1f s\n", (tWriteFile + tCompute + tNeighbour + tRead) / 1e9));
+		DEBUG_PRINT(("----------------------------------\n"));
+		DEBUG_PRINT(("tSum: \t %.1f s\n", (tInit + tLoop) / 1e9));
+	}
+
     DEBUG_PRINT(("%d ms of brain time in %d simulation steps\n", simTime, simSteps));
-    DEBUG_PRINT((" %.1f msecs real time \n", usecs));
+    DEBUG_PRINT((" %.1f s real time \n", usecs));
 
-    if(EXTRA_TIMING){
-        tInit = diffToNanoseconds(tInitStart, tInitEnd);
-        tLoop = diffToNanoseconds(tLoopStart, tLoopEnd);
 
-        DEBUG_PRINT(("\n"));
-        DEBUG_PRINT(("----------------------------------\n"));
-        DEBUG_PRINT(("tInit: \t\t %.1f s\n", tInit/1e9));
-        DEBUG_PRINT(("tLoop: \t\t %.1f s\n", tLoop / 1e9));
-        DEBUG_PRINT(("\ttNeighbour: \t %.1f s\n", tNeighbour / 1e9));
-        DEBUG_PRINT(("\ttCompute: \t %.1f s\n", tCompute / 1e9));
-        DEBUG_PRINT(("\ttRead: \t\t %.1f s\n", tRead / 1e9));
-        DEBUG_PRINT(("\ttWriteFile: \t %.1f s\n", tWriteFile / 1e9));
-        DEBUG_PRINT(("\t----------- + \n"));
-        DEBUG_PRINT(("\ttSumLoop: \t %.1f s\n", (tWriteFile + tCompute + tNeighbour + tRead) / 1e9));
-        DEBUG_PRINT(("----------------------------------\n"));
-        DEBUG_PRINT(("tSum: \t %.1f s\n", (tInit + tLoop) / 1e9));
-    }
 
     //-----------------------------------------------------
     // STEP 12: Release OpenCL resources

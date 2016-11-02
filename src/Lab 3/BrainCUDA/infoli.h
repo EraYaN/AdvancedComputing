@@ -70,7 +70,7 @@
 #define V_H -43       // H current reversal potential
 #define V_L 10       // leak current
 
-
+#define WRITE_OUTPUT 0
 /*** TYPEDEFS AND STRUCTS***/
 //typedef double mod_prec;
 //typedef float mod_prec;
