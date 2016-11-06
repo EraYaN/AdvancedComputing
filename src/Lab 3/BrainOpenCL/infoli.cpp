@@ -22,6 +22,9 @@
 #include "infoli.h"
 #include "init.h"
 
+#define CSV_SEPARATOR ','
+#define LINE_MARKER '@'
+
 using namespace std;
 
 int main(int argc, char *argv[]){
@@ -270,7 +273,7 @@ int main(int argc, char *argv[]){
 		&imageDesc,
 		NULL,
 		&status);
-	
+
 	if (status != CL_SUCCESS) {
 		cerr << "error in step 5, creating image for cellVDendPtr: " << getErrorString(status) << endl;
 		if (interactive) wait_for_input();
@@ -284,9 +287,8 @@ int main(int argc, char *argv[]){
 	** Please check if your kernel files can be opened,
 	** especially when running on the server
 	**/
-	char *computeFileName, *neighbourFileName;
-	neighbourFileName = "neighbour_kernel.cl";
-	computeFileName = "compute_kernel.cl";
+	const char *computeFileName = "compute_kernel.cl";
+	const char *neighbourFileName = "neighbour_kernel.cl";
 
 	// neighbourFile
 	ifstream neighbourFile(neighbourFileName);
@@ -520,7 +522,7 @@ int main(int argc, char *argv[]){
 		exit(EXIT_FAILURE);
 	}
 
-    for(i=0;i<simSteps;i++) {        
+    for(i=0;i<simSteps;i++) {
 		pOutFile << string_format("%d %.2f %.1f ", i + 1, i*0.05, iApp);
 
         if(EXTRA_TIMING){
@@ -530,7 +532,7 @@ int main(int argc, char *argv[]){
         //-----------------------------------------------------
         // STEP 11.1: Run neighbour kernel
         //-----------------------------------------------------
-		
+
 		size_t globalWorkSize[2];
 		globalWorkSize[0] = IO_NETWORK_DIM1;
 		globalWorkSize[1] = IO_NETWORK_DIM2;// size;
@@ -567,9 +569,9 @@ int main(int argc, char *argv[]){
         //-----------------------------------------------------
         // STEP 11.2: Run compute kernel
         //-----------------------------------------------------
-			
 
-		
+
+
 
 		statusCompute = clEnqueueNDRangeKernel(
 			cmdQueue,
@@ -674,6 +676,8 @@ int main(int argc, char *argv[]){
 		DEBUG_PRINT(("\ttSumLoop: \t %.1f s\n", (tWriteFile + tCompute + tNeighbour + tRead) / 1e9));
 		DEBUG_PRINT(("----------------------------------\n"));
 		DEBUG_PRINT(("tSum: \t %.1f s\n", (tInit + tLoop) / 1e9));
+
+		cout << LINE_MARKER << "OpenCL" << CSV_SEPARATOR << tInit / 1e9 << CSV_SEPARATOR << tNeighbour / 1e9 << CSV_SEPARATOR << tCompute / 1e9 << CSV_SEPARATOR << (tWriteFile + tRead) / 1e9 << CSV_SEPARATOR << (tInit + tLoop) / 1e9 << endl;
 	}
 
     DEBUG_PRINT(("%d ms of brain time in %d simulation steps\n", simTime, simSteps));

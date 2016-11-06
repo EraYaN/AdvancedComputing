@@ -35,6 +35,9 @@
 #include <cuda_runtime.h>
 #include "checkCudaCall.h"
 
+#define CSV_SEPARATOR ','
+#define LINE_MARKER '@'
+
  //This is function declaration for device's side
 __global__ void neighbor_kernel(double *cellStatePtr, double *cellVDendPtr);
 __global__ void compute_kernel(double *cellStatePtr, double *iApp, double *cellVDendPtr);
@@ -312,6 +315,8 @@ int main(int argc, char *argv[]) {
 		printf("%d ms of brain time in %d simulation steps\n", SIMTIME, simSteps);
 		secs = diffToNanoseconds(t0, t3) / 1e9;//(t3 - t0);
 		printf("%.1f s real time \n", secs);
+
+		cout << LINE_MARKER << "OpenCL" << CSV_SEPARATOR << diffToNanoseconds(t0, t1) / 1e9 * simSteps << CSV_SEPARATOR << diffToNanoseconds(t1, t2) / 1e9 << CSV_SEPARATOR << 0.0 << CSV_SEPARATOR << diffToNanoseconds(t2, t3) / 1e9 * simSteps << CSV_SEPARATOR << diffToNanoseconds(t0, t3) / 1e9 << endl;
 	//}
 
 	//Free up memory and close files

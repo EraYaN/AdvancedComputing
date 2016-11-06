@@ -21,6 +21,9 @@
  */
 #include "infoli.h"
 
+#define CSV_SEPARATOR ','
+#define LINE_MARKER '@'
+
 using namespace std;
 
 int main(int argc, char *argv[]) {
@@ -142,8 +145,8 @@ int main(int argc, char *argv[]) {
 		DEBUG_PRINT(("\ttSumLoop: \t %.1f s\n", (tWriteFile + tCompute + tNeighbour) / 1e9));
 		DEBUG_PRINT(("----------------------------------\n"));
 		DEBUG_PRINT(("tSum: \t %.1f s\n", (tInit + tLoop) / 1e9));
+		cout << LINE_MARKER << "CPU" << CSV_SEPARATOR << tInit / 1e9 << CSV_SEPARATOR << tNeighbour / 1e9 << CSV_SEPARATOR << tCompute / 1e9 << CSV_SEPARATOR << tWriteFile / 1e9 << CSV_SEPARATOR << (tInit + tLoop) / 1e9 << endl;
 	}
-
 
 	//Free up memory and close files
 	free(cellStatePtr[0]);

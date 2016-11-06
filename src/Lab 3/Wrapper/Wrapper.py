@@ -15,21 +15,20 @@ max_n = 10 # Times to run program to get average
 
 make = "make all"
 make_flags = ""
-bin = "make schedule_single"
+bin = "make schedule"
 cdw = "../"
 output_dir = "../run_output"
-docs_output_dir = "../../../docs/lab2"
-image_path = "images"
+docs_output_dir = "../../../docs/lab3"
 
 results = []
 
 generate_data = True;
 generate_plots = False;
 
-def ExecuteJob(job_title,filename,iterations, images,max_n,shared,generate_data=True,generate_plots=False):
+def ExecuteJob(job_title,filename,iterations,max_n,generate_data=True,generate_plots=False):
     if generate_data:
         if PrepareBenchmark(make,make_flags,cdw) == 0:
-            results = ExecuteBenchmark(job_title, iterations, images,max_n,shared,bin,cdw, output_dir);
+            results = ExecuteBenchmark(job_title, iterations,max_n,bin,cdw, output_dir);
 
             PrintResults(results);
             print("Saving pickle...")
@@ -56,11 +55,7 @@ if __name__ == '__main__':
         if not opts.disable_plot:
             from GeneratePlots import GeneratePlot
 
-        
-        shared = False
-        ExecuteJob('normal','main-run-normal',iterations,images,max_n,shared,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot)
-        shared = True
-        ExecuteJob('shared','main-run-shared',iterations,images,max_n,shared,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot)
+        ExecuteJob('main','main-run-normal',iterations,max_n,generate_data=not opts.disable_bench,generate_plots=not opts.disable_plot)
 
         print("Done.")
     except SystemExit:

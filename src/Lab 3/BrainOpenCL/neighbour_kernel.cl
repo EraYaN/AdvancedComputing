@@ -27,9 +27,9 @@ inline int dev_fetch_vdend(int p, int q) {
 }
 
 inline double fetch_double(image2d_t t, sampler_t sampler, int x, int y) {
-	//double2 d2 = as_double2(read_imageui(t, sampler, (int2)(x, y)));
+	return as_double2(read_imageui(t, sampler, (int2)(x, y))).x;
 	//return d2.x;
-	return 0;
+	//return 0;
 }
 
 __kernel void neighbour_kernel(global user_float_t *cellStatePtr, __read_only image2d_t cellVDendPtr) {

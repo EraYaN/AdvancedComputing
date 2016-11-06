@@ -30,14 +30,13 @@ EXIT_SAVEERROR = 8
 LINE_MARKER = '@'
 CSV_SEPARATOR = ','
 
-def GetNumberOfRuns(iterations, images, max_n):
+def GetNumberOfRuns(iterations, max_n):
     result = {"runs": 0, "process_runs":0}
 
-    for image in images:
-        for iteration in range(0,iterations):
-            for n in range(0,max_n):
-                result['process_runs']+=1
-            result['runs']+=1
+    for iteration in range(0,iterations):
+        for n in range(0,max_n):
+            result['process_runs']+=1
+        result['runs']+=1
 
     return result
 
@@ -46,129 +45,107 @@ def PrepareBenchmark(make="make all", make_flags="",cwd="../"):
     result = subprocess.call("{0} {1}".format(make,make_flags),cwd=cwd,shell=True)
     return result
 
-def ExecuteBenchmark(job_title, iterations, images, max_n=1, shared=False, bin="make schedule",cwd="../",output_dir="../run_output"):
+def ExecuteBenchmark(job_title, iterations, max_n=1, bin="make schedule",cwd="../",output_dir="../run_output"):
     error_occured = False
     results = []
     display_results = []
-    number_of_runs = GetNumberOfRuns(iterations,images,max_n)
+    number_of_runs = GetNumberOfRuns(iterations,max_n)
     current_run = 0
 
-    for image in images:
-        for iteration in range(0,iterations):
-            run_id = "{0}-{1}-{2}".format(image,iteration,"p")
-            #arguments = '--save-images'
-            arguments = ''
-            if shared:
-                arguments += ' --shared-histogram-kernel'
-            result = subprocess.call("{0} RUN_IMAGE=\"{1}\" RUN_ID=\"{2}\" PROFILING=yes BENCH_ARGUMENTS=\"{3}\"".format(bin,image,run_id,arguments),cwd=cwd,shell=True)
+    for iteration in range(0,iterations):
+        run_id = "{0}-{1}-{2}".format(job_title,iteration,"p")
+        #arguments = '--save-images'
+        arguments = ''
+        result = subprocess.call("{0} RUN_ID=\"{1}\" PROFILING=yes BENCH_ARGUMENTS=\"{2}\"".format(bin,run_id,arguments),cwd=cwd,shell=True)
+        if result != EXIT_SUCCESS:
+            print("ERROR {1} returned {0}.".format(result, bin))
+            break;
+
+        prof = {"Compute":{},"Neighbour":{}}
+        print("Getting profiling info.")
+        with open(os.path.join(output_dir,run_id,"stderr.log"),'r') as nvprof_stderr:
+            reader = csv.DictReader(row for row in nvprof_stderr if not row.startswith('='))
+            for prof_dict in reader:
+                kernel=''
+                if prof_dict['Kernel'].startswith("compute"):
+                    kernel = "Compute"
+                if prof_dict['Kernel'].startswith("neighbour"):
+                    kernel = "Neighbour"
+
+                if kernel in prof:
+                    attribute = prof_dict['Metric Name']
+                    value_min = prof_dict['Min']
+                    value_avg = prof_dict['Avg']
+                    value_max = prof_dict['Max']
+
+                    if attribute not in prof[kernel]:
+                        prof[kernel][attribute]={}
+
+                    prof[kernel][attribute]['min'] = value_min
+                    prof[kernel][attribute]['avg'] = value_avg
+                    prof[kernel][attribute]['max'] = value_max
+        print("Parsed and saved profiling info.")
+        time_template = {
+            "init_time":0.0,
+            "kernel1_time":0.0,
+            "kernel2_time":0.0,
+            "cleanup_time":0.0,
+            "total_time":0.0
+            }
+        times = {}
+        error_occured = False
+        current_run+=1
+
+        for n in range(0,max_n):
+            #print("../{0}{1}/{2}.exe".format(platform_paths[platform],config,type['name']))
+            run_id = "{0}-{1}-{2}".format(job_title,iteration,n)
+            result = subprocess.call("{0} RUN_ID=\"{1}\" PROFILING=no BENCH_ARGUMENTS=\"{2}\"".format(bin,run_id,arguments),cwd=cwd,shell=True)
+            #print(result.args)
             if result != EXIT_SUCCESS:
                 print("ERROR {1} returned {0}.".format(result, bin))
                 break;
 
-            prof = {"Smooth":{},"Grayscale":{},"Histogram":{},"Contrast":{}}
-            print("Getting profiling info.")
-            with open(os.path.join(output_dir,run_id,"stderr.log"),'r') as nvprof_stderr:
-                reader = csv.DictReader(row for row in nvprof_stderr if not row.startswith('='))
-                for prof_dict in reader:
-                    kernel=''
-                    if prof_dict['Kernel'].startswith("rgb2grayCuda"):
-                        kernel = "Grayscale"
-                    if prof_dict['Kernel'].startswith("contrast1DCuda"):
-                        kernel = "Contrast"
-                    if prof_dict['Kernel'].startswith("triangularSmoothCuda"):
-                        kernel = "Smooth"
-                    if prof_dict['Kernel'].startswith("histogram1DCuda"):
-                        kernel = "Histogram"
+            csv_data = ''
+            with open(os.path.join(output_dir,run_id,'stdout.log')) as stdout:
+                for line in stdout: #read and store result in log file
+                    if line[0:1] == LINE_MARKER:
+                        csv_data+=line[1:]
 
-                    if kernel in prof:
-                        attribute = prof_dict['Metric Name']
-                        value_min = prof_dict['Min']
-                        value_avg = prof_dict['Avg']
-                        value_max = prof_dict['Max']
+            reader = csv.reader(csv_data.splitlines())
+            #cout << LINE_MARKER << "CPU" << CSV_SEPARATOR << tInit / 1e9 << CSV_SEPARATOR << tNeighbour / 1e9 << CSV_SEPARATOR << tCompute / 1e9 << CSV_SEPARATOR << tWriteFile / 1e9 << CSV_SEPARATOR << (tInit + tLoop) / 1e9 << endl;
+            for testName,init_time,kernel1_time,kernel2_time,cleanup_time,total_time in reader:
 
-                        if attribute not in prof[kernel]:
-                            prof[kernel][attribute]={}
+                if testName not in times:
+                    times[testName] = copy.deepcopy(time_template)
 
-                        prof[kernel][attribute]['min'] = value_min
-                        prof[kernel][attribute]['avg'] = value_avg
-                        prof[kernel][attribute]['max'] = value_max
-            print("Parsed and saved profiling info.")
-            time_template = {
-                "cuda":{
-                    "preprocessing_time":0.0,
-                    "init_time":0.0,
-                    "kernel_time":0.0,
-                    "cleanup_time":0.0,
-                    "postprocessing_time":0.0,
-                    "total_time":0.0
-                    },
-                "seq":{
-                    "preprocessing_time":0.0,
-                    "init_time":0.0,
-                    "kernel_time":0.0,
-                    "cleanup_time":0.0,
-                    "postprocessing_time":0.0,
-                    "total_time":0.0
-                    }
-                }
-            times = {}
-            error_occured = False
-            current_run+=1
+                print("Got time for {0} {2:.0f}".format(testName, index, float(total_time)));
 
-            for n in range(0,max_n):
-                #print("../{0}{1}/{2}.exe".format(platform_paths[platform],config,type['name']))
-                run_id = "{0}-{1}-{2}".format(image,iteration,n)
-                result = subprocess.call("{0} RUN_IMAGE=\"{1}\" RUN_ID=\"{2}\" PROFILING=no BENCH_ARGUMENTS=\"{3}\"".format(bin,image,run_id,arguments),cwd=cwd,shell=True)
-                #print(result.args)
-                if result != EXIT_SUCCESS:
-                    print("ERROR {1} returned {0}.".format(result, bin))
-                    break;
-
-                csv_data = ''
-                with open(os.path.join(output_dir,run_id,'stdout.log')) as stdout:
-                    for line in stdout: #read and store result in log file
-                        if line[0:1] == LINE_MARKER:
-                            csv_data+=line[1:]
-
-                reader = csv.reader(csv_data.splitlines())
-                for testName, testId, isCuda, preprocessing_time,init_time,kernel_time,cleanup_time,postprocessing_time,total_time in reader:
-                    index = 'seq'
-                    if testName not in times:
-                        times[testName] = copy.deepcopy(time_template)
-
-                    if int(isCuda) == 1:
-                        index = 'cuda'
-
-                    print("Got time for {0} {1} {2:.0f}".format(testName, index, float(total_time)));
-
-                    times[testName][index]['preprocessing_time'] += float(preprocessing_time) / max_n
-                    times[testName][index]['init_time'] += float(init_time) / max_n
-                    times[testName][index]['kernel_time'] += float(kernel_time) / max_n
-                    times[testName][index]['cleanup_time'] += float(cleanup_time) / max_n
-                    times[testName][index]['postprocessing_time'] += float(postprocessing_time) / max_n
-                    times[testName][index]['total_time'] += float(total_time) / max_n
+                times[testName]['init_time'] += float(init_time) / max_n
+                times[testName]['kernel1_time'] += float(kernel_time) / max_n
+                times[testName]['kernel2_time'] += float(kernel_time) / max_n
+                times[testName]['cleanup_time'] += float(cleanup_time) / max_n
+                times[testName]['total_time'] += float(total_time) / max_n
 
 
-                #if times['cuda']['total_time'] != 0:
-                #    new_time += times['seq']['total_time'] /
-                #    times['cuda']['total_time']
+            #if times['cuda']['total_time'] != 0:
+            #    new_time += times['seq']['total_time'] /
+            #    times['cuda']['total_time']
 
-                sys.stdout.write("{3}: Run {4} out of {5}: {0: >2} out of {1: >2} ({2: >3,.0%})\n".format(n + 1, max_n,(n + 1 + current_run * max_n) / (max_n * number_of_runs['runs']),job_title,current_run,number_of_runs['runs']))
-                sys.stdout.flush()
+            sys.stdout.write("{3}: Run {4} out of {5}: {0: >2} out of {1: >2} ({2: >3,.0%})\n".format(n + 1, max_n,(n + 1 + current_run * max_n) / (max_n * number_of_runs['runs']),job_title,current_run,number_of_runs['runs']))
+            sys.stdout.flush()
 
 
-            #TODO write file.
-            results.append({
-                'image':image,
-                "iteration":iteration,
-                "passes":max_n,
-                "times":times,
-                "prof":prof,
-                'had_error':error_occured
-                })
+        #TODO write file.
+        results.append({
+            "iteration":iteration,
+            "passes":max_n,
+            "times":times,
+            "prof":prof,
+            'had_error':error_occured
+            })
 
-            #print("{0}: Run {1} out of {2} is done.
-            #\r".format(job_title,current_run,number_of_runs['runs']))
+        #print("{0}: Run {1} out of {2} is done.
+        #\r".format(job_title,current_run,number_of_runs['runs']))
 
     return results
 
@@ -185,15 +162,18 @@ def GetDRAMThroughput(prof,kind='avg'):
     return write+read # GB/s
 
 def PrintResults(results):
-    table_heading = ['image',
+    table_heading = [
         'iteration',
         'passes',
         'has error',
-        'total-times-seq',
+        'total-times-cpu',
         'total-times-cuda',
-        'kernel-times-seq',
+        'total-times-opencl',
+        'kernel-times-cpu',
         'kernel-times-cuda',
-        'peak-gflops',
+        'kernel-times-opencl',
+        'peak-gflops-cuda',
+        'peak-gflops-opencl',
         'global-dram-bandwith-max',
         'global-dram-bandwith-min'
         ]
@@ -201,12 +181,14 @@ def PrintResults(results):
         0:'left',
         1:'left',
         2:'left',
-        4:'left',
         5:'right',
         6:'right',
         7:'right',
         8:'right',
-        9:'right'
+        9:'right',
+        10:'right',
+        11:'right',
+        12:'right'
     }
     display_results = []
     display_results.append(table_heading)
@@ -216,31 +198,32 @@ def PrintResults(results):
         else:
             error_text = "??"
 
-        total_gflops = (int(result['prof']['Grayscale']['flop_count_sp']['max'])+int(result['prof']['Histogram']['flop_count_sp']['max'])+int(result['prof']['Contrast']['flop_count_sp']['max'])+int(result['prof']['Smooth']['flop_count_sp']['max']))/1e9
-        total_time_seq = (result['times']['Grayscale']['seq']['total_time']+result['times']['Histogram']['seq']['total_time']+result['times']['Contrast']['seq']['total_time']+result['times']['Smooth']['seq']['total_time'])/1e6
-        total_time_cuda = (result['times']['Grayscale']['cuda']['total_time']+result['times']['Histogram']['cuda']['total_time']+result['times']['Contrast']['cuda']['total_time']+result['times']['Smooth']['cuda']['total_time'])/1e6
-        kernel_time_seq = (result['times']['Grayscale']['seq']['kernel_time']+result['times']['Histogram']['seq']['kernel_time']+result['times']['Contrast']['seq']['kernel_time']+result['times']['Smooth']['seq']['kernel_time'])/1e6
-        kernel_time_cuda = (result['times']['Grayscale']['cuda']['kernel_time']+result['times']['Histogram']['cuda']['kernel_time']+result['times']['Contrast']['cuda']['kernel_time']+result['times']['Smooth']['cuda']['kernel_time'])/1e6
+        total_gflops = (int(result['prof']['Compute']['flop_count_sp']['max'])+int(result['prof']['Neighbour']['flop_count_sp']['max']))/1e9
+        total_time_cpu = (result['times']['CPU']['total_time'])/1e6
+        total_time_cuda = (result['times']['CUDA']['total_time'])/1e6
+        total_time_opencl = (result['times']['OpenCL']['total_time'])/1e6
+        kernel_time_cpu = (result['times']['CPU']['kernel_time'])/1e6
+        kernel_time_cuda = (result['times']['CUDA']['kernel_time'])/1e6
+        kernel_time_opencl = (result['times']['OpenCL']['kernel_time'])/1e6
 
-        total_global_dram_max = max(GetDRAMThroughput(result['prof']['Grayscale'],'max'),
-                                         GetDRAMThroughput(result['prof']['Histogram'],'max'),
-                                         GetDRAMThroughput(result['prof']['Contrast'],'max'),
-                                         GetDRAMThroughput(result['prof']['Smooth'],'max'))
+        total_global_dram_max = max(GetDRAMThroughput(result['prof']['Compute'],'max'),
+                                         GetDRAMThroughput(result['prof']['Neighbour'],'max'))
 
-        total_global_dram_min = min(GetDRAMThroughput(result['prof']['Grayscale'],'min'),
-                                         GetDRAMThroughput(result['prof']['Histogram'],'min'),
-                                         GetDRAMThroughput(result['prof']['Contrast'],'min'),
-                                         GetDRAMThroughput(result['prof']['Smooth'],'min'))
+        total_global_dram_min = min(GetDRAMThroughput(result['prof']['Compute'],'min'),
+                                         GetDRAMThroughput(result['prof']['Neighbour'],'min'))
 
-        display_results.append([result['image'],
+        display_results.append([
         result['iteration']+1,
         result['passes'],
         error_text,
-        "{0:.2f} ms".format(total_time_seq),
+        "{0:.2f} ms".format(total_time_cpu),
         "{0:.2f} ms".format(total_time_cuda),
-        "{0:.2f} ms".format(kernel_time_seq),
+        "{0:.2f} ms".format(total_time_opencl),
+        "{0:.2f} ms".format(kernel_time_cpu),
         "{0:.2f} ms".format(kernel_time_cuda),
+        "{0:.2f} ms".format(kernel_time_opencl),
         "{0:.2f} GFLOPS".format(total_gflops/(total_time_cuda/1000)),
+        "{0:.2f} GFLOPS".format(total_gflops/(total_time_opencl/1000)),
         "{0:.2f} GB/s".format(total_global_dram_max),
         "{0:.2f} GB/s".format(total_global_dram_min)
         ])
