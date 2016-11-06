@@ -84,9 +84,6 @@
     <None Include="compute_kernel.cl">
       <FileType>CppCode</FileType>
     </None>
-    <None Include="neighbour_kernel.cl">
-      <FileType>CppCode</FileType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="infoli.cpp" />

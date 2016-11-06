@@ -50,14 +50,17 @@ int main(int argc, char *argv[]) {
 	}
 	DEBUG_PRINT(("Inferior Olive Model (%d x %d cell mesh)\n", IO_NETWORK_DIM1, IO_NETWORK_DIM2));
 
-	//Open output file
-	ofstream pOutFile(outFileName);
+	ofstream pOutFile;
+	if (WRITE_OUTPUT) {
+		//Open output file
+		pOutFile.open(outFileName);
 
-	if (!pOutFile) {
-		cerr << "Error: Couldn't create " << outFileName << endl;
-		exit(EXIT_FAILURE);
+		if (!pOutFile) {
+			cerr << "Error: Couldn't create " << outFileName << endl;
+			exit(EXIT_FAILURE);
+		}
+		pOutFile << "#simSteps Time(ms) Input(Iapp) Output(V_axon)" << endl;
 	}
-	pOutFile << "#simSteps Time(ms) Input(Iapp) Output(V_axon)" << endl;
 
 
 	//Malloc for the array of cellStates and cellCompParams
@@ -84,7 +87,9 @@ int main(int argc, char *argv[]) {
 		//Compute one sim step for all cells
 		if (i > 20000 - 1 && i < 20500 - 1) { iApp = 6; } // start @ 1 because skipping initial values
 		else { iApp = 0; }
-		pOutFile << string_format("%d %.2f %.1f ", i + 1, i*0.05, iApp);
+		if (WRITE_OUTPUT) {
+			pOutFile << string_format("%d %.2f %.1f ", i + 1, i*0.05, iApp);
+		}
 		for (j = 0;j < IO_NETWORK_DIM1;j++) {
 			for (k = 0;k < IO_NETWORK_DIM2;k++) {
 				if (EXTRA_TIMING) {
@@ -102,7 +107,9 @@ int main(int argc, char *argv[]) {
 					tCompute += diffToNanoseconds(tComputeStart, tComputeEnd);
 					tWriteFileStart = now();
 				}
-				pOutFile << setprecision(8) << cellStatePtr[(i % 2) ^ 1][j][k].axon.V_axon << " ";
+				if (WRITE_OUTPUT) {
+					pOutFile << setprecision(8) << cellStatePtr[(i % 2) ^ 1][j][k].axon.V_axon << " ";
+				}
 				if (EXTRA_TIMING) {
 					tWriteFileEnd = now();
 					tWriteFile += diffToNanoseconds(tWriteFileStart, tWriteFileEnd);
@@ -112,7 +119,9 @@ int main(int argc, char *argv[]) {
 		if (EXTRA_TIMING) {
 			tWriteFileStart = now();
 		}
-		pOutFile << endl;
+		if (WRITE_OUTPUT) {
+			pOutFile << endl;
+		}
 		if (EXTRA_TIMING) {
 			tWriteFileEnd = now();
 			tWriteFile += diffToNanoseconds(tWriteFileStart, tWriteFileEnd);
@@ -153,7 +162,9 @@ int main(int argc, char *argv[]) {
 	free(cellStatePtr[1]);
 	free(cellStatePtr);
 	free(cellCompParamsPtr);
-	pOutFile.close();
+	if (WRITE_OUTPUT) {
+		pOutFile.close();
+	}
 
 	//wait_for_input();
 

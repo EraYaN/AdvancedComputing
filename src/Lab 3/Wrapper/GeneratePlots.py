@@ -1,4 +1,4 @@
-neighbourFileNamefrom matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 from matplotlib import style
 import numpy as np
 

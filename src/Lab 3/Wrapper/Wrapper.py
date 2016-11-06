@@ -11,7 +11,7 @@ import past          # pip install future
 import six           # pip install six
 
 iterations = 1
-max_n = 10 # Times to run program to get average
+max_n = 5 # Times to run program to get average
 
 make = "make all"
 make_flags = ""

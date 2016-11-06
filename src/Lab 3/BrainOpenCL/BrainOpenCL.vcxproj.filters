@@ -19,9 +19,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="neighbour_kernel.cl">
-      <Filter>Kernel Files</Filter>
-    </None>
     <None Include="compute_kernel.cl">
       <Filter>Kernel Files</Filter>
     </None>

@@ -532,11 +532,20 @@ inline int dev_fetch(int j, int k) {
 	return (j*IO_NETWORK_DIM1*PARAM_SIZE + k*PARAM_SIZE);
 }
 
+inline int dev_fetch_vdend(int p, int q) {
+	return (p*IO_NETWORK_DIM1 + q);
+}
+
 inline void put_double(image2d_t t, int x, int y, user_float_t val) {
 	//double2 d2 = ;
 	//d2.x = val;
 	//d2.y = 0;
 	write_imageui(t, (int2)(x, y), as_uint4((double2)(val, 0.0)));
+}
+inline double fetch_double(image2d_t t, sampler_t sampler, int x, int y) {
+	return as_double2(read_imageui(t, sampler, (int2)(x, y))).x;
+	//return d2.x;
+	//return 0;
 }
 /**
 Input: cellCompParamsPtr, cellStatePtr, iApp ,i
@@ -549,73 +558,75 @@ Retreive the external input of the dedrite
 and update the previous and new state of the current cell.
 Then Compute the new variables of the current cell with ComputeOneCell.
 **/
-__kernel void compute_kernel(global user_float_t *cellStatePtr, __write_only image2d_t cellVDendPtr, const user_float_t iApp) {
+__kernel void compute_kernel(global user_float_t *cellStatePtr, global user_float_t *cellVDendPtr, const user_float_t iApp) {
 
-	/*for (int ind = 0; ind < IO_NETWORK_SIZE; ind++) {
-		for (int b = 0; b < PARAM_SIZE; b++) {
-			printf("(state2) %d,%d: %lf\n", ind, b, cellStatePtr[ind*PARAM_SIZE + b]);
-		}
-	}*/
-
-	int j, k, e;
-	user_float_t d_cellCompParams[LOCAL_PARAM_SIZE];
+	int j, k, n, p, q, e;
 
 	k = get_global_id(0);
 	j = get_global_id(1);
 
+	user_float_t d_cellCompParams[LOCAL_PARAM_SIZE];
+
+	//get neighbor v_dend
+	n = 0;
+	for (p = j - 1; p <= j + 1; p++) {
+		for (q = k - 1; q <= k + 1; q++) {
+			//cellStatePtr[dev_fetch(j, k) + (n++)] = fetch_double(cellVDendPtr, sampler, p, q);
+			//if (p == j && q == k) n = n - 1;
+			if (((p != j) || (q != k)) && ((p >= 0) && (q >= 0)) && ((p < IO_NETWORK_DIM1) && (q < IO_NETWORK_DIM2))) {
+				//printf("k,j : %d, %d\ndev_fetch(j, k): %d\ndev_fetch_vdend(p, q): %d\nn: %d\nvdend: %lf\n", k, j, dev_fetch(j, k), dev_fetch_vdend(p, q), n, cellvdendptr[dev_fetch_vdend(p, q)]);
+				//cellStatePtr[dev_fetch(j, k) + n] = cellVDendPtr[dev_fetch_vdend(p, q)];
+				d_cellCompParams[VNEIGHSTARTADD + n] = cellVDendPtr[dev_fetch_vdend(p, q)];
+				n++;
+			} else if (p == j && q == k) {
+				//	;   // do nothing, this is the cell itself
+			} else {
+				//printf("k,j : %d, %d\ndev_fetch(j, k): %d\ndev_fetch_vdend(j, k): %d\nn: %d\nvdend: %lf\n", k, j, dev_fetch(j, k), dev_fetch_vdend(j, k), n, cellvdendptr[dev_fetch_vdend(j, k)]);
+				//cellStatePtr[dev_fetch(j, k) + n] = cellVDendPtr[dev_fetch_vdend(j, k)];
+				d_cellCompParams[VNEIGHSTARTADD + n] = cellVDendPtr[dev_fetch_vdend(j, k)];
+				n++;
+			}
+		}
+	}
+
+	/*for (int b = 0; b < PARAM_SIZE; b++) {
+		printf("(state_n) %d: %lf\n", b, cellStatePtr[b]);
+	}
+
+	barrier(CLK_GLOBAL_MEM_FENCE);
+
+	for (int b = 0; b < LOCAL_PARAM_SIZE; b++) {
+		printf("(comp_n) %d: %lf\n", b, d_cellCompParams[b]);
+	}
+
+	barrier(CLK_GLOBAL_MEM_FENCE);*/
+	
 	//Compute one by one sim step
 
 	d_cellCompParams[0] = iApp;
 
-#pragma unroll STATEADD
-	for (e = 0; e < STATEADD; e++) {
-		d_cellCompParams[VNEIGHSTARTADD + e] = cellStatePtr[dev_fetch(j, k) + e];
-		//d_cellCompParams[VNEIGHSTARTADD + e] = cellStatePtr[j*IO_NETWORK_DIM1*PARAM_SIZE + k*PARAM_SIZE + e];
-	}
-	//printf("VDend (first loop): %lf\n", d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
+//#pragma unroll STATEADD
+//	for (e = 0; e < STATEADD; e++) {
+//		d_cellCompParams[VNEIGHSTARTADD + e] = cellStatePtr[dev_fetch(j, k) + e];
+//	}
 #pragma unroll STATE_SIZE
 	for (e = 0; e < STATE_SIZE; e++) {
 		d_cellCompParams[PREVSTATESTARTADD + e] = cellStatePtr[dev_fetch(j, k) + STATEADD + e];
-		//d_cellCompParams[VNEIGHSTARTADD + e] = cellStatePtr[j*IO_NETWORK_DIM1*PARAM_SIZE + k*PARAM_SIZE + e];
 		d_cellCompParams[NEXTSTATESTARTADD + e] = d_cellCompParams[PREVSTATESTARTADD + e];
 	}
 
-	/*for (int ind = 0; ind < LOCAL_PARAM_SIZE; ind++)
-		printf("(loop) %d: %lf\n", ind, d_cellCompParams[ind]);*/
-		//Compute one Cell...
-		//printf("VDend (second loop): %lf\n", d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
-		// DEBUG PRINT
-	//printf("BEFORE CompDend, cellCompParamsPtr\n");
-	//printComParams(d_cellCompParams);
 	CompDend(d_cellCompParams);
-	// DEBUG PRINT
-	//printf("AFTER CompDend, cellCompParamsPtr\n");
-	//printComParams(d_cellCompParams);
-	//printf("VDend (Dend): %lf\n", d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
 	CompSoma(d_cellCompParams);
-	// DEBUG PRINT
-	//printf("AFTER CompSoma, cellCompParamsPtr\n");
-	//printComParams(d_cellCompParams);
-	//printf("VDend (Soma): %lf\n", d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
 	CompAxon(d_cellCompParams);
-	// DEBUG PRINT
-	//printf("AFTER CompAxon, cellCompParamsPtr\n");
-	//printComParams(d_cellCompParams);
-	//printf("VDend (Axon): %lf\n", d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
-	//updates
-	barrier(CLK_GLOBAL_MEM_FENCE);
+
+	//barrier(CLK_GLOBAL_MEM_FENCE);
+
 #pragma unroll STATE_SIZE
 	for (e = 0; e < STATE_SIZE; e++) {
 		cellStatePtr[dev_fetch(j, k) + STATEADD + e] = d_cellCompParams[NEXTSTATESTARTADD + e];
-		//cellStatePtr[j*IO_NETWORK_DIM1*PARAM_SIZE + k*PARAM_SIZE + STATEADD + e] = d_cellCompParams[NEXTSTATESTARTADD + e];
 	}
-	put_double(cellVDendPtr, j, k, d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
-	//cellVDendPtr[j*IO_NETWORK_DIM1 + k] = d_cellCompParams[NEXTSTATESTARTADD + DEND_V];
-	/*if (j == 0 && k == 0)
-		g_i = g_i + 1;*/
+	//put_double(cellVDendPtr, j, k, d_cellCompParams[NEXTSTATESTARTADD + DEND_V]);
+	cellVDendPtr[dev_fetch_vdend(j, k)] = d_cellCompParams[NEXTSTATESTARTADD + DEND_V];
 	barrier(CLK_GLOBAL_MEM_FENCE);
-	//printf("%d,%d, %lf\n",j,k,cellStatePtr[dev_fetch(j, k) + STATEADD + DEND_V]);
-
-	return;
 }
 

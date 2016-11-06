@@ -40,7 +40,7 @@ do
 	sleep $TIMEOUT
 done
 echo Copy back output
-echo Run at $2
+echo Run with run ID $2
 mkdir -p run_output/$2
 cp -f ~/run/* run_output/$2
 rm run_output/$2/gpu_program.old
