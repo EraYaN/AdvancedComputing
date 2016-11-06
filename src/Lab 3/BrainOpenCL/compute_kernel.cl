@@ -567,6 +567,8 @@ __kernel void compute_kernel(global user_float_t *cellStatePtr, global user_floa
 
 	user_float_t d_cellCompParams[LOCAL_PARAM_SIZE];
 
+	d_cellCompParams[0] = iApp;
+
 	//get neighbor v_dend
 	n = 0;
 	for (p = j - 1; p <= j + 1; p++) {
@@ -600,10 +602,9 @@ __kernel void compute_kernel(global user_float_t *cellStatePtr, global user_floa
 	}
 
 	barrier(CLK_GLOBAL_MEM_FENCE);*/
-	
+
 	//Compute one by one sim step
 
-	d_cellCompParams[0] = iApp;
 
 //#pragma unroll STATEADD
 //	for (e = 0; e < STATEADD; e++) {
