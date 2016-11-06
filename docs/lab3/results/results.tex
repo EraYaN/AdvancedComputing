@@ -7,7 +7,20 @@
 \begin{document}
 \chapter{Results}
 
-
+\begin{table}[H]
+	\centering
+	\caption{NVIDIA Tesla K40c GPU specifications}
+	\label{tab:gpu-specs}
+	\begin{tabular}{ccccccc}
+		\toprule
+			\textbf{Stage}		& \textbf{CPU Tot.}	& \textbf{CUDA Tot.}	& \textbf{OpenCL Tot.}	& \textbf{CPU Ker.}	& \textbf{CUDA Ker.}	& \textbf{OpenCL Ker.}\\
+		\midrule
+			\textit{Stage 1}	& 77.1 (s)			& 56.7 (s) 				& 18.8 (s) 				& 37.1 (s) 			& 1.92 (s) 				& 14.5 (s)	\\
+			\textit{Stage 2}	& 77.5 (s)			& 6.4 (s) 				& 19.4 (s) 				& 37.4 (s) 			& 6.4 (s) 				& 15.2 (s)	\\
+			\textit{Stage 3}	& 54.3 (s)			& 6.32 (s) 				& 16.4 (s) 				& 40.3 (s) 			& 6.3 (s) 				& 12.5 (s)	\\
+		\bottomrule
+	\end{tabular}
+\end{table}
 
 not worth it since iterator g\_i needs to be passed and cannot be made global
 
