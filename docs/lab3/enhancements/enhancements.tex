@@ -7,6 +7,45 @@
 \begin{document}
 \chapter{Enhancements}
 
+\section{Introduction}
+The implementation as described in \cref{ch:initopencl} is similar to the first GPU implementation by H.A. Du Nguyen.
+This report will consider three enhancement techniques to improve the performance and get it closer to that of the enhanced CUDA version.
+The three techniques are:
+\begin{itemize}
+	\item Eliminating branching divergence with OpenCL Images (Texture memory) (\cref{sec:image-texture}).
+	\item Pass \texttt{iApp} as an array (\cref{sec:iapp-array}), since all cells in the network receive a fixed input current at each time step. Since the simulation is short, \texttt{iApp} stays constant throughout the course of the program, setting iApp as a constant is another enhancement.
+	\item Merge everything into one kernel (\cref{sec:one-kernel})
+\end{itemize}
+
+\section{OpenCL Image Texture}\label{sec:image-texture}
+TODO: describe implementation
+with CLAMP or CLAMP\_TO\_EDGE.
+
+\section{iApp as an array}\label{sec:iapp-array}
+The external input current \texttt{iApp} is copied every time step to the GPU.
+Since the input current is fixed and known before execution, it can be transferred to the GPU before the actual simulation starts.
+In CUDA this is done by passing the input current as an array for each simulation step and generating the index as a global variable.
+In OpenCL this approach fails, it does support global variables, however these still need to be passed with a write buffer.
+Even though the copying of the input current can be avoided, the index still needs to be copied, which effectively has zero profit.
+
+By simplifying the the approach even more, one can argue that the input current is one constant value for every simulation step as long as not too many simulation steps are being used.
+This allows for one constant value on the GPU side, omitting the copying of the input current.
+
+\section{Merged Kernels}\label{sec:one-kernel}
+The calling of the kernel was found to be expensive.
+In order to reduce the two kernel calls per iteration to one kernel call, the decision was made to merge both kernels into one.
+This way we have only one kernel call per loop iteration and kernel swapping, which is another resource intensive operation, is prevented.
+Moreover, the neighbour part immediately stores its results in \texttt{compParams} and omits putting it in the state first.
+The loop that took care of this has also been removed.
+
+\section{(Extra) Splitting up the Compute Kernel}
+Splitting the kernel into five kernels, setup, dend, soma, axon and finish, has been considered to improve concurrency.
+However, kernel swapping is a very expensive operation in OpenCL and it would add a lot of complexity.
+Therefore, it was chosen to explore but not to research this enhancement thoroughly.
+
+
+
+
 % \section{Kernel Implementation}\label{sec:hist-kernel}
 % The computation of the histogram is more difficult, whereas compared to the color to gray conversion the same field of the histogram can be altered by multiple threads.
 % Therefore one needs to make use of \texttt{atomicAdd\(\)}.

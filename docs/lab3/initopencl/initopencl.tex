@@ -11,13 +11,18 @@
 The code to start with already contained a rough outline of the OpenCL code structure.
 Most parts were fairly straightforward, however, implementing the kernels proved to be more difficult, the sections below will elaborate on this.
 
-\section{Neighbour Kernel}
-TODO: write some text about the neighbour kernel implementation
+\section{Main Function}
+The framework around the two kernels is very similar to that of the CUDA implementation.
+\cref{sec:code-error}, describes one of the fundamental differences between the two implementations.
+Other than that the OpenCl code is much bigger, since buffer creation but also memory copying is much more verbose in OpenCL as compared to CUDA.
 
-\section{Compute Kernel}
-TODO: write some text about the compute kernel implementation
+\section{Neighbour/Compute Kernel}
+Both the neighbour and compute kernel implementations are very similar to that of the CUDA code.
+\cref{lst:cuda-opencl-neighbour}, shows the main things that changed when porting the code to OpenCL.
 
-\section{Fixing an Error in the Provided Code}
+\includecode[cpp]{OpenCL equivalent}{resources/cuda-vs-opencl-neighbour-snippet.cpp}{lst:cuda-opencl-neighbour}
+
+\section{Fixing an Error in the Provided Code}\label{sec:code-error}
 After having set up all the right variables and kernel implementations, the OpenCL implementation seemed to work.
 However, after comparing its output to that of the CPU en CUDA implementation, it became clear that the axon voltage computation was wrong.
 Since hardly any debug tools are available for OpenCL, the entire compute kernel was fitted with \texttt{printf} statements to monitor each computation step.
