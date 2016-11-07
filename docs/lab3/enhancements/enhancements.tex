@@ -17,9 +17,19 @@ The three techniques are:
 	\item Merge everything into one kernel (\cref{sec:one-kernel})
 \end{itemize}
 
-\section{OpenCL Image Texture}\label{sec:image-texture}
+\section{OpenCL Image}\label{sec:image-texture}
 TODO: describe implementation
 with CLAMP or CLAMP\_TO\_EDGE.
+OpenCL images are the OpenCL equivalent of the CUDA textures.
+This was implemented for the array containing the vDend values for all the cells.
+OpenCL offers two options for handling border cases, CLK\_ADDRESS\_CLAMP and CLK\_ADDRESS\_CLAMP\_TO\_EDGE.
+For CLK\_ADDRESS\_CLAMP the out of range indexes with return a border colour, and for CLK\_ADDRESS\_CLAMP\_TO\_EDGE the value of the closest edge cell is returned.
+CLK\_ADDRESS\_CLAMP in noticeably slower, while you would expect it to be faster.
+OpenCL does not support double type images, so we went with CL\_UNSIGNED\_INT32 type images with channel layout CL\_RG.
+So when we retrieve a "pixel" from this image we can use the first element of the double2 vector that we cast the returned uint4 to.
+This is not very optimal, but switching to CL\_UNSIGNED\_INT16 and CL\_RGBA  did not help, performance wise.
+As shown in \cref{tab:gpu-specs} (Stage 2) we even lost a little bit of performance on this enhancement.
+Hence why we removed is in Stage 3.
 
 \section{iApp as an array}\label{sec:iapp-array}
 The external input current \texttt{iApp} is copied every time step to the GPU.
@@ -40,44 +50,16 @@ The loop that took care of this has also been removed.
 
 \section{(Extra) Splitting up the Compute Kernel}
 Splitting the kernel into five kernels, setup, dend, soma, axon and finish, has been considered to improve concurrency.
-However, kernel swapping is a very expensive operation in OpenCL and it would add a lot of complexity.
-Therefore, it was chosen to explore but not to research this enhancement thoroughly.
+However, kernel swapping is a very expensive operation in OpenCL and the splitting it would add a lot of complexity.
+Also most GPU's do not support running multiple kernels concurrently (cl\_ext\_device\_fission) as of yet, and NVidia Kepler certainly does not support it.
+This is mostly usable in CPU and some accelerator devices.
+Therefore, it was chosen not to implement this enhancement.
 
-
-
-
-% \section{Kernel Implementation}\label{sec:hist-kernel}
-% The computation of the histogram is more difficult, whereas compared to the color to gray conversion the same field of the histogram can be altered by multiple threads.
-% Therefore one needs to make use of \texttt{atomicAdd\(\)}.
-
-% \includecode[cpp]{}{resources/histogramAtomicAddSnippet.cpp}{}
-
-% This function allows the threads to add a number to similar histogram fields without interfering with each other.
-% The rest of the CPU code is ported in a similar way as described in \cref{sec:rgb2gray}.
-
-% A problem that arises in the code described above is that the histogram is being used repeatedly to write values to, the overhead on this can be reduced by using shared memory.
-
-% Since very little work is done in the kernel, it is likely that the \texttt{atomicAdd\(\)} on global memory is slowing the application down.
-% A great deal of contention is caused by the mere thousands of threads that want to access the same memory locations, resulting in a long queue of pending operations.
-% By using shared memory, each block can compute the histogram for a part of the image with low latency.
-% After which the data, that each thread block put in shared memory, is merged into the global memory; greatly reducing the strain on the global memory.
-
-% In the kernel the main additions are the initialization of the shared memory and the use of \texttt{\_\_syncthreads()}.
-% The call to \texttt{\_\_syncthreads()} makes sure that all the threads in a single block have finished executing before the GPU moves on to merging the computed histogram of that block into the global memory.
-
-% \section{Results}
-% For the histogram kernel two results have been generated, one for the global memory kernel (\cref{tab:histogram-global-results}) and one for the shared memory kernel (\cref{tab:histogram-shared-results}).
-% \subimport{resources/}{perf-tablenormal.tex}
-
-% The speedup with the naive kernel is neglectable.
-% Even though the kernel itself is faster, the overall speedup is still 1.0.
-% This is likely caused by the phenomenon talked about in \cref{sec:hist-kernel}, as the \texttt{atomicAdd()} is causing big queues trying to access the global memory.
-
-% However, when the comparison is being made between the global and shared memory kernel the GPU suddenly outperforms the CPU.
-% The kernel itself is not running a lot faster, however with a more streamlined approach of writing the results back to the memory causes an overall speed up of 5.2 in the best case.
-% The slight overhead caused by the shared memory is well worth the performance increase.
-% The bandwidth metrics also show that the GPU uses more bandwidth in the shared memory case, confirming that the data copying is happening in a more streamlined manner.
-
-% \subimport{resources/}{perf-tableshared.tex}
+\section{Using multiple OpenCL devices}
+An other option is to use multiple OpenCL devices.
+On a modern CPU this makes sense, most consumer grade CPU include a fairly capable GPU and are quite capable themselves.
+In the server provided to us, the included CPU is very old and it is not worth the additional complexity of inter device communication and the thousands of line of extra OpenCL boilerplate code.
+This is a very interesting venue to explore further down the line, but for now it does not make sense.
+It would give the program much more scalability, however this is probably easier to implement using CUDA.
 
 \end{document}

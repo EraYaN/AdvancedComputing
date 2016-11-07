@@ -13,13 +13,13 @@ Furthermore, key points and bottlenecks to take into account, when programming f
 In order to draw a conclusion on the performance of the implementation in OpenCL, it is compared to that of a CUDA and CPU implementation.
 
 \section{Method}
-
-TODO: write something about our approach
-
-%In order to get reliable performance measurements a total of 10 runs have been done for each kernel.
-% A Python script was in control of scheduling and averaging each run on the benchmark host.
-% It also collected the profiling metrics and processed the output of the program.
-
+In order to get reliable performance measurements a total of 5 runs have been done for each configuration/stage.
+A Python script was in control of scheduling and averaging each run on the benchmark host.
+It also collected and processed the output of the program.
+Due to the total absence of proper (supported) OpenCL tools, it is very hard to profile, apart form the rudimentary information the Nsight Visual Studio profile can give.
+And the way the simulation is set up (with the thousands of kernel launches), profiling is also ridiculously slow.
+For example some code that will run with \SI{80}{\percent} utilization on a GTX960 with run with only \SI{40}{\percent} utilization according to the profiler.
+The former was measured using Windows performance counters provided by the driver.
 % The values in the result tables are calculated as shown in \cref{lst:table-calc-snippet}.
 
 % \includecode[python]{The code used to calculate the values in the result tables.}{resources/tableCalcSnippet.py}{lst:table-calc-snippet}
