@@ -9,23 +9,51 @@
 
 \begin{table}[H]
 	\centering
-	\caption{NVIDIA Tesla K40c GPU specifications}
-	\label{tab:gpu-specs}
+	\caption{Benchmarking results, total and kernel time for CPU, CUDA and OpenCL}
+	\label{tab:results}
 	\begin{tabular}{ccccccc}
 		\toprule
 			\textbf{Stage}		& \textbf{CPU Tot.}	& \textbf{CUDA Tot.}	& \textbf{OpenCL Tot.}	& \textbf{CPU Ker.}	& \textbf{CUDA Ker.}	& \textbf{OpenCL Ker.}\\
 		\midrule
-			\textit{Stage 1}	& 77.1 (s)			& 56.7 (s) 				& 18.8 (s) 				& 37.1 (s) 			& 1.92 (s) 				& 14.5 (s)	\\
+			\textit{Stage 1}	& 77.1 (s)			& 56.7 (6.36)			& 18.8 (s) 				& 37.1 (s) 			& 1.92 (6.3)			& 14.5 (s)	\\
 			\textit{Stage 2}	& 77.5 (s)			& 6.4 (s) 				& 19.4 (s) 				& 37.4 (s) 			& 6.4 (s) 				& 15.2 (s)	\\
-			\textit{Stage 3}	& 54.3 (s)			& 6.32 (s) 				& 16.4 (s) 				& 40.3 (s) 			& 6.3 (s) 				& 12.5 (s)	\\
+			\textit{Stage 3}	& 54.3 (77.3)		& 6.32 (s) 				& 16.4 (s) 				& 40.3 (37.2) 		& 6.3 (s) 				& 12.5 (s)	\\
 		\bottomrule
 	\end{tabular}
 \end{table}
 
-not worth it since iterator g\_i needs to be passed and cannot be made global
+\cref{tab:results}, lists the results for the three enhancement stages.
+The timing of the CUDA and CPU code is not very reliable.
+Basically, the time should be the same for each stage, since the CPU and CUDA code did not receive any edits in between the stages.
+During the benchmarking several IO stalls and some other unidentified problems occurred and multiple runs were not able to filter out several runtime spikes.
+Therefore, the spikes of both the CPU and CUDA are filtered out by taking the average of the other two correct values.
 
-Images are faster for neighbour 3.3 sec to 2.6, but slower for compute. (5-10%)
+\begin{figure}[H]
+\centering
+    \includegraphics[width=\textwidth]{resources/total-time-graph.pdf}
+    \caption{The total execution time for each kernel per enhancement stage}
+    \label{fig:total-time-graph}
+\end{figure}
 
- Empty Neighbour kernel is just as slow as full neigbour kernel.
+\begin{figure}[H]
+\centering
+    \includegraphics[width=\textwidth]{resources/kernel-time-graph.pdf}
+    \caption{The execution time for each kernel per enhancement stage}
+    \label{fig:kernel-time-graph}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+    \includegraphics[width=\textwidth]{resources/opencl-per-stage-graph.pdf}
+    \caption{The kernel execution time per enhancement stage for OpenCL}
+    \label{fig:opencl-per-stage-graph}
+\end{figure}
+
+Copying the input current, \texttt{iApp} as one array did not harvest any improvements in OpenCL.
+Even though the copying of the input current can be avoided, the index still needs to be copied, which effectively has zero profit.
+
+TODO: Images are faster for neighbour 3.3 sec to 2.6, but slower for compute. (5-10\%)
+TODO: note somewhere which simulation size we used
+TODO: Discuss the improvement of the merged kernel
 
 \end{document}

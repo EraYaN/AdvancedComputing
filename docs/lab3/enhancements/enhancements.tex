@@ -5,7 +5,7 @@
 \input{../../.library/style.tex}
 \addbibresource{../../.library/bibliography.bib}
 \begin{document}
-\chapter{Enhancements}
+\chapter{Enhancements}\label{ch:enhancements}
 
 \section{Introduction}
 The implementation as described in \cref{ch:initopencl} is similar to the first GPU implementation by H.A. Du Nguyen.
@@ -14,7 +14,7 @@ The three techniques are:
 \begin{itemize}
 	\item Eliminating branching divergence with OpenCL Images (Texture memory) (\cref{sec:image-texture}).
 	\item Pass \texttt{iApp} as an array (\cref{sec:iapp-array}), since all cells in the network receive a fixed input current at each time step. Since the simulation is short, \texttt{iApp} stays constant throughout the course of the program, setting iApp as a constant is another enhancement.
-	\item Merge everything into one kernel (\cref{sec:one-kernel})
+	\item Merge neighbour and compute into one kernel (\cref{sec:one-kernel})
 \end{itemize}
 
 \section{OpenCL Image}\label{sec:image-texture}
@@ -48,14 +48,15 @@ This way we have only one kernel call per loop iteration and kernel swapping, wh
 Moreover, the neighbour part immediately stores its results in \texttt{compParams} and omits putting it in the state first.
 The loop that took care of this has also been removed.
 
-\section{(Extra) Splitting up the Compute Kernel}
+\section{Extra Enhancements}
+\subsection{Splitting up the Compute Kernel}
 Splitting the kernel into five kernels, setup, dend, soma, axon and finish, has been considered to improve concurrency.
 However, kernel swapping is a very expensive operation in OpenCL and the splitting it would add a lot of complexity.
 Also most GPU's do not support running multiple kernels concurrently (cl\_ext\_device\_fission) as of yet, and NVidia Kepler certainly does not support it.
 This is mostly usable in CPU and some accelerator devices.
 Therefore, it was chosen not to implement this enhancement.
 
-\section{Using multiple OpenCL devices}
+\subsection{Using Multiple OpenCL Devices}
 An other option is to use multiple OpenCL devices.
 On a modern CPU this makes sense, most consumer grade CPU include a fairly capable GPU and are quite capable themselves.
 In the server provided to us, the included CPU is very old and it is not worth the additional complexity of inter device communication and the thousands of line of extra OpenCL boilerplate code.

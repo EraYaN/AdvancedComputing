@@ -7,6 +7,7 @@
 \begin{document}
 \chapter{Introduction}
 
+\section{Goal}
 The focus of this report is to provide the reader with an OpenCL implementation of a brain simulation algorithm.
 The bare bones structure of the program is discussed as well as enhancements that have been applied to improve performance.
 Furthermore, key points and bottlenecks to take into account, when programming for OpenCL, are highlighted. 
@@ -20,6 +21,15 @@ Due to the total absence of proper (supported) OpenCL tools, it is very hard to 
 And the way the simulation is set up (with the thousands of kernel launches), profiling is also ridiculously slow.
 For example some code that will run with \SI{80}{\percent} utilization on a GTX960 with run with only \SI{40}{\percent} utilization according to the profiler.
 The former was measured using Windows performance counters provided by the driver.
+
+\cref{ch:enhancements} will elaborate on each of the different enhancement techniques.
+The results are chopped up into three enhancement stages, as listed below.
+\begin{enumerate}
+	\item Initial OpenCL implementation (port from CUDA)
+	\item Image texture, \texttt{iApp} as an array
+	\item Merged kernels
+\end{enumerate}
+
 % The values in the result tables are calculated as shown in \cref{lst:table-calc-snippet}.
 
 % \includecode[python]{The code used to calculate the values in the result tables.}{resources/tableCalcSnippet.py}{lst:table-calc-snippet}
