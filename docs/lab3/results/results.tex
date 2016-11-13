@@ -7,7 +7,7 @@
 \begin{document}
 \chapter{Results}
 To start off, the same trends were spotted as in Lab 1 and therefore all the benchmarks are run with a local block size of 16x16, or smaller with a smaller problem size.
-The global block size will be adjusted to fit the problem size
+The global block size will be adjusted to fit the problem size, the standard problem size is 64x64 unless specified otherwise.
 
 Another thing to note, is that the copying of the output data was turned off for the benchmarking.
 This greatly improved speed and didn't affect the relative time difference between CUDA and OpenCL.
@@ -48,20 +48,6 @@ Stage 3 explores the option of merging the neighbour and compute kernel into one
 This allows for more efficient passing of values, and prevent any kernel swapping (intensive operation).
 This enhancement proves to be a good choice and a 16\% performance increase is seen.
 
-% \begin{figure}[H]
-% \centering
-%     \includegraphics[width=\textwidth]{resources/total-time-graph.pdf}
-%     \caption{The total execution time for each kernel per enhancement stage}
-%     \label{fig:total-time-graph}
-% \end{figure}
-
-% \begin{figure}[H]
-% \centering
-%     \includegraphics[width=\textwidth]{resources/kernel-time-graph.pdf}
-%     \caption{The execution time for each kernel per enhancement stage}
-%     \label{fig:kernel-time-graph}
-% \end{figure}
-
 \begin{figure}[H]
 \centering
     \includegraphics[width=\textwidth]{resources/opencl-per-stage-graph.pdf}
@@ -76,6 +62,50 @@ This is obvious, since the enhancement stages mainly focused on improving the ke
 
 
 \section{Execution Time for different Problem Sizes}
+The section above shows that the maximum speed can be achieved with the Stage 3 enhancements.
+To gain some more insight into the performance of the final configuration, the OpenCL code is tested against the CPU and CUDA code for different problem sizes.
 
+\begin{table}[H]
+	\centering
+	\caption{Benchmarking results, total and kernel time for CPU, CUDA and OpenCL for different problem sizes ranging from 8x8 to 512x512}
+	\label{tab:results-problem-size}
+	\begin{tabular}{ccccccc}
+		\toprule
+			\textbf{Size}		& \textbf{CPU Tot.}	& \textbf{CUDA Tot.}	& \textbf{OpenCL Tot.}	& \textbf{CPU Ker.}	& \textbf{CUDA Ker.}	& \textbf{OpenCL Ker.}\\
+		\midrule
+			8					& 0.84 (s)			& 3.02 (s)				& 14.41 (s)				& 0.62 (s)			& 3.02 (s)				& 10.52 (s) \\
+			16					& 3.38 (s)			& 2.93 (s)				& 15.56 (s)				& 2.51 (s)			& 2.93 (s)				& 11.68 (s) \\
+			32					& 13.46 (s)			& 3.10 (s)				& 15.57 (s)				& 9.99 (s)			& 3.10 (s)				& 11.69 (s) \\
+			64					& 53.81 (s)			& 6.32 (s)				& 16.31 (s)				& 39.94 (s)			& 6.32 (s)				& 12.44 (s) \\
+			128					& 220.11 (s)		& 31.03 (s)				& 32.89 (s)				& 164.86 (s)		& 31.02 (s)				& 29.00 (s) \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\cref{tab:results-problem-size}, lists the results for the different problem sizes.
+As expected, the execution time of the CPU grows quadratically and after 256x256 the run timed out. 
+The performance of the CUDA and OpenCL code is much more interesting.
+According to \cref{tab:gpu-specs}, the GPU has 2880 cores.
+This means that for a size of roughly 53x53 the kernel execution time should hardly grow, since all computations can be done in parallel below this size.
+\cref{fig:exe-time-per-problem-size-graph} and \cref{fig:kernel-time-per-problem-size-graph}, both confirm this, as the execution time starts to grow after a size of 32x32.
+
+\begin{figure}[H]
+\centering
+    \includegraphics[width=\textwidth]{resources/exe-time-per-problem-size-graph.pdf}
+    \caption{The total time for different problem sizes}
+    \label{fig:exe-time-per-problem-size-graph}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+    \includegraphics[width=\textwidth]{resources/kernel-time-per-problem-size-graph.pdf}
+    \caption{The kernel time for different problem sizes}
+    \label{fig:kernel-time-per-problem-size-graph}
+\end{figure}
+
+A very interesting investigation is that after a size of 128x128, OpenCL starts to overtake CUDA in terms of performance.
+A reason for this could be that the OpenCL kernel is faster for all problem sizes, but that the kernel startup time is hiding this.
+For bigger problem size, the kernel startup starts to contribute less to the execution time and the actual performance of the kernel starts to show itself more.
+From these results must be concluded that the OpenCL Stage 3 kernel is faster than the CPU and CUDA implementation. 
 
 \end{document}

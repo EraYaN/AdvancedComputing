@@ -6,6 +6,15 @@
 \addbibresource{../../.library/bibliography.bib}
 \begin{document}
 \chapter{Conclusion}
+The first surprise of this lab was that image texture seems to be poorly supported by OpenCL and the amount of type casts needed to integrate it into the brain simulation applications completely defeats the possible gains.
+Furthermore, the implementation of global variables is also very different from CUDA.
+This shows that CUDA and OpenCL are optimized in different ways.
+
+Wrapping up the results, one can conclude that the final OpenCL implementation performs better than CPU and CUDA for problem sizes bigger than 128x128.
+The likely reason that CUDA outperforms OpenCL for smaller problem sizes is that the kernel startup of OpenCL is very resource intensive and obscures the better better kernel performance of OpenCL.
+In general CUDA outperforms OpenCL, so the outcome comes as a little surprise.
+
+
 
 % Wrapping up the results, one can conclude that each processing step is being sped up by running it on a GPU.
 % However in many cases one cannot simply copy the CPU kernel code to the GPU, a lot of focus needs to be put in using the different memory layers.
