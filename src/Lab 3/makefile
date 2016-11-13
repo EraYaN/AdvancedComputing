@@ -3,11 +3,20 @@ LD							:= g++
 NVCC						:= nvcc
 PROJ_BASE					:= .
 BIN_DIR						:= $(PROJ_BASE)/bin
-EXEC_CPU					:= $(BIN_DIR)/BrainCPU
-EXEC_CUDA					:= $(BIN_DIR)/BrainCUDA
-EXEC_OPENCL					:= $(BIN_DIR)/BrainOpenCL
-#RUN_IMAGE					:= "image00.jpg"
-#RUN_ID						:= 0
+NETWORK_SIZE				:= 0
+EXEC_CPU_BASE					:= $(BIN_DIR)/BrainCPU
+EXEC_CUDA_BASE					:= $(BIN_DIR)/BrainCUDA
+EXEC_OPENCL_BASE					:= $(BIN_DIR)/BrainOpenCL
+ifeq ($(NETWORK_SIZE),0)
+	EXEC_CPU					:= $(EXEC_CPU_BASE)_64x64
+	EXEC_CUDA					:= $(EXEC_CUDA_BASE)_64x64
+	EXEC_OPENCL					:= $(EXEC_OPENCL_BASE)_64x64
+else
+	EXEC_CPU					:= $(EXEC_CPU_BASE)_$(NETWORK_SIZE)x$(NETWORK_SIZE)
+	EXEC_CUDA					:= $(EXEC_CUDA_BASE)_$(NETWORK_SIZE)x$(NETWORK_SIZE)
+	EXEC_OPENCL					:= $(EXEC_OPENCL_BASE)_$(NETWORK_SIZE)x$(NETWORK_SIZE)
+endif
+
 CPPSTD						:= c++11
 
 MODULES_CPU					:= ACSShared BrainCPU
@@ -68,6 +77,10 @@ GENCODE_FLAGS				?= $(GENCODE_SM30) $(GENCODE_SM32) $(GENCODE_SM35) $(GENCODE_SM
 NVCCFLAGS					:= $(GENCODE_FLAGS)
 COPTS						:= -DUSE_DOUBLES
 
+ifneq ($(NETWORK_SIZE),0)
+	COPTS += -DIO_NETWORK_DIM1=$(NETWORK_SIZE) -DIO_NETWORK_DIM2=$(NETWORK_SIZE)
+endif
+
 ifeq ($(USE_RDTSC),1)
 	COPTS += -DUSE_RDTSC
 else
@@ -96,19 +109,19 @@ cuda: checkdirs $(EXEC_CUDA)
 opencl: checkdirs $(EXEC_OPENCL)
 
 $(EXEC_CPU): $(OBJ_CPU)
-	@echo "[LD] Linking BrainCPU.."
+	@echo "[LD] Linking $(EXEC_CPU).."
 	@$(LD) $^ -o $@ $(INCLUDES) $(CUDA_LIBS) $(CFLAGS) $(CUDA_LDFLAGS)
-	@echo "[LD] Linked BrainCPU."
+	@echo "[LD] Linked $(EXEC_CPU)."
 
 $(EXEC_CUDA): $(OBJ_CUDA)
-	@echo "[LD] Linking BrainCUDA.."
+	@echo "[LD] Linking $(EXEC_CUDA).."
 	@$(LD) $^ -o $@ $(INCLUDES) $(CUDA_LIBS) $(CFLAGS) $(CUDA_LDFLAGS)
-	@echo "[LD] Linked BrainCUDA."
+	@echo "[LD] Linked $(EXEC_CUDA)."
 
 $(EXEC_OPENCL): $(OBJ_OPENCL)
-	@echo "[LD] Linking BrainOpenCL.."
+	@echo "[LD] Linking $(EXEC_OPENCL).."
 	@$(LD) $^ -o $@ $(INCLUDES) $(CUDA_LIBS) $(CFLAGS) $(CUDA_LDFLAGS)
-	@echo "[LD] Linked BrainOpenCL."
+	@echo "[LD] Linked $(EXEC_OPENCL)."
 	@echo "[CP] Copying OpenCL Kernels.."
 	@cp -f $(PROJ_BASE)/BrainOpenCL/*.h $(BIN_DIR)
 	@cp -f $(PROJ_BASE)/BrainOpenCL/*.cl $(BIN_DIR)
@@ -134,9 +147,9 @@ clean:
 	rm -rf $(BUILD_DIR_CPU)
 	rm -rf $(BUILD_DIR_CUDA)
 	rm -rf $(BUILD_DIR_OPENCL)
-	rm -f $(EXEC_CPU) *~
-	rm -f $(EXEC_CUDA) *~
-	rm -f $(EXEC_OPENCL) *~
+	rm -f $(EXEC_CPU_BASE)* *~
+	rm -f $(EXEC_CUDA_BASE)* *~
+	rm -f $(EXEC_OPENCL_BASE)* *~
 
 
 run: all
@@ -150,15 +163,15 @@ schedule: schedule_cpu schedule_cuda schedule_opencl
 	@echo "Scheduling all benchmarks."
 
 schedule_cpu: cpu
-	@echo "Scheduling for $(EXEC_CPU) with ID: $(RUN_ID)_CPU; Profiling: $(PROFILING); Arguments: $(BENCH_ARGUMENTS)"
+	@echo "Scheduling for $(EXEC_CPU) ($(NETWORK_SIZE)x$(NETWORK_SIZE)) with ID: $(RUN_ID)_CPU; Profiling: $(PROFILING); Arguments: $(BENCH_ARGUMENTS)"
 	@sh schedule-script.sh $(EXEC_CPU) $(RUN_ID)_CPU $(PROFILING) $(BENCH_ARGUMENTS)
 	
 schedule_cuda: cuda
-	@echo "Scheduling for $(EXEC_CUDA) with ID: $(RUN_ID)_CUDA; Profiling: $(PROFILING); Arguments: $(BENCH_ARGUMENTS)"
+	@echo "Scheduling for $(EXEC_CUDA) ($(NETWORK_SIZE)x$(NETWORK_SIZE)) with ID: $(RUN_ID)_CUDA; Profiling: $(PROFILING); Arguments: $(BENCH_ARGUMENTS)"
 	@sh schedule-script.sh $(EXEC_CUDA) $(RUN_ID)_CUDA $(PROFILING) $(BENCH_ARGUMENTS)
 	
 schedule_opencl: opencl
-	@echo "Scheduling for $(EXEC_OPENCL) with ID: $(RUN_ID)_OPENCL; Profiling: $(PROFILING); Arguments: $(BENCH_ARGUMENTS)"
+	@echo "Scheduling for $(EXEC_OPENCL) ($(NETWORK_SIZE)x$(NETWORK_SIZE)) with ID: $(RUN_ID)_OPENCL; Profiling: $(PROFILING); Arguments: $(BENCH_ARGUMENTS)"
 	@sh schedule-script.sh $(EXEC_OPENCL) $(RUN_ID)_OPENCL $(PROFILING) $(BENCH_ARGUMENTS)
 
 #RUNSERVER_REQ_RUN_SETTINGS=True
