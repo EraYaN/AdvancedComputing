@@ -96,10 +96,11 @@
 
  1. Run `make all` in `/src/Lab 3/`
  2. Run `make schedule` to schedule all the benchmarks.
- 3. Alternatively, run `make schedule_cpu RUN_ID="cpu-64x64-custom" PROFILING="no" BENCH_ARGUMENTS="" NETWORK_SIZE=64` to schedule the CPU benchmark for a brain size of 32 x 32 cells without profiling.
+ 3. Alternatively, run `make schedule_cpu RUN_ID="cpu-64x64-custom" PROFILING="no" BENCH_ARGUMENTS="" NETWORK_SIZE=64` to schedule the CPU benchmark for a brain size of 64 x 64 cells without profiling.
  4. Alternatively, run `make run` to run the benchmarks directly.
  6. Alternatively, run `python Wrapper/Wrapper.py --disable-plot` to get the full data set.
  6. Lastly run `python Wrapper/Wrapper.py --disable-bench` in the folder with the output `*.pickle` files to generate all the figures.
 
 **Note:** `make runserver` is an alias for `make schedule`  
 **Note:** There is a helper rsync script in the `/scripts/` folder  
+**Note:** The CPU benchmark defaults to 100 ms and the GPU benchmarks default to 5000 ms 
