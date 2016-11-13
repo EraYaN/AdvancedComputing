@@ -38,9 +38,11 @@ def ExecuteJob(job_title,filename,iterations,max_n,network_sizes,generate_data=T
         if PrepareBenchmark(make,make_flags,cdw) == 0:
             results = ExecuteBenchmark(job_title, iterations,max_n,network_sizes,bin,cdw, output_dir);
 
-            PrintResults(results);
             print(C_CYAN+"Saving pickle...")
             SaveResults("{0}.pickle".format(filename),results)
+
+            PrintResults(results);
+            
 
     if generate_plots:
         if not generate_data:

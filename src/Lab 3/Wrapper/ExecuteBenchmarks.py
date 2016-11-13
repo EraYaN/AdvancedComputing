@@ -86,6 +86,7 @@ def ExecuteBenchmark(job_title, iterations, max_n=1,network_sizes=[64], bin="mak
                 run_id = "{0}-{3}x{3}-{1}-{2}".format(job_title,iteration,n,network_size)
                 #print("{0} RUN_ID=\"{1}\" PROFILING=no BENCH_ARGUMENTS=\"{2}\" NETWORK_SIZE={3}".format(bin,run_id,arguments,network_size))
                 #continue;
+                #result = EXIT_SUCCESS
                 result = subprocess.call("{0} RUN_ID=\"{1}\" PROFILING=no BENCH_ARGUMENTS=\"{2}\" NETWORK_SIZE={3}".format(bin,run_id,arguments,network_size),cwd=cwd,shell=True)
                 #print(result.args)
                 if result != EXIT_SUCCESS:
@@ -123,6 +124,7 @@ def ExecuteBenchmark(job_title, iterations, max_n=1,network_sizes=[64], bin="mak
                     times[testName]['cleanup_time'] += float(cleanup_time) / max_n
                     times[testName]['total_time'] += float(total_time) / max_n
 
+                       
 
                 #if times['cuda']['total_time'] != 0:
                 #    new_time += times['seq']['total_time'] /
@@ -132,6 +134,13 @@ def ExecuteBenchmark(job_title, iterations, max_n=1,network_sizes=[64], bin="mak
                 #sys.stdout.write("{3}: Run {4} out of {5}: {0: >2} out of {1: >2} ({2: >3,.0%})\n".format(n + 1, max_n,(n + 1 + current_run * max_n) / (max_n * number_of_runs['runs']),job_title,current_run,number_of_runs['runs']))
                 #sys.stdout.flush()
 
+            #For if the benchmarks timed out
+            if 'CPU' not in times:
+                times['CPU'] = copy.deepcopy(time_template)
+            if 'CUDA' not in times:
+                times['CUDA'] = copy.deepcopy(time_template)
+            if 'OpenCL' not in times:
+                times['OpenCL'] = copy.deepcopy(time_template)
 
             #TODO write file.
             results.append({
@@ -214,7 +223,7 @@ def PrintResults(results):
         #                                 GetDRAMThroughput(result['prof']['Neighbour'],'min'))
 
         display_results.append([
-            result['network_size']+1,
+            result['network_size'],
         result['iteration']+1,
         result['passes'],
         error_text,
