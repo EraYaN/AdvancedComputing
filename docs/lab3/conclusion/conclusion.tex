@@ -1,5 +1,5 @@
 %!TEX program=xelatex
-%!TEX spellcheck=en_US
+%!TEX spellcheck=en_GB
 \documentclass[final]{report}
 \input{../../.library/preamble.tex}
 \input{../../.library/style.tex}
@@ -13,44 +13,5 @@ This shows that CUDA and OpenCL are optimized in different ways.
 Wrapping up the results, one can conclude that the final OpenCL implementation performs better than CPU and CUDA for problem sizes bigger than 128x128.
 The likely reason that CUDA outperforms OpenCL for smaller problem sizes is that the kernel startup of OpenCL is very resource intensive and obscures the better better kernel performance of OpenCL.
 In general CUDA outperforms OpenCL, so the outcome comes as a little surprise.
-
-
-
-% Wrapping up the results, one can conclude that each processing step is being sped up by running it on a GPU.
-% However in many cases one cannot simply copy the CPU kernel code to the GPU, a lot of focus needs to be put in using the different memory layers.
-% In order to not only get a fast executing kernel, but also a fast executing program.
-
-% \cref{fig:total-cuda-speedup} and \cref{fig:kernel-cuda-speedup} illustrate the overall and kernel speedups per kernel, the global memory histogram implementation has been left out.
-
-% \begin{figure}[H]
-% \centering
-%     \includegraphics[width=\linewidth]{resources/total-cuda-speedup-shared.pdf}
-%     \caption{The total speedup of the CUDA kernels.}
-%     \label{fig:total-cuda-speedup}
-% \end{figure}
-
-% \begin{figure}[H]
-% \centering
-%     \includegraphics[width=\linewidth]{resources/kernel-cuda-speedup-shared.pdf}
-%     \caption{The kernel speedup of the CUDA kernels.}
-%     \label{fig:kernel-cuda-speedup}
-% \end{figure}
-
-% The smoothing kernel saw the biggest improvement of all, even when using a global memory CUDA implementation.
-% Regardless of the implementation, the filter has the largest sequential running time, allowing the GPU to have the biggest impact when executing everything in a parallel manner.
-% A speedup as higher than \num{19.6} thousand has been achieved with the smoothing kernel on the largest image (image09).
-% Since the relatively slow data transfer between the CPU and GPU, the overall speedup became \num{44.6} in the end.
-
-% The grayscale kernel saw the smallest improvement of all, this has to do a lot with the explanation above.
-% The GPU starts outperforming the CPU once it is able to execute a lot of computations in parallel.
-% This is also the case for the grayscale kernel, \cref{fig:kernel-cuda-speedup} shows that the speedup in the kernel is between \num{100} and \num{2500} depending on the image size.
-% However, the reason that grayscale sees the smallest improvement is due to the relative short sequential running time of the kernel.
-% The smaller this running time, the smaller the impact an improved kernel speed will have on the overall outcome; the lower overall speedup is a result of this.
-
-% When one looks at the improvement in kernel times, it is clear that the bigger the image the bigger the improvement in execution time.
-% However, when one compares this performance to the overall speedup the picture is very different.
-% The overall speedup is roughly the same for each images.
-% This indicates that even though the kernel itself has a much more noticeable performance increase for larger data sets, the speedup is compensated by the larger dataset that needs to be copied to the GPU.
-% Therefore the overall speedup is the same for big and small images.
 
 \end{document}
