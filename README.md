@@ -62,9 +62,9 @@
  6. Alternatively, run `python Wrapper/Wrapper.py --disable-plot` to get the full data set.
  6. Lastly run `python Wrapper/Wrapper.py --disable-bench` in the folder with the output `*.pickle` files to generate all the figures.
 
-**Note:** To use the `rdtsc()` intrinsic for timing instead of the default `chrono::high_resolution_clock` append `USE_RDTSC=1` to any of the make command, results may vary. See `/src/acs-shared/timing.*` for implementation details.
-**Note:** `make runserver` is an alias for `make schedule`
-**Note:** There is a helper rsync script in the `/scripts/` folder
+**Note:** To use the `rdtsc()` intrinsic for timing instead of the default `chrono::high_resolution_clock` append `USE_RDTSC=1` to any of the make command, results may vary. See `/src/acs-shared/timing.*` for implementation details.  
+**Note:** `make runserver` is an alias for `make schedule`  
+**Note:** There is a helper rsync script in the `/scripts/` folder  
 
 # Lab 3
 
@@ -101,5 +101,5 @@
  6. Alternatively, run `python Wrapper/Wrapper.py --disable-plot` to get the full data set.
  6. Lastly run `python Wrapper/Wrapper.py --disable-bench` in the folder with the output `*.pickle` files to generate all the figures.
 
-**Note:** `make runserver` is an alias for `make schedule`
-**Note:** There is a helper rsync script in the `/scripts/` folder
+**Note:** `make runserver` is an alias for `make schedule`  
+**Note:** There is a helper rsync script in the `/scripts/` folder  
