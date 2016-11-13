@@ -6,6 +6,22 @@
 \addbibresource{../../.library/bibliography.bib}
 \begin{document}
 \chapter{Results}
+To start off, the same trends were spotted as in Lab 1 and therefore all the benchmarks are run with a local block size of 16x16, or smaller with a smaller problem size.
+The global block size will be adjusted to fit the problem size
+
+Another thing to note, is that the copying of the output data was turned off for the benchmarking.
+This greatly improved speed and didn't affect the relative time difference between CUDA and OpenCL.
+The CPU performance on the other hand will turn out to be a bit more positive when output generation is turned on, since it does not have to copy the data back from a remote device.
+On the other hand, the CPU code runs so slow that its number of simulation steps is 20 times lower than that of CUDA and OpenCL.
+The CPU comparison is taken up in the report merely to verify and learn more about its performance, however actually all the running times of the CPU should be multiplied by 20.
+It is by no means a close match between the CPU and GPU.
+
+\section{Execution Time for different Enhancements}
+\cref{tab:results}, lists the results for the three enhancement stages.
+The timing of the CUDA and CPU code is not very reliable.
+Basically, the time should be the same for each stage, since the CPU and CUDA code did not receive any edits in between the stages.
+During the benchmarking several IO stalls and some other unidentified problems occurred and multiple runs were not able to filter out several runtime spikes.
+Therefore, the spikes of both the CPU and CUDA are filtered out by taking the average of the other two correct values.
 
 \begin{table}[H]
 	\centering
@@ -22,25 +38,29 @@
 	\end{tabular}
 \end{table}
 
-\cref{tab:results}, lists the results for the three enhancement stages.
-The timing of the CUDA and CPU code is not very reliable.
-Basically, the time should be the same for each stage, since the CPU and CUDA code did not receive any edits in between the stages.
-During the benchmarking several IO stalls and some other unidentified problems occurred and multiple runs were not able to filter out several runtime spikes.
-Therefore, the spikes of both the CPU and CUDA are filtered out by taking the average of the other two correct values.
+As mentioned in \cref{sec:iapp-array}, transforming \texttt{iApp} into an array will not contribute to the performance.
+Therefore, only the image texture can make a difference in stage 2, this should help speeding up edge conditions for the neighbour computations.
+However, the image texture a drop in performance of 0.7 sec (5\% drop).
+This is very likely due to the many typecasts that needed to be done, as described in \cref{sec:image-texture}, to make use of this feature in OpenCL.
+Hence, one can conclude that both enhancements will not be transferred to Stage 3.
 
-\begin{figure}[H]
-\centering
-    \includegraphics[width=\textwidth]{resources/total-time-graph.pdf}
-    \caption{The total execution time for each kernel per enhancement stage}
-    \label{fig:total-time-graph}
-\end{figure}
+Stage 3 explores the option of merging the neighbour and compute kernel into one.
+This allows for more efficient passing of values, and prevent any kernel swapping (intensive operation).
+This enhancement proves to be a good choice and a 16\% performance increase is seen.
 
-\begin{figure}[H]
-\centering
-    \includegraphics[width=\textwidth]{resources/kernel-time-graph.pdf}
-    \caption{The execution time for each kernel per enhancement stage}
-    \label{fig:kernel-time-graph}
-\end{figure}
+% \begin{figure}[H]
+% \centering
+%     \includegraphics[width=\textwidth]{resources/total-time-graph.pdf}
+%     \caption{The total execution time for each kernel per enhancement stage}
+%     \label{fig:total-time-graph}
+% \end{figure}
+
+% \begin{figure}[H]
+% \centering
+%     \includegraphics[width=\textwidth]{resources/kernel-time-graph.pdf}
+%     \caption{The execution time for each kernel per enhancement stage}
+%     \label{fig:kernel-time-graph}
+% \end{figure}
 
 \begin{figure}[H]
 \centering
@@ -49,11 +69,13 @@ Therefore, the spikes of both the CPU and CUDA are filtered out by taking the av
     \label{fig:opencl-per-stage-graph}
 \end{figure}
 
-Copying the input current, \texttt{iApp} as one array did not harvest any improvements in OpenCL.
-Even though the copying of the input current can be avoided, the index still needs to be copied, which effectively has zero profit.
+\cref{fig:opencl-per-stage-graph}, shows the execution time of each stage for the total and kernel time.
+The total and kernel time always keep the same relative gap to each other.
+This indicates that the total time is actually only affected by the kernel time.
+This is obvious, since the enhancement stages mainly focused on improving the kernel time and the data needs to be copied to the GPU anyways.
 
-TODO: Images are faster for neighbour 3.3 sec to 2.6, but slower for compute. (5-10\%)
-TODO: note somewhere which simulation size we used
-TODO: Discuss the improvement of the merged kernel
+
+\section{Execution Time for different Problem Sizes}
+
 
 \end{document}

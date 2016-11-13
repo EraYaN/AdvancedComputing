@@ -18,8 +18,6 @@ The three techniques are:
 \end{itemize}
 
 \section{OpenCL Image}\label{sec:image-texture}
-TODO: describe implementation
-with CLAMP or CLAMP\_TO\_EDGE.
 OpenCL images are the OpenCL equivalent of the CUDA textures.
 This was implemented for the array containing the vDend values for all the cells.
 OpenCL offers two options for handling border cases, CLK\_ADDRESS\_CLAMP and CLK\_ADDRESS\_CLAMP\_TO\_EDGE.
@@ -29,7 +27,7 @@ OpenCL does not support double type images, so we went with CL\_UNSIGNED\_INT32 
 So when we retrieve a "pixel" from this image we can use the first element of the double2 vector that we cast the returned uint4 to.
 This is not very optimal, but switching to CL\_UNSIGNED\_INT16 and CL\_RGBA  did not help, performance wise.
 As shown in \cref{tab:gpu-specs} (Stage 2) we even lost a little bit of performance on this enhancement.
-Hence why we removed is in Stage 3.
+Hence why we removed it in Stage 3.
 
 \section{iApp as an array}\label{sec:iapp-array}
 The external input current \texttt{iApp} is copied every time step to the GPU.
